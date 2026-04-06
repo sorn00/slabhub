@@ -1,12 +1,5 @@
 'use client'
 
-/**
- * SlabHub Admin Panel
- * ⚠️ NO AUTH — Add authentication before going live!
- *    Recommended: NextAuth.js with a simple email/password provider,
- *    or protect this route via middleware with a hardcoded admin token.
- */
-
 import { useState, useEffect, useCallback } from 'react'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -638,20 +631,26 @@ export default function AdminPage() {
 
   const ActiveComponent = SECTIONS.find(s => s.id === activeSection)?.component || FeaturedStones
 
+  const handleSignOut = async () => {
+    await fetch('/api/admin-logout', { method: 'POST' })
+    window.location.href = '/admin/login'
+  }
+
   return (
     <div className="min-h-screen">
-      {/* Warning banner */}
-      <div className="bg-red-500/10 border-b border-red-500/20 px-4 py-2 text-center">
-        <p className="text-red-400 text-xs font-medium">
-          ⚠️ <strong>No authentication enabled.</strong> Add auth before going live — see comment in <code>/app/admin/page.tsx</code>.
-        </p>
-      </div>
-
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">Admin Panel</h1>
-          <p className="text-slate-400 mt-1">Manage SlabHub content, pricing, and leads.</p>
+        <div className="flex items-start justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Admin Panel</h1>
+            <p className="text-slate-400 mt-1">Manage SlabHub content, pricing, and leads.</p>
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500 px-3 py-1.5 rounded-lg text-sm transition-colors"
+          >
+            Sign Out
+          </button>
         </div>
 
         <div className="flex flex-col md:flex-row gap-6">
