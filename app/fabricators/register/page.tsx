@@ -27,7 +27,10 @@ export default function FabricatorRegisterPage() {
     phone: '',
     email: '',
     website: '',
+    address: '',
+    city: '',
     state: '',
+    zip: '',
     radius: '50mi',
     specialties: [] as string[],
   })
@@ -95,9 +98,14 @@ export default function FabricatorRegisterPage() {
               <input type="tel" placeholder="Phone number *" value={data.phone} onChange={e => update('phone', e.target.value)} className={inputClass} />
               <input type="email" placeholder="Email address *" value={data.email} onChange={e => update('email', e.target.value)} className={inputClass} />
               <input type="url" placeholder="Website (optional)" value={data.website} onChange={e => update('website', e.target.value)} className={inputClass} />
+              <input type="text" placeholder="Street address *" value={data.address} onChange={e => update('address', e.target.value)} className={inputClass} />
+              <div className="grid grid-cols-2 gap-3">
+                <input type="text" placeholder="City *" value={data.city} onChange={e => update('city', e.target.value)} className={inputClass} />
+                <input type="text" placeholder="Zip code *" value={data.zip} onChange={e => update('zip', e.target.value.replace(/\D/g, '').slice(0, 5))} className={inputClass} maxLength={5} />
+              </div>
               <button
                 onClick={next}
-                disabled={!data.businessName || !data.ownerName || !data.phone || !data.email}
+                disabled={!data.businessName || !data.ownerName || !data.phone || !data.email || !data.address || !data.city || !data.zip}
                 className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 font-bold py-3 rounded-lg transition-colors mt-2"
               >
                 Continue →
@@ -201,6 +209,7 @@ export default function FabricatorRegisterPage() {
             </p>
             <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 text-left text-sm text-slate-400 space-y-2">
               <p><span className="text-amber-400 font-medium">Business:</span> {data.businessName}</p>
+              <p><span className="text-amber-400 font-medium">Address:</span> {data.address}, {data.city}, {data.state} {data.zip}</p>
               <p><span className="text-amber-400 font-medium">Territory:</span> {data.state} · {data.radius}</p>
               <p><span className="text-amber-400 font-medium">Specialties:</span> {data.specialties.join(', ')}</p>
               <p><span className="text-amber-400 font-medium">Lead price:</span> $200 per delivery</p>

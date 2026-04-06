@@ -21,7 +21,10 @@ export async function POST(req: NextRequest) {
           metadata: {
             businessName: body.businessName,
             ownerName: body.ownerName,
+            address: body.address || '',
+            city: body.city || '',
             state: body.state,
+            zip: body.zip || '',
             radius: body.radius,
           },
         })
