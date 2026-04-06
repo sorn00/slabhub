@@ -20,6 +20,7 @@ function QuoteForm() {
   const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [matchedState, setMatchedState] = useState<string | null>(null)
   const [data, setData] = useState({
     projectType: '',
     material: '',
@@ -40,11 +41,32 @@ function QuoteForm() {
   const submit = async () => {
     setLoading(true)
     try {
+      // Call route-lead which handles matching + notification
+      const res = await fetch('/api/route-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          zip: data.zip,
+          customerName: data.name,
+          phone: data.phone,
+          email: data.email,
+          material: data.material,
+          sqft: data.size,
+          stones: [data.color, data.projectType].filter(Boolean),
+        }),
+      })
+      if (res.ok) {
+        const result = await res.json()
+        if (result.matched && result.fabricatorState) {
+          setMatchedState(result.fabricatorState)
+        }
+      }
+      // Also save full quote record
       await fetch('/api/save-quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-      })
+      }).catch(() => {})
       setSubmitted(true)
     } catch (err) {
       console.error(err)
@@ -60,7 +82,9 @@ function QuoteForm() {
         <div className="text-5xl mb-6">🎉</div>
         <h2 className="text-3xl font-bold text-white mb-4">You're matched!</h2>
         <p className="text-slate-400 text-lg max-w-md mx-auto">
-          We're matching you with fabricators in your area. You'll hear from them within 24 hours.
+          {matchedState
+            ? `Great! We're connecting you with our ${matchedState} partner. You'll hear from them within 24 hours.`
+            : `We're matching you with fabricators in your area. You'll hear from them within 24 hours.`}
         </p>
         <div className="mt-8 bg-amber-500/10 border border-amber-500/20 rounded-xl p-6 max-w-sm mx-auto">
           <p className="text-amber-400 text-sm font-medium">What happens next?</p>
