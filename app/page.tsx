@@ -1,8 +1,142 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
+
+interface Stone {
+  id: string
+  name: string
+  material: string
+  primaryColor: string
+  priceRange: number
+  imageUrl?: string
+  tags?: string[]
+}
+
+interface Special {
+  id: string
+  title: string
+  description: string
+  discountText: string
+  stoneId: string
+  expiryDate: string
+}
+
+function ActiveSpecialBanner() {
+  const [special, setSpecial] = useState<Special | null>(null)
+
+  useEffect(() => {
+    fetch('/data/specials.json')
+      .then(r => r.ok ? r.json() : [])
+      .then((specials: Special[]) => {
+        const active = specials.find(s => new Date(s.expiryDate) > new Date())
+        setSpecial(active || null)
+      })
+      .catch(() => {})
+  }, [])
+
+  if (!special) return null
+
+  return (
+    <div className="bg-gradient-to-r from-amber-600/20 via-amber-500/15 to-amber-600/20 border-y border-amber-500/30 py-3 px-4">
+      <div className="max-w-6xl mx-auto flex items-center justify-center gap-3 text-center flex-wrap">
+        <span className="text-amber-400 font-bold">{special.title}</span>
+        {special.discountText && (
+          <span className="bg-amber-500 text-slate-900 text-xs font-bold px-2 py-0.5 rounded-full">
+            {special.discountText}
+          </span>
+        )}
+        {special.description && (
+          <span className="text-slate-300 text-sm">{special.description}</span>
+        )}
+        {special.stoneId && (
+          <Link href={`/stones?highlight=${special.stoneId}`} className="text-amber-400 hover:text-amber-300 text-sm underline underline-offset-2">
+            View Stone →
+          </Link>
+        )}
+        <span className="text-slate-500 text-xs">Ends {new Date(special.expiryDate).toLocaleDateString()}</span>
+      </div>
+    </div>
+  )
+}
+
+function FeaturedStonesSection() {
+  const [featuredStones, setFeaturedStones] = useState<Stone[]>([])
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/data/featured-stones.json').then(r => r.ok ? r.json() : []),
+      fetch('/data/msi-catalog.json').then(r => r.ok ? r.json() : []),
+    ]).then(([featuredIds, catalog]: [string[], Stone[]]) => {
+      if (!featuredIds.length || !catalog.length) return
+      const map = new Map(catalog.map(s => [s.id, s]))
+      const stones = featuredIds.map(id => map.get(id)).filter(Boolean) as Stone[]
+      setFeaturedStones(stones.slice(0, 8))
+    }).catch(() => {})
+  }, [])
+
+  if (!featuredStones.length) return null
+
+  const materialColors: Record<string, string> = {
+    quartz: 'bg-blue-500/20 text-blue-300',
+    granite: 'bg-green-500/20 text-green-300',
+    marble: 'bg-amber-500/20 text-amber-300',
+    quartzite: 'bg-purple-500/20 text-purple-300',
+  }
+
+  return (
+    <section className="max-w-6xl mx-auto px-4 py-16">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h2 className="text-2xl font-bold text-white">Featured Stones</h2>
+          <p className="text-slate-400 text-sm mt-1">Handpicked selections from our catalog</p>
+        </div>
+        <Link href="/stones" className="text-amber-400 hover:text-amber-300 text-sm font-medium transition-colors">
+          Browse all →
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {featuredStones.map(stone => (
+          <Link
+            key={stone.id}
+            href={`/stones?highlight=${stone.id}`}
+            className="group relative bg-slate-800 rounded-xl overflow-hidden border border-slate-700 hover:border-amber-500/50 transition-all"
+          >
+            <div className="aspect-[4/3] bg-slate-700 relative">
+              {stone.imageUrl ? (
+                <Image
+                  src={stone.imageUrl}
+                  alt={stone.name}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  unoptimized
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-4xl">🪨</div>
+              )}
+              <div className="absolute top-2 left-2">
+                <span className="bg-amber-500 text-slate-900 text-xs font-bold px-2 py-0.5 rounded-full">
+                  ⭐ Featured
+                </span>
+              </div>
+            </div>
+            <div className="p-3">
+              <div className="text-white font-semibold text-sm truncate">{stone.name}</div>
+              <div className="flex items-center justify-between mt-1">
+                <span className={`text-xs px-1.5 py-0.5 rounded capitalize ${materialColors[stone.material] || 'bg-slate-700 text-slate-300'}`}>
+                  {stone.material}
+                </span>
+                <span className="text-amber-400 text-xs">{'$'.repeat(stone.priceRange)}</span>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  )
+}
 
 export default function HomePage() {
   const [zip, setZip] = useState('')
@@ -15,6 +149,7 @@ export default function HomePage() {
 
   return (
     <div>
+      <ActiveSpecialBanner />
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-[#0f172a] to-slate-800 opacity-90" />
@@ -47,6 +182,11 @@ export default function HomePage() {
               Get Quotes
             </button>
           </form>
+          <div className="mt-4">
+            <Link href="/stones" className="inline-flex items-center gap-2 text-slate-400 hover:text-amber-400 text-sm transition-colors">
+              <span>◆</span> Or browse our stone catalog first →
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -68,6 +208,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Featured Stones */}
+      <FeaturedStonesSection />
 
       {/* How it works */}
       <section className="max-w-6xl mx-auto px-4 py-20">
@@ -104,7 +247,10 @@ export default function HomePage() {
             </div>
           ))}
         </div>
-        <div className="text-center mt-10">
+        <div className="text-center mt-10 flex flex-col sm:flex-row gap-3 justify-center">
+          <Link href="/stones" className="bg-slate-700 hover:bg-slate-600 text-white font-bold px-8 py-3 rounded-lg transition-colors inline-block">
+            Browse Stones
+          </Link>
           <Link href="/quote" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-8 py-3 rounded-lg transition-colors inline-block">
             Start Your Quote Request
           </Link>

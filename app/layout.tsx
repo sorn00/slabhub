@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import Navbar from '@/components/Navbar'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'SlabHub — Find Stone Fabricators Near You',
@@ -21,6 +22,11 @@ export default function RootLayout({
           <div className="max-w-6xl mx-auto px-4 text-center text-slate-500 text-sm">
             <p>© 2026 SlabHub. All rights reserved.</p>
             <p className="mt-1">slabhub.com — The stone marketplace for homeowners and fabricators.</p>
+            <p className="mt-3">
+              <Link href="/admin" className="text-slate-600 hover:text-slate-400 text-xs transition-colors">
+                Admin
+              </Link>
+            </p>
           </div>
         </footer>
       </body>

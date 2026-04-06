@@ -16,11 +16,14 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-6">
-          <Link href="/quote" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-4 py-2 rounded-lg transition-colors">
-            Get Quotes
+          <Link href="/stones" className="text-slate-300 hover:text-white transition-colors">
+            Browse Stones
           </Link>
           <Link href="/fabricators" className="text-slate-300 hover:text-white transition-colors">
             For Fabricators
+          </Link>
+          <Link href="/quote" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-4 py-2 rounded-lg transition-colors">
+            Get Quotes
           </Link>
         </div>
 
@@ -43,6 +46,9 @@ export default function Navbar() {
       {/* Mobile menu */}
       {menuOpen && (
         <div className="md:hidden border-t border-slate-800 px-4 py-4 flex flex-col gap-4 bg-[#0f172a]">
+          <Link href="/stones" className="text-slate-300 hover:text-white transition-colors text-center" onClick={() => setMenuOpen(false)}>
+            Browse Stones
+          </Link>
           <Link href="/quote" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-4 py-2 rounded-lg text-center transition-colors" onClick={() => setMenuOpen(false)}>
             Get Quotes
           </Link>
