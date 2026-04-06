@@ -21,7 +21,7 @@ export default function RootLayout({
         <footer className="border-t border-slate-800 py-8 mt-16">
           <div className="max-w-6xl mx-auto px-4 text-center text-slate-500 text-sm">
             <p>© 2026 SlabHub. All rights reserved.</p>
-            <p className="mt-1">slabhub.com — The stone marketplace for homeowners and fabricators.</p>
+            <p className="mt-1">slabhub.vercel.app — The stone marketplace for homeowners and fabricators.</p>
             <p className="mt-3">
               <Link href="/admin" className="text-slate-600 hover:text-slate-400 text-xs transition-colors">
                 Admin
