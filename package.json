@@ -12,13 +12,18 @@
     "@stripe/react-stripe-js": "^6.1.0",
     "@stripe/stripe-js": "^9.0.1",
     "axios": "^1.14.0",
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.8.0",
     "cheerio": "^1.2.0",
     "next": "14.2.35",
+    "next-auth": "^5.0.0-beta.30",
     "react": "^18",
     "react-dom": "^18",
     "stripe": "^22.0.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

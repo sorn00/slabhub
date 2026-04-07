@@ -1,0 +1,393 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useSession, signOut } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import Image from 'next/image'
+
+interface Favorite {
+  id: number
+  stone_id: string
+  stone_name: string
+  stone_image: string
+  stone_material: string
+  stone_price_range: number
+  created_at: string
+}
+
+interface QuoteRequest {
+  id: number
+  stone_id: string
+  stone_name: string
+  customer_name: string
+  phone: string
+  sqft_estimate: number
+  notes: string
+  status: string
+  created_at: string
+  quote_file: string | null
+  quote_file_name: string | null
+}
+
+const PRICE_LABELS: Record<number, string> = { 1: '$', 2: '$$', 3: '$$$', 4: '$$$$' }
+
+function QuoteRequestModal({
+  stone,
+  onClose,
+  onSubmit,
+}: {
+  stone: Favorite
+  onClose: () => void
+  onSubmit: () => void
+}) {
+  const [customerName, setCustomerName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [sqft, setSqft] = useState('')
+  const [notes, setNotes] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setSubmitting(true)
+
+    const res = await fetch('/api/quote-requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        stone_id: stone.stone_id,
+        stone_name: stone.stone_name,
+        customer_name: customerName,
+        phone,
+        sqft_estimate: parseFloat(sqft) || null,
+        notes,
+      }),
+    })
+
+    setSubmitting(false)
+    if (!res.ok) {
+      const data = await res.json()
+      setError(data.error || 'Failed to submit request')
+      return
+    }
+    onSubmit()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg">
+        <h2 className="text-lg font-bold text-white mb-1">Request a Quote</h2>
+        <p className="text-slate-400 text-sm mb-5">
+          {stone.stone_name} — {stone.stone_material}
+        </p>
+
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3 mb-4">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-slate-400 text-xs mb-1">Your Name *</label>
+              <input
+                type="text"
+                required
+                value={customerName}
+                onChange={e => setCustomerName(e.target.value)}
+                placeholder="Jane Smith"
+                className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+              />
+            </div>
+            <div>
+              <label className="block text-slate-400 text-xs mb-1">Phone *</label>
+              <input
+                type="tel"
+                required
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                placeholder="(555) 000-0000"
+                className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-slate-400 text-xs mb-1">Estimated Square Footage</label>
+            <input
+              type="number"
+              min="0"
+              step="0.5"
+              value={sqft}
+              onChange={e => setSqft(e.target.value)}
+              placeholder="e.g. 45"
+              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+            />
+          </div>
+          <div>
+            <label className="block text-slate-400 text-xs mb-1">Notes</label>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="Edge profile, cutouts, special requests…"
+              rows={3}
+              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500 resize-none"
+            />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 border border-slate-600 text-slate-300 hover:text-white py-2.5 rounded-lg text-sm transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-900 font-bold py-2.5 rounded-lg text-sm transition-colors"
+            >
+              {submitting ? 'Submitting…' : 'Submit Request'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+export default function DashboardPage() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const [favorites, setFavorites] = useState<Favorite[]>([])
+  const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([])
+  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'favorites' | 'quotes'>('favorites')
+  const [requestModalStone, setRequestModalStone] = useState<Favorite | null>(null)
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    }
+  }, [status, router])
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      Promise.all([
+        fetch('/api/favorites').then(r => r.json()).catch(() => []),
+        fetch('/api/quote-requests').then(r => r.json()).catch(() => []),
+      ]).then(([favs, quotes]) => {
+        setFavorites(Array.isArray(favs) ? favs : [])
+        setQuoteRequests(Array.isArray(quotes) ? quotes : [])
+        setLoading(false)
+      })
+    }
+  }, [status])
+
+  const removeFavorite = async (stoneId: string) => {
+    await fetch('/api/favorites', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stone_id: stoneId }),
+    })
+    setFavorites(prev => prev.filter(f => f.stone_id !== stoneId))
+  }
+
+  const refreshQuotes = () => {
+    setRequestModalStone(null)
+    fetch('/api/quote-requests').then(r => r.json()).then(data => {
+      setQuoteRequests(Array.isArray(data) ? data : [])
+    })
+  }
+
+  if (status === 'loading' || loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-slate-400">Loading…</div>
+      </div>
+    )
+  }
+
+  if (!session) return null
+
+  const statusColor: Record<string, string> = {
+    pending: 'text-amber-400 bg-amber-400/10 border-amber-400/30',
+    quoted: 'text-green-400 bg-green-400/10 border-green-400/30',
+    closed: 'text-slate-400 bg-slate-700 border-slate-600',
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-900 text-white">
+      {/* Header */}
+      <div className="bg-slate-800 border-b border-slate-700 px-6 py-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <Link href="/" className="text-amber-400 font-bold text-xl">SlabHub</Link>
+          <div className="flex items-center gap-4">
+            <span className="text-slate-400 text-sm hidden sm:block">
+              {session.user?.name}
+            </span>
+            <button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              className="text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500 px-3 py-1.5 rounded-lg text-sm transition-colors"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">My Dashboard</h1>
+          <p className="text-slate-400 mt-1">Manage your saved stones and quote requests.</p>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 bg-slate-800/50 border border-slate-700 rounded-xl p-1 w-fit mb-8">
+          <button
+            onClick={() => setActiveTab('favorites')}
+            className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'favorites'
+                ? 'bg-amber-500/15 text-amber-400'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            ❤️ Saved Stones ({favorites.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('quotes')}
+            className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'quotes'
+                ? 'bg-amber-500/15 text-amber-400'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            📋 Quote Requests ({quoteRequests.length})
+          </button>
+        </div>
+
+        {/* Favorites Tab */}
+        {activeTab === 'favorites' && (
+          <div>
+            {favorites.length === 0 ? (
+              <div className="text-center py-20 border border-slate-700 rounded-2xl">
+                <p className="text-slate-400 text-lg mb-2">No saved stones yet</p>
+                <p className="text-slate-500 text-sm mb-6">Browse the catalog and click ❤️ to save stones you like.</p>
+                <Link
+                  href="/stones"
+                  className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-6 py-2.5 rounded-lg text-sm transition-colors"
+                >
+                  Browse Stones
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {favorites.map(fav => (
+                  <div key={fav.id} className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 hover:border-amber-400 transition-colors group">
+                    <div className="aspect-square relative bg-slate-700">
+                      {fav.stone_image ? (
+                        <img
+                          src={fav.stone_image}
+                          alt={fav.stone_name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-500 text-4xl">◆</div>
+                      )}
+                      <button
+                        onClick={() => removeFavorite(fav.stone_id)}
+                        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-slate-900/80 hover:bg-red-500/80 flex items-center justify-center text-red-400 hover:text-white transition-colors text-sm"
+                        title="Remove from favorites"
+                      >
+                        ❤️
+                      </button>
+                    </div>
+                    <div className="p-3">
+                      <p className="font-semibold text-sm leading-tight mb-1">{fav.stone_name}</p>
+                      <p className="text-slate-400 text-xs capitalize mb-2">{fav.stone_material}</p>
+                      <button
+                        onClick={() => setRequestModalStone(fav)}
+                        className="w-full text-center bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-slate-900 text-xs font-bold py-1.5 rounded transition-colors"
+                      >
+                        Request Quote
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Quotes Tab */}
+        {activeTab === 'quotes' && (
+          <div>
+            {quoteRequests.length === 0 ? (
+              <div className="text-center py-20 border border-slate-700 rounded-2xl">
+                <p className="text-slate-400 text-lg mb-2">No quote requests yet</p>
+                <p className="text-slate-500 text-sm mb-6">Save a stone and click &ldquo;Request Quote&rdquo; to get started.</p>
+                <button
+                  onClick={() => setActiveTab('favorites')}
+                  className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-6 py-2.5 rounded-lg text-sm transition-colors"
+                >
+                  View Saved Stones
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {quoteRequests.map(qr => (
+                  <div
+                    key={qr.id}
+                    className="bg-slate-800 border border-slate-700 rounded-xl p-5 flex items-start justify-between gap-4"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <p className="font-semibold text-white">{qr.stone_name || qr.stone_id}</p>
+                        <span className={`inline-flex text-xs px-2.5 py-0.5 rounded-full border font-medium capitalize ${statusColor[qr.status] || statusColor.pending}`}>
+                          {qr.status === 'quoted' ? '✓ Quote Ready' : qr.status}
+                        </span>
+                      </div>
+                      <div className="text-slate-400 text-sm flex flex-wrap gap-x-4 gap-y-1">
+                        {qr.sqft_estimate && <span>~{qr.sqft_estimate} sqft</span>}
+                        {qr.phone && <span>{qr.phone}</span>}
+                        <span>{new Date(qr.created_at).toLocaleDateString()}</span>
+                      </div>
+                      {qr.notes && (
+                        <p className="text-slate-500 text-sm mt-2 italic">&ldquo;{qr.notes}&rdquo;</p>
+                      )}
+                    </div>
+                    <div className="shrink-0">
+                      {qr.quote_file ? (
+                        <a
+                          href={`/api/quotes/download/${qr.quote_file}`}
+                          download={qr.quote_file_name || 'quote.pdf'}
+                          className="inline-flex items-center gap-2 bg-green-500/15 hover:bg-green-500/25 border border-green-500/30 text-green-400 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                        >
+                          ⬇ Download Quote
+                        </a>
+                      ) : (
+                        <span className="text-slate-600 text-xs">Awaiting quote…</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Quote Request Modal */}
+      {requestModalStone && (
+        <QuoteRequestModal
+          stone={requestModalStone}
+          onClose={() => setRequestModalStone(null)}
+          onSubmit={refreshQuotes}
+        />
+      )}
+    </div>
+  )
+}

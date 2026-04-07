@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Link from 'next/link'
+import SessionProvider from '@/components/SessionProvider'
 
 export const metadata: Metadata = {
   title: 'SlabHub — Find Stone Fabricators Near You',
@@ -16,6 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-[#0f172a] text-slate-100 min-h-screen">
+        <SessionProvider>
         <Navbar />
         <main>{children}</main>
         <footer className="border-t border-slate-800 py-8 mt-16">
@@ -29,6 +31,7 @@ export default function RootLayout({
             </p>
           </div>
         </footer>
+        </SessionProvider>
       </body>
     </html>
   )

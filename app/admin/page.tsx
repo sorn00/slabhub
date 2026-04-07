@@ -616,6 +616,150 @@ function QuoteRequests() {
   )
 }
 
+// ─── Section 6: Customer Quote Requests ─────────────────────────────────────
+
+interface CustomerQuoteRequest {
+  id: number
+  stone_id: string
+  stone_name: string
+  customer_name: string
+  phone: string
+  sqft_estimate: number
+  notes: string
+  status: string
+  created_at: string
+  user_name: string
+  user_email: string
+  quote_file: string | null
+  quote_file_name: string | null
+}
+
+function CustomerQuoteRequests() {
+  const [requests, setRequests] = useState<CustomerQuoteRequest[]>([])
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState<number | null>(null)
+  const [uploadError, setUploadError] = useState('')
+
+  const load = useCallback(() => {
+    fetch('/api/quote-requests')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        setRequests(Array.isArray(data) ? data : [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  const handleUpload = async (requestId: number, file: File) => {
+    setUploading(requestId)
+    setUploadError('')
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const res = await fetch(`/api/quote-requests/${requestId}/upload`, {
+      method: 'POST',
+      body: formData,
+    })
+
+    setUploading(null)
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      setUploadError(data.error || 'Upload failed')
+    } else {
+      load()
+    }
+  }
+
+  const statusColor: Record<string, string> = {
+    pending: 'amber',
+    quoted: 'green',
+    closed: 'slate',
+  }
+
+  return (
+    <div>
+      <SectionHeader
+        title="Customer Quote Requests"
+        subtitle="Quote requests submitted by registered customers. Upload a PDF to deliver their quote."
+      />
+
+      {uploadError && (
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3 mb-4">
+          {uploadError}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="text-slate-500 text-sm py-8 text-center">Loading…</div>
+      ) : requests.length === 0 ? (
+        <div className="text-slate-500 text-sm py-8 text-center border border-slate-700 rounded-xl">
+          No customer quote requests yet.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {requests.map(req => (
+            <div key={req.id} className="border border-slate-700 rounded-xl p-5">
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className="text-white font-semibold">{req.stone_name || req.stone_id}</span>
+                    <Badge color={statusColor[req.status] || 'slate'}>
+                      {req.status === 'quoted' ? '✓ Quoted' : req.status}
+                    </Badge>
+                  </div>
+                  <div className="text-slate-400 text-sm flex flex-wrap gap-x-4 gap-y-1 mb-1">
+                    <span className="font-medium text-slate-300">{req.customer_name}</span>
+                    <span>{req.phone}</span>
+                    {req.sqft_estimate && <span>{req.sqft_estimate} sqft</span>}
+                    <span className="text-slate-500">{req.user_email}</span>
+                  </div>
+                  {req.notes && (
+                    <p className="text-slate-500 text-xs italic">Notes: {req.notes}</p>
+                  )}
+                  <p className="text-slate-600 text-xs mt-1">
+                    {new Date(req.created_at).toLocaleString()}
+                  </p>
+                </div>
+
+                <div className="shrink-0 flex flex-col items-end gap-2">
+                  {req.quote_file ? (
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-green-400 text-xs">PDF uploaded ✓</span>
+                      <label className="cursor-pointer text-xs text-slate-400 hover:text-amber-400 transition-colors underline">
+                        Replace PDF
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          className="hidden"
+                          onChange={e => e.target.files?.[0] && handleUpload(req.id, e.target.files[0])}
+                        />
+                      </label>
+                    </div>
+                  ) : (
+                    <label className={`cursor-pointer inline-flex items-center gap-2 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-400 text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
+                      uploading === req.id ? 'opacity-50 pointer-events-none' : ''
+                    }`}>
+                      {uploading === req.id ? 'Uploading…' : '⬆ Upload PDF Quote'}
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        className="hidden"
+                        onChange={e => e.target.files?.[0] && handleUpload(req.id, e.target.files[0])}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main Admin Page ─────────────────────────────────────────────────────────
 
 const SECTIONS = [
@@ -623,7 +767,8 @@ const SECTIONS = [
   { id: 'specials', label: '🏷️ Stone Specials', component: StoneSpecials },
   { id: 'pricing', label: '💰 Lead Pricing', component: LeadPricing },
   { id: 'fabricators', label: '🔨 Fabricators', component: Fabricators },
-  { id: 'quotes', label: '📋 Quote Requests', component: QuoteRequests },
+  { id: 'quotes', label: '📋 Lead Quotes', component: QuoteRequests },
+  { id: 'customer-quotes', label: '🏠 Customer Quotes', component: CustomerQuoteRequests },
 ]
 
 export default function AdminPage() {
