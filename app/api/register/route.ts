@@ -21,9 +21,12 @@ export async function POST(req: NextRequest) {
     }
 
     const hash = await bcrypt.hash(password, 10)
+    // First user becomes admin, subsequent users are customers
+    const userCount = (db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number }).count
+    const role = userCount === 0 ? 'admin' : 'customer'
     const result = db.prepare(
       'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)'
-    ).run(name, email, hash, 'customer')
+    ).run(name, email, hash, role)
 
     return NextResponse.json({ id: result.lastInsertRowid, name, email })
   } catch (err) {

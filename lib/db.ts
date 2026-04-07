@@ -71,5 +71,22 @@ function initSchema(db: Database.Database) {
       original_name TEXT NOT NULL,
       uploaded_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS staged_messages (
+      id TEXT PRIMARY KEY,
+      contact_id TEXT NOT NULL,
+      contact_name TEXT,
+      phone TEXT,
+      conversation_id TEXT,
+      message TEXT NOT NULL,
+      status TEXT DEFAULT 'pending',
+      stage_name TEXT,
+      context TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      reviewed_at TEXT,
+      reviewed_by TEXT,
+      sent_at TEXT,
+      notes TEXT
+    );
   `)
 }

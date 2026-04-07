@@ -2,9 +2,12 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const { data: session } = useSession()
+  const userRole = (session?.user as { role?: string } | undefined)?.role
 
   return (
     <nav className="border-b border-slate-800 bg-[#0f172a]/95 backdrop-blur sticky top-0 z-50">
@@ -22,6 +25,11 @@ export default function Navbar() {
           <Link href="/fabricators" className="text-slate-300 hover:text-white transition-colors">
             For Fabricators
           </Link>
+          {session && (userRole === 'admin' || userRole === 'reviewer') && (
+            <Link href="/crm" className="text-slate-300 hover:text-amber-400 transition-colors font-medium">
+              CRM
+            </Link>
+          )}
           <Link href="/quote" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-4 py-2 rounded-lg transition-colors">
             Get Quotes
           </Link>
@@ -55,6 +63,11 @@ export default function Navbar() {
           <Link href="/fabricators" className="text-slate-300 hover:text-white transition-colors text-center" onClick={() => setMenuOpen(false)}>
             For Fabricators
           </Link>
+          {session && (userRole === 'admin' || userRole === 'reviewer') && (
+            <Link href="/crm" className="text-amber-400 hover:text-amber-300 font-medium transition-colors text-center" onClick={() => setMenuOpen(false)}>
+              CRM Dashboard
+            </Link>
+          )}
         </div>
       )}
     </nav>
