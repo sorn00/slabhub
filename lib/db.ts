@@ -88,5 +88,19 @@ function initSchema(db: Database.Database) {
       sent_at TEXT,
       notes TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS stone_prices (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      stone_id TEXT UNIQUE NOT NULL,
+      stone_name TEXT NOT NULL,
+      material TEXT,
+      dealer_cost_sqft REAL,
+      retail_sqft REAL,
+      slab_width_inches REAL DEFAULT 130,
+      slab_height_inches REAL DEFAULT 79,
+      notes TEXT,
+      updated_at TEXT DEFAULT (datetime('now')),
+      updated_by TEXT
+    );
   `)
 }

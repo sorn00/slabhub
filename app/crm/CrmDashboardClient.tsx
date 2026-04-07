@@ -73,6 +73,14 @@ export default function CrmDashboardClient({
           </div>
           <div className="flex items-center gap-3">
             <span className="text-slate-400 text-sm hidden sm:block">{userName}</span>
+            {isAdmin && (
+              <Link
+                href="/crm/pricing"
+                className="text-sm bg-slate-700 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg transition-colors"
+              >
+                💰 Pricing
+              </Link>
+            )}
             <Link
               href="/crm/leads"
               className="text-sm bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg transition-colors"
