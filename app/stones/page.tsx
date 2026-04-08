@@ -298,12 +298,20 @@ export default function StonesPage() {
                         {isCompareSelected ? '✓ Selected' : 'Select'}
                       </button>
                     ) : (
-                      <Link
-                        href={`/quote?stone=${stone.id}`}
-                        className="mt-2 block text-center bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-slate-900 text-xs font-bold py-1.5 rounded transition-colors"
-                      >
-                        Get Quote
-                      </Link>
+                      <div className="mt-2 flex gap-1">
+                        <Link
+                          href={`/stones/${stone.id}`}
+                          className="flex-1 text-center bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white text-xs font-medium py-1.5 rounded transition-colors"
+                        >
+                          View Details
+                        </Link>
+                        <Link
+                          href={`/quote?stone=${stone.id}`}
+                          className="flex-1 text-center bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-slate-900 text-xs font-bold py-1.5 rounded transition-colors"
+                        >
+                          Get Quote
+                        </Link>
+                      </div>
                     )}
                   </div>
                 </div>
