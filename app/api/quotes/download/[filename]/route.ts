@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { getDb } from '@/lib/db'
+import { queryOne } from '@/lib/db'
 import { readFile } from 'fs/promises'
 import path from 'path'
 import fs from 'fs'
@@ -19,18 +19,16 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid file' }, { status: 400 })
   }
 
-  const db = getDb()
-
   // Verify this quote file belongs to the requesting user or admin
   const adminSession = req.cookies.get('admin_session')
   const isAdmin = adminSession?.value === 'valid'
 
   if (!isAdmin) {
-    const fileRecord = db.prepare(`
+    const fileRecord = await queryOne(`
       SELECT qf.* FROM quote_files qf
       JOIN quote_requests qr ON qr.id = qf.quote_request_id
-      WHERE qf.filename = ? AND qr.user_id = ?
-    `).get(filename, session.user.id)
+      WHERE qf.filename = $1 AND qr.user_id = $2
+    `, [filename, session.user.id])
 
     if (!fileRecord) {
       return NextResponse.json({ error: 'Not found or access denied' }, { status: 404 })

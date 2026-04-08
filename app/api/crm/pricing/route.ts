@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getDb } from '@/lib/db'
+import { query, queryOne, run } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import path from 'path'
 import fs from 'fs'
@@ -11,8 +11,7 @@ export async function GET() {
   const role = (session.user as { role?: string })?.role
   if (role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const db = getDb()
-  const rows = db.prepare('SELECT * FROM stone_prices ORDER BY stone_name ASC').all()
+  const rows = await query('SELECT * FROM stone_prices ORDER BY stone_name ASC')
   return NextResponse.json(rows)
 }
 
@@ -23,7 +22,6 @@ export async function POST(req: NextRequest) {
   const rolePost = (session.user as { role?: string })?.role
   if (rolePost !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const db = getDb()
   const body = await req.json()
 
   // Support { action: 'seed' } to pre-populate from msi-catalog.json
@@ -37,15 +35,11 @@ export async function POST(req: NextRequest) {
       fs.readFileSync(catalogPath, 'utf-8')
     )
 
-    const existing = db.prepare('SELECT COUNT(*) as count FROM stone_prices').get() as { count: number }
-    if (existing.count > 0) {
-      return NextResponse.json({ message: 'Already seeded', count: existing.count })
+    const existing = await queryOne('SELECT COUNT(*) as count FROM stone_prices')
+    const existingCount = parseInt(existing?.count ?? '0', 10)
+    if (existingCount > 0) {
+      return NextResponse.json({ message: 'Already seeded', count: existingCount })
     }
-
-    const insert = db.prepare(`
-      INSERT OR IGNORE INTO stone_prices (stone_id, stone_name, material, dealer_cost_sqft, retail_sqft)
-      VALUES (?, ?, ?, ?, ?)
-    `)
 
     // Known prices
     const knownPrices: Record<string, { dealer: number; retail: number }> = {
@@ -53,22 +47,18 @@ export async function POST(req: NextRequest) {
       'calacatta-alto':   { dealer: 26.40, retail: 35.06 },
     }
 
-    const seedMany = db.transaction((stones: typeof catalog) => {
-      for (const s of stones) {
-        const known = knownPrices[s.id]
-        insert.run(
-          s.id,
-          s.name,
-          s.material,
-          known?.dealer ?? null,
-          known?.retail ?? null,
-        )
-      }
-    })
+    for (const s of catalog) {
+      const known = knownPrices[s.id]
+      await run(
+        `INSERT INTO stone_prices (stone_id, stone_name, material, dealer_cost_sqft, retail_sqft)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (stone_id) DO NOTHING`,
+        [s.id, s.name, s.material, known?.dealer ?? null, known?.retail ?? null]
+      )
+    }
 
-    seedMany(catalog)
-
-    const count = (db.prepare('SELECT COUNT(*) as count FROM stone_prices').get() as { count: number }).count
+    const countRow = await queryOne('SELECT COUNT(*) as count FROM stone_prices')
+    const count = parseInt(countRow?.count ?? '0', 10)
     return NextResponse.json({ message: 'Seeded', count })
   }
 
@@ -77,34 +67,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Expected array of stone prices' }, { status: 400 })
   }
 
-  const upsert = db.prepare(`
-    INSERT INTO stone_prices (stone_id, stone_name, material, dealer_cost_sqft, retail_sqft, slab_width_inches, slab_height_inches, notes, updated_at, updated_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), ?)
-    ON CONFLICT(stone_id) DO UPDATE SET
-      stone_name = excluded.stone_name,
-      material = excluded.material,
-      dealer_cost_sqft = excluded.dealer_cost_sqft,
-      retail_sqft = excluded.retail_sqft,
-      slab_width_inches = excluded.slab_width_inches,
-      slab_height_inches = excluded.slab_height_inches,
-      notes = excluded.notes,
-      updated_at = datetime('now'),
-      updated_by = excluded.updated_by
-  `)
-
   const userName = session.user?.name || session.user?.email || 'admin'
 
-  const upsertMany = db.transaction((rows: typeof body) => {
-    for (const row of rows) {
-      upsert.run(
-        row.stone_id, row.stone_name, row.material,
-        row.dealer_cost_sqft ?? null, row.retail_sqft ?? null,
-        row.slab_width_inches ?? 130, row.slab_height_inches ?? 79,
-        row.notes ?? null, userName
-      )
-    }
-  })
+  for (const row of body) {
+    await run(`
+      INSERT INTO stone_prices (stone_id, stone_name, material, dealer_cost_sqft, retail_sqft, slab_width_inches, slab_height_inches, notes, updated_at, updated_by)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), $9)
+      ON CONFLICT (stone_id) DO UPDATE SET
+        stone_name = EXCLUDED.stone_name,
+        material = EXCLUDED.material,
+        dealer_cost_sqft = EXCLUDED.dealer_cost_sqft,
+        retail_sqft = EXCLUDED.retail_sqft,
+        slab_width_inches = EXCLUDED.slab_width_inches,
+        slab_height_inches = EXCLUDED.slab_height_inches,
+        notes = EXCLUDED.notes,
+        updated_at = NOW(),
+        updated_by = EXCLUDED.updated_by
+    `, [
+      row.stone_id, row.stone_name, row.material,
+      row.dealer_cost_sqft ?? null, row.retail_sqft ?? null,
+      row.slab_width_inches ?? 130, row.slab_height_inches ?? 79,
+      row.notes ?? null, userName
+    ])
+  }
 
-  upsertMany(body)
   return NextResponse.json({ message: 'Upserted', count: body.length })
 }

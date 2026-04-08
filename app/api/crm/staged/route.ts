@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { getDb } from '@/lib/db'
+import { query, run, queryOne } from '@/lib/db'
 import { randomUUID } from 'crypto'
 
 export async function GET(req: NextRequest) {
@@ -12,18 +12,17 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const status = searchParams.get('status')
 
-  const db = getDb()
-  let query = 'SELECT * FROM staged_messages'
+  let sql = 'SELECT * FROM staged_messages'
   const params: string[] = []
 
   if (status) {
-    query += ' WHERE status = ?'
+    sql += ' WHERE status = $1'
     params.push(status)
   }
 
-  query += ' ORDER BY created_at ASC'
+  sql += ' ORDER BY created_at ASC'
 
-  const rows = db.prepare(query).all(...params)
+  const rows = await query(sql, params.length ? params : undefined)
   return NextResponse.json(rows)
 }
 
@@ -50,18 +49,17 @@ export async function POST(req: NextRequest) {
   }
 
   const id = randomUUID()
-  const db = getDb()
 
-  db.prepare(`
+  await run(`
     INSERT INTO staged_messages (
       id, contact_id, contact_name, phone, conversation_id,
       message, status, stage_name, context, created_at, notes
-    ) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, datetime('now'), ?)
-  `).run(
+    ) VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7, $8, NOW(), $9)
+  `, [
     id, contact_id, contact_name, phone, conversation_id,
     message, stage_name, context ? JSON.stringify(context) : null, notes
-  )
+  ])
 
-  const row = db.prepare('SELECT * FROM staged_messages WHERE id = ?').get(id)
+  const row = await queryOne('SELECT * FROM staged_messages WHERE id = $1', [id])
   return NextResponse.json(row, { status: 201 })
 }

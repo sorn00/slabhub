@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getDb } from '@/lib/db'
+import { run } from '@/lib/db'
 import { writeFile } from 'fs/promises'
 import path from 'path'
 import fs from 'fs'
@@ -41,14 +41,14 @@ export async function POST(
   await writeFile(filepath, Buffer.from(bytes))
 
   // Save to DB (replace existing if any)
-  const db = getDb()
-  db.prepare('DELETE FROM quote_files WHERE quote_request_id = ?').run(quoteId)
-  db.prepare(
-    'INSERT INTO quote_files (quote_request_id, filename, original_name) VALUES (?, ?, ?)'
-  ).run(quoteId, filename, file.name)
+  await run('DELETE FROM quote_files WHERE quote_request_id = $1', [quoteId])
+  await run(
+    'INSERT INTO quote_files (quote_request_id, filename, original_name) VALUES ($1, $2, $3)',
+    [quoteId, filename, file.name]
+  )
 
   // Update quote status
-  db.prepare("UPDATE quote_requests SET status = 'quoted' WHERE id = ?").run(quoteId)
+  await run("UPDATE quote_requests SET status = 'quoted' WHERE id = $1", [quoteId])
 
   return NextResponse.json({ success: true, filename })
 }

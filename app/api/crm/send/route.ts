@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { getDb } from '@/lib/db'
+import { run } from '@/lib/db'
 import { sendGhlMessage, getOrCreateConversation } from '@/lib/ghl-api'
 
 export async function POST(req: NextRequest) {
@@ -38,16 +38,15 @@ export async function POST(req: NextRequest) {
 
   // Update staged message if provided
   if (stagedMessageId) {
-    const db = getDb()
     const userName = session.user?.name || session.user?.email || 'Unknown'
-    db.prepare(`
+    await run(`
       UPDATE staged_messages
       SET status = 'sent',
-          sent_at = datetime('now'),
-          reviewed_at = datetime('now'),
-          reviewed_by = ?
-      WHERE id = ?
-    `).run(userName, stagedMessageId)
+          sent_at = NOW(),
+          reviewed_at = NOW(),
+          reviewed_by = $1
+      WHERE id = $2
+    `, [userName, stagedMessageId])
   }
 
   return NextResponse.json({ success: true, messageId: result.messageId })

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { getDb } from '@/lib/db'
+import { queryOne, run } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,21 +14,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 })
     }
 
-    const db = getDb()
-    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email)
+    const existing = await queryOne('SELECT id FROM users WHERE email = $1', [email])
     if (existing) {
       return NextResponse.json({ error: 'Email already registered' }, { status: 409 })
     }
 
     const hash = await bcrypt.hash(password, 10)
-    // First user becomes admin, subsequent users are customers
-    const userCount = (db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number }).count
+    const countRow = await queryOne('SELECT COUNT(*) as count FROM users')
+    const userCount = parseInt(countRow?.count ?? '0', 10)
     const role = userCount === 0 ? 'admin' : 'customer'
-    const result = db.prepare(
-      'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)'
-    ).run(name, email, hash, role)
+    const result = await run(
+      'INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id',
+      [name, email, hash, role]
+    )
+    const id = result.rows[0].id
 
-    return NextResponse.json({ id: result.lastInsertRowid, name, email })
+    return NextResponse.json({ id, name, email })
   } catch (err) {
     console.error('Register error:', err)
     return NextResponse.json({ error: 'Server error' }, { status: 500 })

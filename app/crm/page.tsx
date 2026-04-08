@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
-import { getDb } from '@/lib/db'
+import { queryOne, query } from '@/lib/db'
 import { getStageCounts } from '@/lib/ghl-db'
 import CrmDashboardClient from './CrmDashboardClient'
 
@@ -10,15 +10,18 @@ export default async function CrmPage() {
     redirect('/login')
   }
 
-  const db = getDb()
-
   // Stats
-  const pending = (db.prepare("SELECT COUNT(*) as count FROM staged_messages WHERE status = 'pending'").get() as { count: number }).count
-  const approvedToday = (db.prepare("SELECT COUNT(*) as count FROM staged_messages WHERE status IN ('approved','sent') AND DATE(reviewed_at) = DATE('now')").get() as { count: number }).count
-  const sentToday = (db.prepare("SELECT COUNT(*) as count FROM staged_messages WHERE status = 'sent' AND DATE(sent_at) = DATE('now')").get() as { count: number }).count
+  const pendingRow = await queryOne("SELECT COUNT(*) as count FROM staged_messages WHERE status = 'pending'")
+  const pending = parseInt(pendingRow?.count ?? '0', 10)
+
+  const approvedTodayRow = await queryOne("SELECT COUNT(*) as count FROM staged_messages WHERE status IN ('approved','sent') AND DATE(reviewed_at) = CURRENT_DATE")
+  const approvedToday = parseInt(approvedTodayRow?.count ?? '0', 10)
+
+  const sentTodayRow = await queryOne("SELECT COUNT(*) as count FROM staged_messages WHERE status = 'sent' AND DATE(sent_at) = CURRENT_DATE")
+  const sentToday = parseInt(sentTodayRow?.count ?? '0', 10)
 
   // Staged messages (pending first, then others)
-  const stagedMessages = db.prepare(`
+  const stagedMessages = await query(`
     SELECT * FROM staged_messages
     ORDER BY
       CASE status
@@ -30,7 +33,7 @@ export default async function CrmPage() {
         ELSE 5
       END,
       created_at ASC
-  `).all()
+  `)
 
   let stageCounts: Record<string, number> = {}
   try {

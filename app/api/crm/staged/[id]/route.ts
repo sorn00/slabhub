@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { getDb } from '@/lib/db'
+import { queryOne, run } from '@/lib/db'
 import { sendGhlMessage, getOrCreateConversation } from '@/lib/ghl-api'
 
 export async function PATCH(
@@ -32,14 +32,13 @@ export async function PATCH(
     return NextResponse.json({ error: 'Only admins can approve messages' }, { status: 403 })
   }
 
-  const db = getDb()
-  const staged = db.prepare('SELECT * FROM staged_messages WHERE id = ?').get(params.id) as {
+  const staged = await queryOne('SELECT * FROM staged_messages WHERE id = $1', [params.id]) as {
     id: string
     contact_id: string
     conversation_id: string | null
     message: string
     status: string
-  } | undefined
+  } | null
 
   if (!staged) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -67,29 +66,29 @@ export async function PATCH(
       return NextResponse.json({ error: result.error || 'Failed to send message' }, { status: 500 })
     }
 
-    db.prepare(`
+    await run(`
       UPDATE staged_messages
       SET status = 'sent',
-          message = ?,
-          conversation_id = ?,
-          reviewed_at = datetime('now'),
-          reviewed_by = ?,
-          sent_at = datetime('now'),
-          notes = ?
-      WHERE id = ?
-    `).run(messageToSend, conversationId, userName, notes || null, params.id)
+          message = $1,
+          conversation_id = $2,
+          reviewed_at = NOW(),
+          reviewed_by = $3,
+          sent_at = NOW(),
+          notes = $4
+      WHERE id = $5
+    `, [messageToSend, conversationId, userName, notes || null, params.id])
   } else {
-    db.prepare(`
+    await run(`
       UPDATE staged_messages
-      SET status = ?,
-          message = COALESCE(?, message),
-          reviewed_at = datetime('now'),
-          reviewed_by = ?,
-          notes = ?
-      WHERE id = ?
-    `).run(status, message || null, userName, notes || null, params.id)
+      SET status = $1,
+          message = COALESCE($2, message),
+          reviewed_at = NOW(),
+          reviewed_by = $3,
+          notes = $4
+      WHERE id = $5
+    `, [status, message || null, userName, notes || null, params.id])
   }
 
-  const updated = db.prepare('SELECT * FROM staged_messages WHERE id = ?').get(params.id)
+  const updated = await queryOne('SELECT * FROM staged_messages WHERE id = $1', [params.id])
   return NextResponse.json(updated)
 }

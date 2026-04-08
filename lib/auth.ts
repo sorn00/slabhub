@@ -1,7 +1,7 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
-import { getDb } from './db'
+import { queryOne } from './db'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
@@ -21,14 +21,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
-        const db = getDb()
-        const user = db.prepare('SELECT * FROM users WHERE email = ?').get(credentials.email as string) as {
+        const user = await queryOne('SELECT * FROM users WHERE email = $1', [credentials.email as string]) as {
           id: number
           name: string
           email: string
           password_hash: string
           role: string
-        } | undefined
+        } | null
 
         if (!user) return null
 

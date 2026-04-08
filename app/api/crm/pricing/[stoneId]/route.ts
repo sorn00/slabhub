@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getDb } from '@/lib/db'
+import { queryOne, run } from '@/lib/db'
 import { auth } from '@/lib/auth'
 
 // GET /api/crm/pricing/[stoneId]
@@ -13,8 +13,7 @@ export async function GET(
   if (roleGet !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { stoneId } = await params
-  const db = getDb()
-  const row = db.prepare('SELECT * FROM stone_prices WHERE stone_id = ?').get(stoneId)
+  const row = await queryOne('SELECT * FROM stone_prices WHERE stone_id = $1', [stoneId])
   if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json(row)
 }
@@ -31,21 +30,20 @@ export async function PATCH(
 
   const { stoneId } = await params
   const body = await req.json()
-  const db = getDb()
 
   const userName = session.user?.name || session.user?.email || 'admin'
 
-  const result = db.prepare(`
+  const result = await run(`
     UPDATE stone_prices SET
-      dealer_cost_sqft = COALESCE(?, dealer_cost_sqft),
-      retail_sqft = COALESCE(?, retail_sqft),
-      slab_width_inches = COALESCE(?, slab_width_inches),
-      slab_height_inches = COALESCE(?, slab_height_inches),
-      notes = COALESCE(?, notes),
-      updated_at = datetime('now'),
-      updated_by = ?
-    WHERE stone_id = ?
-  `).run(
+      dealer_cost_sqft = COALESCE($1, dealer_cost_sqft),
+      retail_sqft = COALESCE($2, retail_sqft),
+      slab_width_inches = COALESCE($3, slab_width_inches),
+      slab_height_inches = COALESCE($4, slab_height_inches),
+      notes = COALESCE($5, notes),
+      updated_at = NOW(),
+      updated_by = $6
+    WHERE stone_id = $7
+  `, [
     body.dealer_cost_sqft ?? null,
     body.retail_sqft ?? null,
     body.slab_width_inches ?? null,
@@ -53,12 +51,12 @@ export async function PATCH(
     body.notes ?? null,
     userName,
     stoneId
-  )
+  ])
 
-  if (result.changes === 0) {
+  if ((result.rowCount ?? 0) === 0) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  const updated = db.prepare('SELECT * FROM stone_prices WHERE stone_id = ?').get(stoneId)
+  const updated = await queryOne('SELECT * FROM stone_prices WHERE stone_id = $1', [stoneId])
   return NextResponse.json(updated)
 }

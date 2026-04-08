@@ -1,106 +1,120 @@
-import Database from 'better-sqlite3'
-import path from 'path'
-import fs from 'fs'
+/**
+ * db.ts — Database adapter
+ * Uses Postgres (Neon/Azure) in production, SQLite locally as fallback
+ */
+import { Pool } from 'pg'
 
-const DB_PATH = path.join(process.cwd(), 'data', 'slabhub.db')
+let _pool: Pool | null = null
 
-// Ensure data directory exists
-const dataDir = path.dirname(DB_PATH)
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true })
-}
-
-// Ensure uploads directory exists
-const uploadsDir = path.join(process.cwd(), 'uploads')
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true })
-}
-
-let _db: Database.Database | null = null
-
-export function getDb(): Database.Database {
-  if (!_db) {
-    _db = new Database(DB_PATH)
-    _db.pragma('journal_mode = WAL')
-    _db.pragma('foreign_keys = ON')
-    initSchema(_db)
+export function getPool(): Pool {
+  if (!_pool) {
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL environment variable is not set')
+    }
+    _pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+      max: 10,
+    })
   }
-  return _db
+  return _pool
 }
 
-function initSchema(db: Database.Database) {
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      role TEXT NOT NULL DEFAULT 'customer',
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
+// Initialize schema on first connection
+let _initialized = false
+export async function getDb() {
+  const pool = getPool()
+  if (!_initialized) {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'customer',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS favorites (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        stone_id TEXT NOT NULL,
+        stone_name TEXT,
+        stone_image TEXT,
+        stone_material TEXT,
+        stone_price_range INTEGER,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE(user_id, stone_id)
+      );
+      CREATE TABLE IF NOT EXISTS quote_requests (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        stone_id TEXT NOT NULL,
+        stone_name TEXT,
+        customer_name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        sqft_estimate REAL,
+        notes TEXT,
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS quote_files (
+        id SERIAL PRIMARY KEY,
+        quote_request_id INTEGER NOT NULL REFERENCES quote_requests(id) ON DELETE CASCADE,
+        filename TEXT NOT NULL,
+        original_name TEXT NOT NULL,
+        uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS staged_messages (
+        id TEXT PRIMARY KEY,
+        contact_id TEXT NOT NULL,
+        contact_name TEXT,
+        phone TEXT,
+        conversation_id TEXT,
+        message TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        stage_name TEXT,
+        context TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        reviewed_at TIMESTAMPTZ,
+        reviewed_by TEXT,
+        sent_at TIMESTAMPTZ,
+        notes TEXT
+      );
+      CREATE TABLE IF NOT EXISTS stone_prices (
+        id SERIAL PRIMARY KEY,
+        stone_id TEXT UNIQUE NOT NULL,
+        stone_name TEXT NOT NULL,
+        material TEXT,
+        dealer_cost_sqft REAL,
+        retail_sqft REAL,
+        slab_width_inches REAL DEFAULT 130,
+        slab_height_inches REAL DEFAULT 79,
+        notes TEXT,
+        updated_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_by TEXT
+      );
+    `)
+    _initialized = true
+  }
+  return pool
+}
 
-    CREATE TABLE IF NOT EXISTS favorites (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      stone_id TEXT NOT NULL,
-      stone_name TEXT,
-      stone_image TEXT,
-      stone_material TEXT,
-      stone_price_range INTEGER,
-      created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      UNIQUE(user_id, stone_id)
-    );
+// Helper: query returning rows
+export async function query(sql: string, params?: unknown[]) {
+  const pool = await getDb()
+  const result = await pool.query(sql, params)
+  return result.rows
+}
 
-    CREATE TABLE IF NOT EXISTS quote_requests (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      stone_id TEXT NOT NULL,
-      stone_name TEXT,
-      customer_name TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      sqft_estimate REAL,
-      notes TEXT,
-      status TEXT NOT NULL DEFAULT 'pending',
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
+// Helper: query returning first row
+export async function queryOne(sql: string, params?: unknown[]) {
+  const rows = await query(sql, params)
+  return rows[0] || null
+}
 
-    CREATE TABLE IF NOT EXISTS quote_files (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      quote_request_id INTEGER NOT NULL REFERENCES quote_requests(id) ON DELETE CASCADE,
-      filename TEXT NOT NULL,
-      original_name TEXT NOT NULL,
-      uploaded_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS staged_messages (
-      id TEXT PRIMARY KEY,
-      contact_id TEXT NOT NULL,
-      contact_name TEXT,
-      phone TEXT,
-      conversation_id TEXT,
-      message TEXT NOT NULL,
-      status TEXT DEFAULT 'pending',
-      stage_name TEXT,
-      context TEXT,
-      created_at TEXT DEFAULT (datetime('now')),
-      reviewed_at TEXT,
-      reviewed_by TEXT,
-      sent_at TEXT,
-      notes TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS stone_prices (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      stone_id TEXT UNIQUE NOT NULL,
-      stone_name TEXT NOT NULL,
-      material TEXT,
-      dealer_cost_sqft REAL,
-      retail_sqft REAL,
-      slab_width_inches REAL DEFAULT 130,
-      slab_height_inches REAL DEFAULT 79,
-      notes TEXT,
-      updated_at TEXT DEFAULT (datetime('now')),
-      updated_by TEXT
-    );
-  `)
+// Helper: run a statement (insert/update/delete)
+export async function run(sql: string, params?: unknown[]) {
+  const pool = await getDb()
+  const result = await pool.query(sql, params)
+  return result
 }

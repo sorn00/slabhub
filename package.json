@@ -11,12 +11,14 @@
   "dependencies": {
     "@stripe/react-stripe-js": "^6.1.0",
     "@stripe/stripe-js": "^9.0.1",
+    "@types/pg": "^8.20.0",
     "axios": "^1.14.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.8.0",
     "cheerio": "^1.2.0",
     "next": "14.2.35",
     "next-auth": "^5.0.0-beta.30",
+    "pg": "^8.20.0",
     "react": "^18",
     "react-dom": "^18",
     "stripe": "^22.0.0"
