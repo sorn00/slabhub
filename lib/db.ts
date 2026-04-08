@@ -94,6 +94,12 @@ export async function getDb() {
         updated_by TEXT
       );
     `)
+    // Migrations: add new columns if not present
+    await pool.query(`
+      ALTER TABLE quote_requests ADD COLUMN IF NOT EXISTS stones JSONB;
+      ALTER TABLE quote_requests ADD COLUMN IF NOT EXISTS layout TEXT;
+      ALTER TABLE quote_requests ADD COLUMN IF NOT EXISTS sink_type TEXT;
+    `)
     _initialized = true
   }
   return pool

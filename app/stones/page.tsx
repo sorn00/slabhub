@@ -35,6 +35,10 @@ export default function StonesPage() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   const [toggling, setToggling] = useState<Set<string>>(new Set())
 
+  // Compare & Quote mode
+  const [compareMode, setCompareMode] = useState(false)
+  const [compareSelected, setCompareSelected] = useState<Set<string>>(new Set())
+
   useEffect(() => {
     fetch('/data/msi-catalog.json')
       .then(r => r.json())
@@ -112,8 +116,37 @@ export default function StonesPage() {
     }
   }, [session, favorites])
 
+  const toggleCompare = (stone: Stone) => {
+    setCompareSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(stone.id)) {
+        next.delete(stone.id)
+      } else {
+        next.add(stone.id)
+      }
+      return next
+    })
+  }
+
+  const handleRequestQuote = () => {
+    if (!session?.user) {
+      // Redirect to register, then dashboard
+      window.location.href = '/register'
+      return
+    }
+    // Save selections as favorites first, then go to dashboard
+    // Store selected stone IDs in sessionStorage for dashboard pickup
+    const selectedStones = filtered.filter(s => compareSelected.has(s.id))
+    sessionStorage.setItem('compareQuoteStones', JSON.stringify(selectedStones.map(s => ({
+      stone_id: s.id,
+      stone_name: s.name,
+      stone_image: s.imageUrl || '',
+    }))))
+    window.location.href = '/dashboard'
+  }
+
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="min-h-screen bg-slate-900 text-white pb-24">
       {/* Header */}
       <div className="bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
         <Link href="/" className="text-amber-400 font-bold text-xl">SlabHub</Link>
@@ -127,6 +160,20 @@ export default function StonesPage() {
               Sign In
             </Link>
           )}
+          {/* Compare & Quote toggle */}
+          <button
+            onClick={() => {
+              setCompareMode(!compareMode)
+              setCompareSelected(new Set())
+            }}
+            className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+              compareMode
+                ? 'bg-amber-500/20 border-amber-500/40 text-amber-400'
+                : 'border-slate-600 text-slate-300 hover:text-white'
+            }`}
+          >
+            {compareMode ? '✕ Exit Compare' : '⊞ Compare & Quote'}
+          </button>
           <Link href="/quote" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-4 py-2 rounded-lg text-sm transition-colors">
             Get a Quote
           </Link>
@@ -135,7 +182,13 @@ export default function StonesPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-2">Stone Catalog</h1>
-        <p className="text-slate-400 mb-8">{filtered.length} stones available</p>
+        <p className="text-slate-400 mb-2">{filtered.length} stones available</p>
+        {compareMode && (
+          <p className="text-amber-400/80 text-sm mb-6">
+            ☑ Select stones to compare and request a single quote for all of them.
+          </p>
+        )}
+        {!compareMode && <div className="mb-6" />}
 
         {/* Filters */}
         <div className="flex flex-wrap gap-4 mb-8">
@@ -172,8 +225,16 @@ export default function StonesPage() {
             {filtered.map(stone => {
               const isFav = favorites.has(stone.id)
               const isToggling = toggling.has(stone.id)
+              const isCompareSelected = compareSelected.has(stone.id)
               return (
-                <div key={stone.id} className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 hover:border-amber-400 transition-colors group">
+                <div
+                  key={stone.id}
+                  className={`bg-slate-800 rounded-xl overflow-hidden border transition-colors group ${
+                    isCompareSelected && compareMode
+                      ? 'border-amber-400 ring-2 ring-amber-400/30'
+                      : 'border-slate-700 hover:border-amber-400'
+                  }`}
+                >
                   <div className="aspect-square relative bg-slate-700">
                     {stone.imageUrl ? (
                       <img
@@ -189,19 +250,35 @@ export default function StonesPage() {
                     <div className="absolute top-2 left-2 bg-slate-900/80 text-amber-400 text-xs font-bold px-2 py-1 rounded">
                       {PRICE_LABELS[stone.priceRange] || '$$'}
                     </div>
-                    {/* Heart button */}
-                    <button
-                      onClick={() => toggleFavorite(stone)}
-                      disabled={isToggling}
-                      title={isFav ? 'Remove from favorites' : 'Save to favorites'}
-                      className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${
-                        isFav
-                          ? 'bg-red-500/90 text-white'
-                          : 'bg-slate-900/80 text-slate-400 hover:text-red-400 hover:bg-slate-900'
-                      } ${isToggling ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      {isFav ? '❤️' : '🤍'}
-                    </button>
+
+                    {/* Compare checkbox (when compare mode active) */}
+                    {compareMode ? (
+                      <button
+                        onClick={() => toggleCompare(stone)}
+                        className={`absolute top-2 right-2 w-7 h-7 rounded border-2 flex items-center justify-center text-xs font-bold transition-all ${
+                          isCompareSelected
+                            ? 'bg-amber-500 border-amber-500 text-slate-900'
+                            : 'bg-slate-900/70 border-slate-500 text-transparent hover:border-amber-400'
+                        }`}
+                        title={isCompareSelected ? 'Deselect' : 'Add to compare'}
+                      >
+                        ✓
+                      </button>
+                    ) : (
+                      /* Heart button */
+                      <button
+                        onClick={() => toggleFavorite(stone)}
+                        disabled={isToggling}
+                        title={isFav ? 'Remove from favorites' : 'Save to favorites'}
+                        className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${
+                          isFav
+                            ? 'bg-red-500/90 text-white'
+                            : 'bg-slate-900/80 text-slate-400 hover:text-red-400 hover:bg-slate-900'
+                        } ${isToggling ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {isFav ? '❤️' : '🤍'}
+                      </button>
+                    )}
                   </div>
                   <div className="p-3">
                     <p className="font-semibold text-sm leading-tight mb-1">{stone.name}</p>
@@ -209,12 +286,25 @@ export default function StonesPage() {
                     {stone.finish && stone.finish.length > 0 && (
                       <p className="text-slate-500 text-xs mt-1 capitalize">{stone.finish[0]}</p>
                     )}
-                    <Link
-                      href={`/quote?stone=${stone.id}`}
-                      className="mt-2 block text-center bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-slate-900 text-xs font-bold py-1.5 rounded transition-colors"
-                    >
-                      Get Quote
-                    </Link>
+                    {compareMode ? (
+                      <button
+                        onClick={() => toggleCompare(stone)}
+                        className={`mt-2 w-full text-center text-xs font-bold py-1.5 rounded transition-colors ${
+                          isCompareSelected
+                            ? 'bg-amber-500 text-slate-900'
+                            : 'bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-slate-900'
+                        }`}
+                      >
+                        {isCompareSelected ? '✓ Selected' : 'Select'}
+                      </button>
+                    ) : (
+                      <Link
+                        href={`/quote?stone=${stone.id}`}
+                        className="mt-2 block text-center bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-slate-900 text-xs font-bold py-1.5 rounded transition-colors"
+                      >
+                        Get Quote
+                      </Link>
+                    )}
                   </div>
                 </div>
               )
@@ -222,6 +312,45 @@ export default function StonesPage() {
           </div>
         )}
       </div>
+
+      {/* Floating compare bar */}
+      {compareMode && compareSelected.size > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-amber-500 text-slate-900 px-4 py-4 flex items-center justify-between gap-4 z-40 shadow-2xl">
+          <div className="flex items-center gap-2">
+            <div className="flex -space-x-1">
+              {Array.from(compareSelected).slice(0, 4).map(id => {
+                const s = stones.find(x => x.id === id)
+                return s ? (
+                  <div key={id} className="w-8 h-8 rounded-full overflow-hidden border-2 border-amber-400 bg-slate-700">
+                    {s.imageUrl ? (
+                      <img src={s.imageUrl} alt={s.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs">◆</div>
+                    )}
+                  </div>
+                ) : null
+              })}
+            </div>
+            <span className="font-bold text-sm">
+              {compareSelected.size} stone{compareSelected.size !== 1 ? 's' : ''} selected
+            </span>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCompareSelected(new Set())}
+              className="text-slate-800 hover:text-slate-900 text-sm px-3 py-2"
+            >
+              Clear
+            </button>
+            <button
+              onClick={handleRequestQuote}
+              className="bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold px-4 py-2 rounded-lg text-sm transition-colors"
+            >
+              Request Quote for {compareSelected.size} Stones →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

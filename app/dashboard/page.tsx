@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 
 interface Favorite {
   id: number
@@ -24,14 +23,211 @@ interface QuoteRequest {
   phone: string
   sqft_estimate: number
   notes: string
+  layout: string | null
+  sink_type: string | null
   status: string
   created_at: string
   quote_file: string | null
   quote_file_name: string | null
+  stones: Array<{ stoneId: string; stoneName: string; stoneImage: string }> | null
 }
 
 const PRICE_LABELS: Record<number, string> = { 1: '$', 2: '$$', 3: '$$$', 4: '$$$$' }
 
+const LAYOUT_OPTIONS = ['U-shape', 'L-shape', 'Straight', 'Island', 'Other']
+const SINK_OPTIONS = [
+  { value: 'none', label: 'No Sink' },
+  { value: 'single', label: 'Single Basin' },
+  { value: 'double', label: 'Double Basin' },
+]
+
+function MultiQuoteModal({
+  stones,
+  onClose,
+  onSubmit,
+}: {
+  stones: Favorite[]
+  onClose: () => void
+  onSubmit: () => void
+}) {
+  const [customerName, setCustomerName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [sqft, setSqft] = useState('')
+  const [layout, setLayout] = useState('')
+  const [sinkType, setSinkType] = useState('none')
+  const [notes, setNotes] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setSubmitting(true)
+
+    const stonesPayload = stones.map(s => ({
+      stoneId: s.stone_id,
+      stoneName: s.stone_name,
+      stoneImage: s.stone_image,
+    }))
+
+    const res = await fetch('/api/quote-requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        stones: stonesPayload,
+        customer_name: customerName,
+        phone,
+        sqft_estimate: parseFloat(sqft) || null,
+        layout: layout || null,
+        sink_type: sinkType || null,
+        notes,
+      }),
+    })
+
+    setSubmitting(false)
+    if (!res.ok) {
+      const data = await res.json()
+      setError(data.error || 'Failed to submit request')
+      return
+    }
+    onSubmit()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-start justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg my-8">
+        <h2 className="text-lg font-bold text-white mb-1">Request a Quote</h2>
+        <p className="text-slate-400 text-sm mb-4">
+          {stones.length} stone{stones.length !== 1 ? 's' : ''} selected
+        </p>
+
+        {/* Stone thumbnails */}
+        <div className="flex gap-2 flex-wrap mb-5">
+          {stones.map(s => (
+            <div key={s.stone_id} className="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5">
+              {s.stone_image ? (
+                <img
+                  src={s.stone_image}
+                  alt={s.stone_name}
+                  className="w-8 h-8 rounded object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                />
+              ) : (
+                <div className="w-8 h-8 rounded bg-slate-700 flex items-center justify-center text-slate-500">◆</div>
+              )}
+              <span className="text-white text-xs font-medium">{s.stone_name}</span>
+            </div>
+          ))}
+        </div>
+
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3 mb-4">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-slate-400 text-xs mb-1">Your Name *</label>
+              <input
+                type="text"
+                required
+                value={customerName}
+                onChange={e => setCustomerName(e.target.value)}
+                placeholder="Jane Smith"
+                className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+              />
+            </div>
+            <div>
+              <label className="block text-slate-400 text-xs mb-1">Phone *</label>
+              <input
+                type="tel"
+                required
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                placeholder="(555) 000-0000"
+                className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-slate-400 text-xs mb-1">Estimated Sq Ft</label>
+              <input
+                type="number"
+                min="0"
+                step="0.5"
+                value={sqft}
+                onChange={e => setSqft(e.target.value)}
+                placeholder="e.g. 45"
+                className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+              />
+            </div>
+            <div>
+              <label className="block text-slate-400 text-xs mb-1">Layout</label>
+              <select
+                value={layout}
+                onChange={e => setLayout(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+              >
+                <option value="">Select layout</option>
+                {LAYOUT_OPTIONS.map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-slate-400 text-xs mb-1">Sink Cutouts</label>
+            <div className="flex gap-2">
+              {SINK_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setSinkType(opt.value)}
+                  className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-colors ${
+                    sinkType === opt.value
+                      ? 'bg-amber-500/20 border-amber-500/50 text-amber-400'
+                      : 'border-slate-600 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-slate-400 text-xs mb-1">Notes</label>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="Edge profile, special requests…"
+              rows={3}
+              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500 resize-none"
+            />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 border border-slate-600 text-slate-300 hover:text-white py-2.5 rounded-lg text-sm transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-900 font-bold py-2.5 rounded-lg text-sm transition-colors"
+            >
+              {submitting ? 'Submitting…' : 'Submit Quote Request'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Legacy single-stone modal (kept for single "Request Quote" button on card)
 function QuoteRequestModal({
   stone,
   onClose,
@@ -44,6 +240,8 @@ function QuoteRequestModal({
   const [customerName, setCustomerName] = useState('')
   const [phone, setPhone] = useState('')
   const [sqft, setSqft] = useState('')
+  const [layout, setLayout] = useState('')
+  const [sinkType, setSinkType] = useState('none')
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -62,6 +260,8 @@ function QuoteRequestModal({
         customer_name: customerName,
         phone,
         sqft_estimate: parseFloat(sqft) || null,
+        layout: layout || null,
+        sink_type: sinkType || null,
         notes,
       }),
     })
@@ -114,17 +314,49 @@ function QuoteRequestModal({
               />
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-slate-400 text-xs mb-1">Estimated Sq Ft</label>
+              <input
+                type="number"
+                min="0"
+                step="0.5"
+                value={sqft}
+                onChange={e => setSqft(e.target.value)}
+                placeholder="e.g. 45"
+                className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+              />
+            </div>
+            <div>
+              <label className="block text-slate-400 text-xs mb-1">Layout</label>
+              <select
+                value={layout}
+                onChange={e => setLayout(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+              >
+                <option value="">Select layout</option>
+                {LAYOUT_OPTIONS.map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
+            </div>
+          </div>
           <div>
-            <label className="block text-slate-400 text-xs mb-1">Estimated Square Footage</label>
-            <input
-              type="number"
-              min="0"
-              step="0.5"
-              value={sqft}
-              onChange={e => setSqft(e.target.value)}
-              placeholder="e.g. 45"
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
-            />
+            <label className="block text-slate-400 text-xs mb-1">Sink Cutouts</label>
+            <div className="flex gap-2">
+              {SINK_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setSinkType(opt.value)}
+                  className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-colors ${
+                    sinkType === opt.value
+                      ? 'bg-amber-500/20 border-amber-500/50 text-amber-400'
+                      : 'border-slate-600 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
           <div>
             <label className="block text-slate-400 text-xs mb-1">Notes</label>
@@ -166,6 +398,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'favorites' | 'quotes'>('favorites')
   const [requestModalStone, setRequestModalStone] = useState<Favorite | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [multiQuoteOpen, setMultiQuoteOpen] = useState(false)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -193,10 +427,22 @@ export default function DashboardPage() {
       body: JSON.stringify({ stone_id: stoneId }),
     })
     setFavorites(prev => prev.filter(f => f.stone_id !== stoneId))
+    setSelectedIds(prev => { const s = new Set(prev); s.delete(stoneId); return s })
+  }
+
+  const toggleSelect = (stoneId: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(stoneId)) next.delete(stoneId)
+      else next.add(stoneId)
+      return next
+    })
   }
 
   const refreshQuotes = () => {
     setRequestModalStone(null)
+    setMultiQuoteOpen(false)
+    setSelectedIds(new Set())
     fetch('/api/quote-requests').then(r => r.json()).then(data => {
       setQuoteRequests(Array.isArray(data) ? data : [])
     })
@@ -218,8 +464,10 @@ export default function DashboardPage() {
     closed: 'text-slate-400 bg-slate-700 border-slate-600',
   }
 
+  const selectedStones = favorites.filter(f => selectedIds.has(f.stone_id))
+
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="min-h-screen bg-slate-900 text-white pb-24">
       {/* Header */}
       <div className="bg-slate-800 border-b border-slate-700 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -283,41 +531,70 @@ export default function DashboardPage() {
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {favorites.map(fav => (
-                  <div key={fav.id} className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 hover:border-amber-400 transition-colors group">
-                    <div className="aspect-square relative bg-slate-700">
-                      {fav.stone_image ? (
-                        <img
-                          src={fav.stone_image}
-                          alt={fav.stone_name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-500 text-4xl">◆</div>
-                      )}
-                      <button
-                        onClick={() => removeFavorite(fav.stone_id)}
-                        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-slate-900/80 hover:bg-red-500/80 flex items-center justify-center text-red-400 hover:text-white transition-colors text-sm"
-                        title="Remove from favorites"
+              <>
+                {/* Selection hint */}
+                {favorites.length > 1 && (
+                  <p className="text-slate-500 text-xs mb-4">
+                    ☑ Tap the checkbox on any stone to select multiple — then request a quote for all at once.
+                  </p>
+                )}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {favorites.map(fav => {
+                    const isSelected = selectedIds.has(fav.stone_id)
+                    return (
+                      <div
+                        key={fav.id}
+                        className={`bg-slate-800 rounded-xl overflow-hidden border transition-colors group ${
+                          isSelected ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-slate-700 hover:border-amber-400'
+                        }`}
                       >
-                        ❤️
-                      </button>
-                    </div>
-                    <div className="p-3">
-                      <p className="font-semibold text-sm leading-tight mb-1">{fav.stone_name}</p>
-                      <p className="text-slate-400 text-xs capitalize mb-2">{fav.stone_material}</p>
-                      <button
-                        onClick={() => setRequestModalStone(fav)}
-                        className="w-full text-center bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-slate-900 text-xs font-bold py-1.5 rounded transition-colors"
-                      >
-                        Request Quote
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                        <div className="aspect-square relative bg-slate-700">
+                          {fav.stone_image ? (
+                            <img
+                              src={fav.stone_image}
+                              alt={fav.stone_name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-500 text-4xl">◆</div>
+                          )}
+                          {/* Checkbox */}
+                          <button
+                            onClick={() => toggleSelect(fav.stone_id)}
+                            className={`absolute top-2 left-2 w-6 h-6 rounded border-2 flex items-center justify-center text-xs font-bold transition-all ${
+                              isSelected
+                                ? 'bg-amber-500 border-amber-500 text-slate-900'
+                                : 'bg-slate-900/70 border-slate-500 text-transparent hover:border-amber-400'
+                            }`}
+                            title={isSelected ? 'Deselect' : 'Select for quote'}
+                          >
+                            ✓
+                          </button>
+                          {/* Remove favorite */}
+                          <button
+                            onClick={() => removeFavorite(fav.stone_id)}
+                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-slate-900/80 hover:bg-red-500/80 flex items-center justify-center text-red-400 hover:text-white transition-colors text-sm"
+                            title="Remove from favorites"
+                          >
+                            ❤️
+                          </button>
+                        </div>
+                        <div className="p-3">
+                          <p className="font-semibold text-sm leading-tight mb-1">{fav.stone_name}</p>
+                          <p className="text-slate-400 text-xs capitalize mb-2">{fav.stone_material}</p>
+                          <button
+                            onClick={() => setRequestModalStone(fav)}
+                            className="w-full text-center bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-slate-900 text-xs font-bold py-1.5 rounded transition-colors"
+                          >
+                            Request Quote
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </>
             )}
           </div>
         )}
@@ -338,53 +615,130 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {quoteRequests.map(qr => (
-                  <div
-                    key={qr.id}
-                    className="bg-slate-800 border border-slate-700 rounded-xl p-5 flex items-start justify-between gap-4"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <p className="font-semibold text-white">{qr.stone_name || qr.stone_id}</p>
-                        <span className={`inline-flex text-xs px-2.5 py-0.5 rounded-full border font-medium capitalize ${statusColor[qr.status] || statusColor.pending}`}>
-                          {qr.status === 'quoted' ? '✓ Quote Ready' : qr.status}
-                        </span>
+                {quoteRequests.map(qr => {
+                  const displayStones = qr.stones && qr.stones.length > 0
+                    ? qr.stones
+                    : [{ stoneId: qr.stone_id, stoneName: qr.stone_name || qr.stone_id, stoneImage: '' }]
+                  return (
+                    <div
+                      key={qr.id}
+                      className="bg-slate-800 border border-slate-700 rounded-xl p-5 flex items-start justify-between gap-4"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2 flex-wrap">
+                          {displayStones.length > 1 ? (
+                            <div className="flex gap-1 items-center">
+                              {displayStones.slice(0, 3).map(s => (
+                                <div key={s.stoneId} title={s.stoneName} className="w-8 h-8 rounded overflow-hidden bg-slate-700 border border-slate-600">
+                                  {s.stoneImage ? (
+                                    <img src={s.stoneImage} alt={s.stoneName} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs">◆</div>
+                                  )}
+                                </div>
+                              ))}
+                              {displayStones.length > 3 && (
+                                <span className="text-slate-500 text-xs">+{displayStones.length - 3}</span>
+                              )}
+                            </div>
+                          ) : null}
+                          <p className="font-semibold text-white">
+                            {displayStones.length > 1
+                              ? `${displayStones.length} Stones`
+                              : displayStones[0]?.stoneName}
+                          </p>
+                          <span className={`inline-flex text-xs px-2.5 py-0.5 rounded-full border font-medium capitalize ${statusColor[qr.status] || statusColor.pending}`}>
+                            {qr.status === 'quoted' ? '✓ Quote Ready' : qr.status}
+                          </span>
+                        </div>
+                        {displayStones.length > 1 && (
+                          <p className="text-slate-500 text-xs mb-1">
+                            {displayStones.map(s => s.stoneName).join(' · ')}
+                          </p>
+                        )}
+                        <div className="text-slate-400 text-sm flex flex-wrap gap-x-4 gap-y-1">
+                          {qr.sqft_estimate && <span>~{qr.sqft_estimate} sqft</span>}
+                          {qr.layout && <span>{qr.layout}</span>}
+                          {qr.sink_type && qr.sink_type !== 'none' && <span>{qr.sink_type} sink</span>}
+                          {qr.phone && <span>{qr.phone}</span>}
+                          <span>{new Date(qr.created_at).toLocaleDateString()}</span>
+                        </div>
+                        {qr.notes && (
+                          <p className="text-slate-500 text-sm mt-2 italic">&ldquo;{qr.notes}&rdquo;</p>
+                        )}
                       </div>
-                      <div className="text-slate-400 text-sm flex flex-wrap gap-x-4 gap-y-1">
-                        {qr.sqft_estimate && <span>~{qr.sqft_estimate} sqft</span>}
-                        {qr.phone && <span>{qr.phone}</span>}
-                        <span>{new Date(qr.created_at).toLocaleDateString()}</span>
+                      <div className="shrink-0">
+                        {qr.quote_file ? (
+                          <a
+                            href={`/api/quotes/download/${qr.quote_file}`}
+                            download={qr.quote_file_name || 'quote.pdf'}
+                            className="inline-flex items-center gap-2 bg-green-500/15 hover:bg-green-500/25 border border-green-500/30 text-green-400 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                          >
+                            ⬇ Download Quote
+                          </a>
+                        ) : (
+                          <span className="text-slate-600 text-xs">Awaiting quote…</span>
+                        )}
                       </div>
-                      {qr.notes && (
-                        <p className="text-slate-500 text-sm mt-2 italic">&ldquo;{qr.notes}&rdquo;</p>
-                      )}
                     </div>
-                    <div className="shrink-0">
-                      {qr.quote_file ? (
-                        <a
-                          href={`/api/quotes/download/${qr.quote_file}`}
-                          download={qr.quote_file_name || 'quote.pdf'}
-                          className="inline-flex items-center gap-2 bg-green-500/15 hover:bg-green-500/25 border border-green-500/30 text-green-400 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-                        >
-                          ⬇ Download Quote
-                        </a>
-                      ) : (
-                        <span className="text-slate-600 text-xs">Awaiting quote…</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Quote Request Modal */}
+      {/* Sticky "Quote Selected" bar */}
+      {selectedIds.size > 0 && activeTab === 'favorites' && (
+        <div className="fixed bottom-0 left-0 right-0 bg-amber-500 text-slate-900 px-4 py-4 flex items-center justify-between gap-4 z-40 shadow-2xl">
+          <div className="flex items-center gap-3">
+            <div className="flex -space-x-2">
+              {selectedStones.slice(0, 4).map(s => (
+                <div key={s.stone_id} className="w-8 h-8 rounded-full overflow-hidden border-2 border-amber-400 bg-slate-700">
+                  {s.stone_image ? (
+                    <img src={s.stone_image} alt={s.stone_name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs">◆</div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <span className="font-bold text-sm">
+              {selectedIds.size} stone{selectedIds.size !== 1 ? 's' : ''} selected
+            </span>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="text-slate-800 hover:text-slate-900 text-sm px-3 py-2 rounded-lg"
+            >
+              Clear
+            </button>
+            <button
+              onClick={() => setMultiQuoteOpen(true)}
+              className="bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold px-4 py-2 rounded-lg text-sm transition-colors"
+            >
+              Quote Selected ({selectedIds.size}) →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Single stone quote modal */}
       {requestModalStone && (
         <QuoteRequestModal
           stone={requestModalStone}
           onClose={() => setRequestModalStone(null)}
+          onSubmit={refreshQuotes}
+        />
+      )}
+
+      {/* Multi-stone quote modal */}
+      {multiQuoteOpen && selectedStones.length > 0 && (
+        <MultiQuoteModal
+          stones={selectedStones}
+          onClose={() => setMultiQuoteOpen(false)}
           onSubmit={refreshQuotes}
         />
       )}
