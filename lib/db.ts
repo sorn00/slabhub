@@ -101,6 +101,18 @@ export async function getDb() {
         payload JSONB,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+      CREATE TABLE IF NOT EXISTS messages (
+        id TEXT PRIMARY KEY,
+        contact_id TEXT NOT NULL,
+        conversation_id TEXT,
+        direction TEXT NOT NULL,
+        body TEXT,
+        message_type TEXT DEFAULT 'SMS',
+        sent_at TIMESTAMPTZ NOT NULL,
+        synced_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_messages_contact_id ON messages(contact_id);
+      CREATE INDEX IF NOT EXISTS idx_messages_sent_at ON messages(sent_at DESC);
     `)
     // Migrations: add new columns if not present
     await pool.query(`

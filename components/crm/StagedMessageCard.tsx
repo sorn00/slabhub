@@ -57,6 +57,8 @@ export default function StagedMessageCard({ msg, isAdmin, onUpdated }: StagedMes
   const [error, setError] = useState('')
   const [liveMessages, setLiveMessages] = useState<ContextMessage[] | null>(null)
   const [loadingThread, setLoadingThread] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const [newMsgCount, setNewMsgCount] = useState(0)
 
   const contextMessages: ContextMessage[] = (() => {
     try {
@@ -80,6 +82,27 @@ export default function StagedMessageCard({ msg, isAdmin, onUpdated }: StagedMes
       setLiveMessages([])
     } finally {
       setLoadingThread(false)
+    }
+  }, [msg.conversation_id, msg.contact_id, liveMessages])
+
+  const refreshThread = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      const lastMsg = liveMessages?.[liveMessages.length - 1]
+      const since = lastMsg?.sent_at || ''
+      const params = new URLSearchParams()
+      if (msg.conversation_id) params.set('conversationId', msg.conversation_id)
+      else if (msg.contact_id) params.set('contactId', msg.contact_id)
+      params.set('refresh', 'true')
+      if (since) params.set('since', String(since))
+      const res = await fetch(`/api/crm/conversation?${params}`)
+      const data = await res.json()
+      setLiveMessages(data.messages || [])
+      setNewMsgCount(data.newCount || 0)
+    } catch {
+      // ignore
+    } finally {
+      setRefreshing(false)
     }
   }, [msg.conversation_id, msg.contact_id, liveMessages])
 
@@ -172,6 +195,20 @@ export default function StagedMessageCard({ msg, isAdmin, onUpdated }: StagedMes
         </button>
         {expanded && (
           <div className="mt-3 space-y-2 border border-slate-700 rounded-lg p-3 bg-slate-900/50">
+            {/* Refresh header */}
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-slate-400 font-medium">Conversation Thread</span>
+              <button
+                onClick={refreshThread}
+                disabled={refreshing || loadingThread}
+                className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 disabled:opacity-50"
+              >
+                {refreshing ? '⟳ Checking...' : '🔄 Check for new'}
+                {newMsgCount > 0 && (
+                  <span className="bg-red-500 text-white text-[10px] px-1.5 rounded-full">{newMsgCount} new</span>
+                )}
+              </button>
+            </div>
             {loadingThread && (
               <div className="text-xs text-slate-500 text-center py-3 animate-pulse">Fetching conversation from GHL…</div>
             )}

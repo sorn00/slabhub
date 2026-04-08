@@ -77,6 +77,35 @@ export async function POST(req: NextRequest) {
       await sendTelegram(alert);
     }
 
+    // Save inbound/outbound messages to messages table for fast local reads
+    if (type === 'InboundMessage' || type === 'OutboundMessage') {
+      const b = body as Record<string, unknown>;
+      const msgContactId = b.contactId as string | undefined;
+      if (msgContactId) {
+        const msgId = (b.messageId || b.id || `${msgContactId}-${Date.now()}`) as string;
+        const rawBody = ((b.message || b.body || '') as string);
+        const msgType = ((b.messageType || 'SMS') as string);
+        const direction = type === 'InboundMessage' ? 'inbound' : 'outbound';
+        try {
+          await run(
+            `INSERT INTO messages (id, contact_id, conversation_id, direction, body, message_type, sent_at)
+             VALUES ($1, $2, $3, $4, $5, $6, NOW())
+             ON CONFLICT (id) DO NOTHING`,
+            [
+              msgId,
+              msgContactId,
+              (b.conversationId as string) || null,
+              direction,
+              rawBody,
+              msgType,
+            ]
+          );
+        } catch (msgErr) {
+          console.error('Failed to save message to messages table:', msgErr);
+        }
+      }
+    }
+
     if (type === 'ContactCreate') {
       await run(
         `INSERT INTO webhook_events (event_type, contact_id, payload, created_at)
