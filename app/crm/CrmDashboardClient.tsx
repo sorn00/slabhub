@@ -91,9 +91,9 @@ export default function CrmDashboardClient({
             )}
             <Link
               href="/crm/leads"
-              className="text-sm bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg transition-colors"
+              className="text-sm bg-[#d4a847]/20 hover:bg-[#d4a847]/30 text-[#d4a847] border border-[#d4a847]/30 px-3 py-1.5 rounded-lg transition-colors font-medium"
             >
-              All Leads →
+              🎯 Lead Queue
             </Link>
           </div>
         </div>
