@@ -549,6 +549,7 @@ export default function DashboardPage() {
                         }`}
                       >
                         <div className="aspect-square relative bg-slate-700">
+                          <Link href={`/stones/${fav.stone_id}`} className="block w-full h-full">
                           {fav.stone_image ? (
                             <img
                               src={fav.stone_image}
@@ -559,6 +560,7 @@ export default function DashboardPage() {
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-slate-500 text-4xl">◆</div>
                           )}
+                          </Link>
                           {/* Checkbox */}
                           <button
                             onClick={() => toggleSelect(fav.stone_id)}
@@ -581,14 +583,19 @@ export default function DashboardPage() {
                           </button>
                         </div>
                         <div className="p-3">
-                          <p className="font-semibold text-sm leading-tight mb-1">{fav.stone_name}</p>
+                          <Link href={`/stones/${fav.stone_id}`} className="block font-semibold text-sm leading-tight mb-1 hover:text-amber-400 transition-colors">{fav.stone_name}</Link>
                           <p className="text-slate-400 text-xs capitalize mb-2">{fav.stone_material}</p>
+                          <div className="flex gap-1">
                           <button
                             onClick={() => setRequestModalStone(fav)}
-                            className="w-full text-center bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-slate-900 text-xs font-bold py-1.5 rounded transition-colors"
+                            className="flex-1 text-center bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-slate-900 text-xs font-bold py-1.5 rounded transition-colors"
                           >
-                            Request Quote
+                            Quote
                           </button>
+                          <Link href={`/stones/${fav.stone_id}`} className="flex-1 text-center bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold py-1.5 rounded transition-colors text-center">
+                            View
+                          </Link>
+                          </div>
                         </div>
                       </div>
                     )
