@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo / Title */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-white">SlabHub Admin</h1>
+          <h1 className="text-2xl font-bold text-white">Quarriva Admin</h1>
           <p className="text-slate-400 text-sm mt-2">Sign in to manage your panel</p>
         </div>
 
@@ -82,7 +82,7 @@ export default function AdminLoginPage() {
         </div>
 
         <p className="text-center text-slate-600 text-xs mt-6">
-          SlabHub Admin Panel · Authorized access only
+          Quarriva Admin Panel · Authorized access only
         </p>
       </div>
     </div>

@@ -26,7 +26,7 @@ export default function FabricatorsPage() {
 
       {/* Value props */}
       <section className="max-w-6xl mx-auto px-4 py-20">
-        <h2 className="text-3xl font-bold text-white text-center mb-12">Why fabricators choose SlabHub</h2>
+        <h2 className="text-3xl font-bold text-white text-center mb-12">Why fabricators choose Quarriva</h2>
         <div className="grid md:grid-cols-2 gap-6">
           {[
             {
@@ -123,7 +123,7 @@ export default function FabricatorsPage() {
       {/* Final CTA */}
       <section className="max-w-6xl mx-auto px-4 py-20 text-center">
         <h2 className="text-3xl font-bold text-white mb-4">Ready to fill your pipeline?</h2>
-        <p className="text-slate-400 mb-8 max-w-lg mx-auto">Join 500+ fabricators already receiving pre-qualified leads through SlabHub.</p>
+        <p className="text-slate-400 mb-8 max-w-lg mx-auto">Join 500+ fabricators already receiving pre-qualified leads through Quarriva.</p>
         <Link href="/fabricators/register" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-10 py-4 rounded-lg transition-colors text-lg inline-block">
           Get Started — No Charge Today
         </Link>

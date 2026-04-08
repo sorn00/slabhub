@@ -406,7 +406,7 @@ export default function LeadsClient({ isAdmin }: Props) {
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
-              <Link href="/" className="text-amber-400 font-bold text-xl">◆ SlabHub</Link>
+              <Link href="/" className="text-amber-400 font-bold text-xl">◆ Quarriva</Link>
               <span className="text-slate-600">/</span>
               <Link href="/crm" className="text-slate-400 hover:text-white transition-colors">CRM</Link>
               <span className="text-slate-600">/</span>

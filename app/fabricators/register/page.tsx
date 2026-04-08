@@ -74,7 +74,7 @@ export default function FabricatorRegisterPage() {
     <div className="max-w-xl mx-auto px-4 py-12">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">Start receiving leads</h1>
-        <p className="text-slate-400">Join SlabHub's fabricator network. Setup takes under 5 minutes.</p>
+        <p className="text-slate-400">Join Quarriva's fabricator network. Setup takes under 5 minutes.</p>
       </div>
 
       <div className="mb-6">

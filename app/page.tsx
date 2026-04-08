@@ -159,11 +159,11 @@ export default function HomePage() {
             <span>◆</span> The #1 Stone Marketplace
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-            Find the perfect countertop.<br />
+            Find Your Perfect Stone.<br />
             <span className="text-amber-400">Get quotes from local fabricators.</span>
           </h1>
           <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-10">
-            Connect with verified stone fabricators in your area. Compare quotes, materials, and timelines — all in one place.
+            Browse 200+ premium quartz, granite &amp; marble surfaces. Get quotes from local fabricators in minutes.
           </p>
 
           {/* Search bar */}

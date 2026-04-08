@@ -505,7 +505,7 @@ function Fabricators() {
     <div>
       <SectionHeader
         title="Registered Fabricators"
-        subtitle="All fabricators who have registered on SlabHub. Read-only."
+        subtitle="All fabricators who have registered on Quarriva. Read-only."
       />
 
       {loading ? (
@@ -788,7 +788,7 @@ export default function AdminPage() {
         <div className="flex items-start justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-white">Admin Panel</h1>
-            <p className="text-slate-400 mt-1">Manage SlabHub content, pricing, and leads.</p>
+            <p className="text-slate-400 mt-1">Manage Quarriva content, pricing, and leads.</p>
           </div>
           <button
             onClick={handleSignOut}

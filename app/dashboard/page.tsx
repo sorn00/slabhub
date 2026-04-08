@@ -471,7 +471,7 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="bg-slate-800 border-b border-slate-700 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="text-amber-400 font-bold text-xl">SlabHub</Link>
+          <Link href="/" className="text-amber-400 font-bold text-xl">Quarriva</Link>
           <div className="flex items-center gap-4">
             <span className="text-slate-400 text-sm hidden sm:block">
               {session.user?.name}

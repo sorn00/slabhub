@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const stone = catalog.find(s => s.id === params.id)
   if (!stone) {
     return {
-      title: 'Stone Not Found | SlabHub',
+      title: 'Stone Not Found | Quarriva',
     }
   }
 

@@ -149,7 +149,7 @@ export default function StonesPage() {
     <div className="min-h-screen bg-slate-900 text-white pb-24">
       {/* Header */}
       <div className="bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="text-amber-400 font-bold text-xl">SlabHub</Link>
+        <Link href="/" className="text-amber-400 font-bold text-xl">Quarriva</Link>
         <div className="flex items-center gap-3">
           {session?.user ? (
             <Link href="/dashboard" className="text-slate-300 hover:text-white text-sm transition-colors">

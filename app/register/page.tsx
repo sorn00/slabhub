@@ -53,7 +53,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link href="/" className="text-amber-400 font-bold text-2xl">SlabHub</Link>
+          <Link href="/" className="text-amber-400 font-bold text-2xl">Quarriva</Link>
           <p className="text-slate-400 mt-2 text-sm">Create your free account</p>
         </div>
 
@@ -120,7 +120,7 @@ export default function RegisterPage() {
 
         <p className="text-center mt-6">
           <Link href="/" className="text-slate-500 hover:text-slate-300 text-sm transition-colors">
-            ← Back to SlabHub
+            ← Back to Quarriva
           </Link>
         </p>
       </div>
