@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
 const STAGE_COLORS: Record<string, string> = {
@@ -55,6 +55,8 @@ export default function StagedMessageCard({ msg, isAdmin, onUpdated }: StagedMes
   const [notes, setNotes] = useState(msg.notes || '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [liveMessages, setLiveMessages] = useState<ContextMessage[] | null>(null)
+  const [loadingThread, setLoadingThread] = useState(false)
 
   const contextMessages: ContextMessage[] = (() => {
     try {
@@ -63,6 +65,28 @@ export default function StagedMessageCard({ msg, isAdmin, onUpdated }: StagedMes
       return []
     }
   })()
+
+  const fetchThread = useCallback(async () => {
+    if (liveMessages !== null) return // already loaded
+    setLoadingThread(true)
+    try {
+      const params = new URLSearchParams()
+      if (msg.conversation_id) params.set('conversationId', msg.conversation_id)
+      else if (msg.contact_id) params.set('contactId', msg.contact_id)
+      const res = await fetch(`/api/crm/conversation?${params}`)
+      const data = await res.json()
+      setLiveMessages(data.messages || [])
+    } catch {
+      setLiveMessages([])
+    } finally {
+      setLoadingThread(false)
+    }
+  }, [msg.conversation_id, msg.contact_id, liveMessages])
+
+  function toggleExpand() {
+    if (!expanded) fetchThread()
+    setExpanded(e => !e)
+  }
 
   const stageColor = STAGE_COLORS[msg.stage_name || ''] || STAGE_COLORS.default
   const cardStyle = STATUS_STYLES[msg.status] || STATUS_STYLES.pending
@@ -136,29 +160,51 @@ export default function StagedMessageCard({ msg, isAdmin, onUpdated }: StagedMes
         </div>
       </div>
 
-      {/* Context messages */}
-      {contextMessages.length > 0 && (
-        <div>
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
-          >
-            {expanded ? '▲ Hide context' : `▼ Show context (${Math.min(contextMessages.length, 3)} msgs)`}
-          </button>
-          {expanded && (
-            <div className="mt-2 space-y-1.5 border-l-2 border-slate-600 pl-3">
-              {contextMessages.slice(0, 5).map((ctx, i) => (
-                <div key={i} className={`text-xs rounded p-2 ${ctx.direction === 'inbound' ? 'bg-slate-700' : 'bg-slate-800'}`}>
-                  <span className={`font-medium ${ctx.direction === 'inbound' ? 'text-blue-400' : 'text-green-400'}`}>
-                    {ctx.direction === 'inbound' ? '← Lead' : '→ Us'}
-                  </span>
-                  <span className="text-slate-400 ml-2">{ctx.body}</span>
+      {/* Conversation thread — collapsible, fetches live from GHL */}
+      <div>
+        <button
+          onClick={toggleExpand}
+          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-amber-400 transition-colors font-medium"
+        >
+          <span>{expanded ? '▲' : '▼'}</span>
+          <span>{expanded ? 'Hide thread' : 'Show last 10 messages'}</span>
+          {loadingThread && <span className="text-slate-500 animate-pulse">loading…</span>}
+        </button>
+        {expanded && (
+          <div className="mt-3 space-y-2 border border-slate-700 rounded-lg p-3 bg-slate-900/50">
+            {loadingThread && (
+              <div className="text-xs text-slate-500 text-center py-3 animate-pulse">Fetching conversation from GHL…</div>
+            )}
+            {!loadingThread && liveMessages && liveMessages.length === 0 && (
+              <div className="text-xs text-slate-500 text-center py-3">No messages found in GHL</div>
+            )}
+            {!loadingThread && liveMessages && liveMessages.map((m, i) => {
+              const isInbound = m.direction === 'inbound'
+              const date = m.sent_at ? new Date(m.sent_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : ''
+              return (
+                <div key={i} className={`flex ${isInbound ? 'justify-start' : 'justify-end'}`}>
+                  <div className={`max-w-[80%] rounded-xl px-3 py-2 text-xs ${
+                    isInbound ? 'bg-slate-700 text-white rounded-tl-none' : 'bg-amber-600/30 text-amber-100 rounded-tr-none'
+                  }`}>
+                    <div className={`text-[10px] mb-1 ${isInbound ? 'text-slate-400' : 'text-amber-400/70'}`}>
+                      {isInbound ? '← Lead' : '→ Us'} {date && `· ${date}`}
+                    </div>
+                    <div className="leading-relaxed">{m.body}</div>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+              )
+            })}
+            {/* Divider showing where draft will be sent */}
+            {!loadingThread && liveMessages && liveMessages.length > 0 && (
+              <div className="flex items-center gap-2 pt-1">
+                <div className="flex-1 border-t border-dashed border-amber-500/30"/>
+                <span className="text-[10px] text-amber-500/60 whitespace-nowrap">↓ draft message below</span>
+                <div className="flex-1 border-t border-dashed border-amber-500/30"/>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Message draft */}
       {!isDone ? (
