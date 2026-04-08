@@ -93,6 +93,14 @@ export async function getDb() {
         updated_at TIMESTAMPTZ DEFAULT NOW(),
         updated_by TEXT
       );
+      CREATE TABLE IF NOT EXISTS webhook_events (
+        id SERIAL PRIMARY KEY,
+        event_type TEXT,
+        contact_id TEXT,
+        conversation_id TEXT,
+        payload JSONB,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
     `)
     // Migrations: add new columns if not present
     await pool.query(`
