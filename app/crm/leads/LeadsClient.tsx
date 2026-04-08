@@ -271,6 +271,14 @@ function LeadCard({
             <span className="font-semibold text-white">{lead.name}</span>
             <span className="text-slate-400 text-sm">·</span>
             <span className="text-slate-400 text-sm">{lead.stageName}</span>
+            {(lead as { hasStagedDraft?: boolean }).hasStagedDraft && (
+              <a
+                href="/crm/messages"
+                className="text-xs font-bold px-2 py-0.5 rounded-full border bg-amber-500/20 text-amber-400 border-amber-500/40 hover:bg-amber-500/30 transition-colors"
+              >
+                📋 Draft Ready
+              </a>
+            )}
           </div>
         </div>
 
@@ -301,20 +309,29 @@ function LeadCard({
         <div className="flex gap-2 flex-wrap pt-1">
           {lead.conversationId && (
             <a
-              href={`https://app.gohighlevel.com/v2/location/${`qhOziWzmOO7mYbl3U7tm`}/conversations/${lead.conversationId}`}
+              href={`https://app.gohighlevel.com/v2/location/${'qhOziWzmOO7mYbl3U7tm'}/conversations/${lead.conversationId}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg transition-colors font-medium"
             >
-              📋 View Conversation
+              📋 View in GHL
             </a>
           )}
-          <button
-            onClick={() => setShowModal(true)}
-            className="text-xs bg-[#d4a847]/20 hover:bg-[#d4a847]/30 text-[#d4a847] px-3 py-1.5 rounded-lg transition-colors font-medium"
-          >
-            ✍️ Draft Reply
-          </button>
+          {(lead as { hasStagedDraft?: boolean }).hasStagedDraft ? (
+            <a
+              href="/crm/messages"
+              className="text-xs bg-amber-500/30 hover:bg-amber-500/50 text-amber-300 px-3 py-1.5 rounded-lg transition-colors font-medium"
+            >
+              📋 Review Draft
+            </a>
+          ) : (
+            <button
+              onClick={() => setShowModal(true)}
+              className="text-xs bg-[#d4a847]/20 hover:bg-[#d4a847]/30 text-[#d4a847] px-3 py-1.5 rounded-lg transition-colors font-medium"
+            >
+              ✍️ Draft Reply
+            </button>
+          )}
           <button
             onClick={() => {
               setDone(true)

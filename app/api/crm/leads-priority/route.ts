@@ -58,6 +58,8 @@ export interface PrioritizedLead {
   lastMessageAt: string | null
   lastMessageAgo: string | null
   recentMessages: Array<{ direction: string; body: string; dateAdded: string }>
+  hasStagedDraft?: boolean
+  stagedDraftId?: string
 }
 
 // Simple in-memory cache
@@ -258,6 +260,33 @@ export async function GET(req: NextRequest) {
 
   try {
     const leads = await buildLeads()
+
+    // Cross-reference with staged_messages — mark leads that have a pending draft
+    try {
+      const { query } = await import('@/lib/db')
+      const staged = await query(
+        "SELECT id, contact_id, contact_name, phone FROM staged_messages WHERE status = 'pending'"
+      )
+      // Build lookup by phone (since GHL contact IDs may differ from what we stored)
+      const stagedByPhone = new Map<string, { id: string }>()
+      const stagedByName = new Map<string, { id: string }>()
+      for (const s of staged as Array<{ id: string; contact_id: string; contact_name: string; phone: string }>) {
+        if (s.phone) stagedByPhone.set(s.phone.replace(/\D/g, ''), { id: s.id })
+        if (s.contact_name) stagedByName.set(s.contact_name.toLowerCase().trim(), { id: s.id })
+      }
+      for (const lead of leads) {
+        const phoneClean = (lead.phone || '').replace(/\D/g, '')
+        const nameClean = (lead.name || '').toLowerCase().trim()
+        const match = stagedByPhone.get(phoneClean) || stagedByName.get(nameClean)
+        if (match) {
+          lead.hasStagedDraft = true
+          lead.stagedDraftId = match.id
+        }
+      }
+    } catch {
+      // DB unavailable — skip staged draft check
+    }
+
     cache = { data: leads, fetchedAt: Date.now() }
 
     return NextResponse.json({
