@@ -212,6 +212,41 @@ export default function HomePage() {
       {/* Featured Stones */}
       <FeaturedStonesSection />
 
+      {/* Browse Our Collection - Quick Filter Shortcuts */}
+      <section className="max-w-6xl mx-auto px-4 py-12">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-white mb-2">Browse Our Collection</h2>
+          <p className="text-slate-400 text-sm">Jump straight to the look you want</p>
+        </div>
+        <div className="flex flex-wrap justify-center gap-3">
+          {[
+            { label: '🤍 White Marble Look', href: '/stones?color=White&style=marble-look' },
+            { label: '🩶 Gray Quartz', href: '/stones?color=Gray-Light&material=quartz' },
+            { label: '⚡ Bold Veining', href: '/stones?style=bold-veining' },
+            { label: '💎 Premium Surfaces', href: '/stones?priceRange=Premium+(%2475-120%2Fsqft)' },
+            { label: '🖤 Black Granite', href: '/stones?color=Black&material=granite' },
+            { label: '✨ Polished Finish', href: '/stones?finish=Polished' },
+          ].map(item => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className="flex items-center gap-2 bg-[#1a1a2e] border border-slate-700 hover:border-amber-500/60 text-slate-300 hover:text-white rounded-full px-5 py-2.5 text-sm font-medium transition-all hover:bg-[#1a1a2e]/80 group"
+            >
+              <span>{item.label}</span>
+              <span className="text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+            </Link>
+          ))}
+        </div>
+        <div className="text-center mt-6">
+          <Link
+            href="/stones"
+            className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-8 py-3 rounded-lg transition-colors"
+          >
+            View All 391 Stones →
+          </Link>
+        </div>
+      </section>
+
       {/* How it works */}
       <section className="max-w-6xl mx-auto px-4 py-20">
         <h2 className="text-3xl font-bold text-white text-center mb-4">How It Works</h2>
