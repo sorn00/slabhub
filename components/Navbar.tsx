@@ -25,6 +25,9 @@ export default function Navbar() {
           <Link href="/fabricators" className="text-slate-300 hover:text-white transition-colors">
             For Fabricators
           </Link>
+          <Link href="/countertops" className="text-slate-300 hover:text-white transition-colors">
+            Locations
+          </Link>
           {session && (userRole === 'admin' || userRole === 'reviewer') && (
             <Link href="/crm" className="text-slate-300 hover:text-amber-400 transition-colors font-medium">
               CRM
@@ -62,6 +65,9 @@ export default function Navbar() {
           </Link>
           <Link href="/fabricators" className="text-slate-300 hover:text-white transition-colors text-center" onClick={() => setMenuOpen(false)}>
             For Fabricators
+          </Link>
+          <Link href="/countertops" className="text-slate-300 hover:text-white transition-colors text-center" onClick={() => setMenuOpen(false)}>
+            Locations
           </Link>
           {session && (userRole === 'admin' || userRole === 'reviewer') && (
             <Link href="/crm" className="text-amber-400 hover:text-amber-300 font-medium transition-colors text-center" onClick={() => setMenuOpen(false)}>
