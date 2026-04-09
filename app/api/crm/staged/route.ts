@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
     phone,
     conversation_id,
     message,
+    channel,
     stage_name,
     context,
     notes,
@@ -53,11 +54,11 @@ export async function POST(req: NextRequest) {
   await run(`
     INSERT INTO staged_messages (
       id, contact_id, contact_name, phone, conversation_id,
-      message, status, stage_name, context, created_at, notes
-    ) VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7, $8, NOW(), $9)
+      message, status, channel, stage_name, context, created_at, notes
+    ) VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7, $8, $9, NOW(), $10)
   `, [
     id, contact_id, contact_name, phone, conversation_id,
-    message, stage_name, context ? JSON.stringify(context) : null, notes
+    message, channel || 'SMS', stage_name, context ? JSON.stringify(context) : null, notes
   ])
 
   const row = await queryOne('SELECT * FROM staged_messages WHERE id = $1', [id])

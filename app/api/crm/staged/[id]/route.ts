@@ -38,6 +38,7 @@ export async function PATCH(
     conversation_id: string | null
     message: string
     status: string
+    channel: string | null
   } | null
 
   if (!staged) {
@@ -57,9 +58,14 @@ export async function PATCH(
       return NextResponse.json({ error: 'Could not find or create GHL conversation' }, { status: 500 })
     }
 
+    // Route by channel
+    const typeMap: Record<string, string> = { SMS: 'SMS', Email: 'Email', Facebook: 'FB' }
+    const msgType = typeMap[(staged.channel || 'SMS')] || 'SMS'
+
     const result = await sendGhlMessage({
       conversationId,
       message: messageToSend,
+      type: msgType,
     })
 
     if (!result.success) {

@@ -76,6 +76,7 @@ export async function initSchema(): Promise<void> {
       conversation_id TEXT,
       message TEXT NOT NULL,
       status TEXT DEFAULT 'pending',
+      channel TEXT DEFAULT 'SMS',
       stage_name TEXT,
       context TEXT,
       created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -84,6 +85,7 @@ export async function initSchema(): Promise<void> {
       sent_at TIMESTAMPTZ,
       notes TEXT
     );
+    ALTER TABLE staged_messages ADD COLUMN IF NOT EXISTS channel TEXT DEFAULT 'SMS';
   `)
   console.log('[db-postgres] Schema initialized')
 }
