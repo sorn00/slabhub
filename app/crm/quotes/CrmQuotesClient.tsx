@@ -316,6 +316,7 @@ export default function CrmQuotesClient({
   const [requests, setRequests] = useState<QuoteRequest[]>(initialRequests)
   const [ghlLeads] = useState<GhlLead[]>(initialGhlLeads)
   const [activeTab, setActiveTab] = useState<TabKey>('needs-quote')
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest')
 
   const updateStatus = async (id: number, status: string) => {
     await fetch('/api/quote-requests', {
@@ -343,7 +344,10 @@ export default function CrmQuotesClient({
   const allMerged: AllEntry[] = [
     ...ghlLeads.map(l => ({ type: 'ghl' as const, lead: l, createdAt: l.createdAt })),
     ...requests.map(r => ({ type: 'quarriva' as const, req: r, createdAt: r.created_at })),
-  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  ].sort((a, b) => sortOrder === 'newest'
+    ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  )
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white">
@@ -357,12 +361,22 @@ export default function CrmQuotesClient({
             <span className="text-slate-600">/</span>
             <span className="text-white font-semibold">Quote Requests</span>
           </div>
-          <Link
-            href="/crm"
-            className="text-sm text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500 px-3 py-1.5 rounded-lg transition-colors"
-          >
-            ← Back to CRM
-          </Link>
+          <div className="flex items-center gap-2">
+            <select
+              value={sortOrder}
+              onChange={e => setSortOrder(e.target.value as 'newest' | 'oldest')}
+              className="bg-slate-800 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#d4a847]"
+            >
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+            </select>
+            <Link
+              href="/crm"
+              className="text-sm text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              ← Back to CRM
+            </Link>
+          </div>
         </div>
       </div>
 
