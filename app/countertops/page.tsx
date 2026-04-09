@@ -6,11 +6,11 @@ type TownEntry = { slug: string; name: string; county: string; pop: number }
 const towns = townsData as Record<string, TownEntry[]>
 
 export const metadata: Metadata = {
-  title: 'Countertop Service Areas | Massachusetts & Connecticut | Quarriva',
+  title: 'Countertop Service Areas | Quarriva',
   description:
-    'Quarriva serves homeowners across Massachusetts and Connecticut with premium quartz, granite, and marble countertops. Find your town and get a free quote today.',
+    'Quarriva serves homeowners across Massachusetts, Connecticut, New York, Florida, and Texas with premium quartz, granite, and marble countertops. Find your town and get a free quote today.',
   keywords:
-    'countertops Massachusetts Connecticut, quartz granite MA CT, stone countertops New England, local countertop fabricator',
+    'countertops Massachusetts Connecticut New York Florida Texas, quartz granite countertops, stone countertops, local countertop fabricator',
 }
 
 const states = [
@@ -29,6 +29,30 @@ const states = [
     description: 'Serving Fairfield County, Hartford, New Haven, and all of Connecticut.',
     highlight: 'Quarriva Partner Network',
     towns: towns.connecticut,
+  },
+  {
+    key: 'new-york',
+    name: 'New York',
+    abbr: 'NY',
+    description: 'Serving NYC, Westchester, Nassau, Suffolk, and all of New York.',
+    highlight: 'Quarriva Partner Network — Coming soon',
+    towns: towns['new-york'],
+  },
+  {
+    key: 'florida',
+    name: 'Florida',
+    abbr: 'FL',
+    description: 'Serving Miami, Orlando, Tampa, Jacksonville, and all of Florida.',
+    highlight: 'Quarriva Partner Network — Coming soon',
+    towns: towns['florida'],
+  },
+  {
+    key: 'texas',
+    name: 'Texas',
+    abbr: 'TX',
+    description: 'Serving Houston, Dallas, Austin, San Antonio, and all of Texas.',
+    highlight: 'Quarriva Partner Network — Coming soon',
+    towns: towns['texas'],
   },
 ]
 
@@ -85,7 +109,7 @@ export default function CountertopsHubPage() {
           countertops and professional installation.
         </p>
         <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '32px' }}>
-          Serving {totalTowns}+ cities and towns in Massachusetts &amp; Connecticut
+          Serving {totalTowns}+ cities and towns across 5 states
         </p>
         <a
           href="/stones"
