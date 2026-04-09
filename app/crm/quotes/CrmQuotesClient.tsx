@@ -574,10 +574,10 @@ export default function CrmQuotesClient({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contactId: threadContactId,
-          conversationId: activeThreadLead.conversationId,
+          conversationId: activeThreadLead?.conversationId || null,
           message: composeMessage,
-          contactName: activeThreadLead.customerName,
-          phone: activeThreadLead.phone || '',
+          contactName: activeThreadLead?.customerName || '',
+          phone: activeThreadLead?.phone || '',
           action: 'send',
           confirmed: true,
         }),
