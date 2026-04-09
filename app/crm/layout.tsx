@@ -11,7 +11,9 @@ const NAV_ITEMS = [
   { emoji: '💬', label: 'Messages', href: '/crm/messages' },
   { emoji: '📋', label: 'Quotes', href: '/crm/quotes' },
   { emoji: '💰', label: 'Pricing', href: '/crm/pricing' },
+  { emoji: '🪨', label: 'Catalog', href: '/crm/pricing' },
   { emoji: '🏭', label: 'Partners', href: '/crm/partners' },
+  { emoji: '📇', label: 'Fabricators', href: '/crm/fabricators' },
 ]
 
 function SidebarContent({ onNav }: { onNav?: () => void }) {
