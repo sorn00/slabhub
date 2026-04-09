@@ -63,8 +63,20 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
         })}
       </nav>
 
-      {/* User + Logout */}
+      {/* Settings + Logout */}
       <div className="px-3 py-3 border-t border-slate-700/50 space-y-0.5">
+        <Link
+          href="/crm/settings"
+          onClick={onNav}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            pathname === '/crm/settings'
+              ? 'bg-[#d4a847]/15 text-[#d4a847] border border-[#d4a847]/25'
+              : 'text-slate-400 hover:text-white hover:bg-slate-700/40'
+          }`}
+        >
+          <span className="text-base">⚙️</span>
+          <span>Settings</span>
+        </Link>
         {userName && (
           <div className="px-3 py-1.5 text-xs text-slate-500 truncate">
             <span className="text-slate-300 font-medium">{userName}</span>
