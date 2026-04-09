@@ -14,6 +14,9 @@ const NAV_ITEMS = [
   { emoji: '🪨', label: 'Catalog', href: '/crm/pricing' },
   { emoji: '🏭', label: 'Partners', href: '/crm/partners' },
   { emoji: '📇', label: 'Fabricators', href: '/crm/fabricators' },
+]
+
+const ADMIN_NAV_ITEMS = [
   { emoji: '📣', label: 'Ads', href: '/crm/ads' },
 ]
 
@@ -21,6 +24,8 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
   const pathname = usePathname()
   const { data: session } = useSession()
   const userName = session?.user?.name || session?.user?.email || ''
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === 'admin'
+  const visibleNavItems = isAdmin ? [...NAV_ITEMS, ...ADMIN_NAV_ITEMS] : NAV_ITEMS
 
   return (
     <div className="flex flex-col h-full">
@@ -35,7 +40,7 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
 
       {/* Nav items */}
       <nav className="flex-1 px-3 py-3 space-y-0.5">
-        {NAV_ITEMS.map(item => {
+        {visibleNavItems.map(item => {
           const isActive =
             item.href === '/crm'
               ? pathname === '/crm'

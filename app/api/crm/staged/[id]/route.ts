@@ -38,7 +38,6 @@ export async function PATCH(
     conversation_id: string | null
     message: string
     status: string
-    channel: string | null
   } | null
 
   if (!staged) {
@@ -59,13 +58,18 @@ export async function PATCH(
     }
 
     // Route by channel
-    const typeMap: Record<string, string> = { SMS: 'SMS', Email: 'Email', Facebook: 'FB' }
-    const msgType = typeMap[(staged.channel || 'SMS')] || 'SMS'
+    const typeMap: Record<string, string> = {
+      SMS: 'SMS',
+      Email: 'Email',
+      Facebook: 'FB',
+    }
+    const stagedChannel = (staged as unknown as Record<string, unknown>).channel as string | undefined
+    const ghlType = typeMap[stagedChannel || 'SMS'] || 'SMS'
 
     const result = await sendGhlMessage({
       conversationId,
       message: messageToSend,
-      type: msgType,
+      type: ghlType,
     })
 
     if (!result.success) {

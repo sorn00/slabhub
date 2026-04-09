@@ -3,6 +3,26 @@ import { auth } from '@/lib/auth'
 import { query, run, queryOne } from '@/lib/db'
 import { randomUUID } from 'crypto'
 
+const GHL_TOKEN = process.env.GHL_API_TOKEN || 'pit-73ab457e-2144-4120-9d2e-b9e408ecbea4'
+
+async function isContactDnd(contactId: string): Promise<boolean> {
+  try {
+    const res = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}`, {
+      headers: {
+        Authorization: `Bearer ${GHL_TOKEN}`,
+        Version: '2021-07-28',
+      },
+    })
+    if (!res.ok) return false
+    const data = await res.json()
+    const contact = data.contact || data
+    const tags: string[] = contact.tags || []
+    return tags.map((t: string) => t.toLowerCase()).includes('dnd')
+  } catch {
+    return false
+  }
+}
+
 export async function GET(req: NextRequest) {
   const session = await auth()
   if (!session) {
@@ -47,6 +67,15 @@ export async function POST(req: NextRequest) {
 
   if (!contact_id || !message) {
     return NextResponse.json({ error: 'contact_id and message are required' }, { status: 400 })
+  }
+
+  // Check DND before staging
+  const dnd = await isContactDnd(contact_id)
+  if (dnd) {
+    return NextResponse.json(
+      { error: 'Contact is marked DND — message not staged', dnd: true },
+      { status: 422 }
+    )
   }
 
   const id = randomUUID()
