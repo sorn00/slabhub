@@ -62,7 +62,7 @@ export default async function CrmQuotesPage() {
   if (!session) redirect('/login')
 
   const userRole = (session.user as { role?: string }).role || 'reviewer'
-  if (userRole !== 'admin') redirect('/crm')
+  if (!["admin","va"].includes(userRole)) redirect("/crm")
 
   // --- Quarriva DB requests ---
   const dbRows = await query(`

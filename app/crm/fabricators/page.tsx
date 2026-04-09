@@ -31,7 +31,7 @@ export default async function FabricatorsPage() {
   if (!session) redirect('/login')
 
   const role = (session.user as { role?: string })?.role
-  if (role !== 'admin') redirect('/crm')
+  if (!["admin","va"].includes(role || "")) redirect("/crm")
 
   const partnerStats = await getPartnerStats()
 

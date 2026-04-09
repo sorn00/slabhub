@@ -7,7 +7,7 @@ export default async function PricingPage() {
   if (!session) redirect('/login')
 
   const role = (session.user as { role?: string })?.role
-  if (role !== 'admin') redirect('/crm')
+  if (!['admin','va'].includes(role || '')) redirect('/crm')
 
   return <PricingClient userName={session.user?.name || ''} />
 }

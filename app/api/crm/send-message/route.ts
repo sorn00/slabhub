@@ -32,13 +32,8 @@ export async function POST(req: NextRequest) {
   // Default action: stage for review
   const effectiveAction = action || 'stage'
 
-  // SEND path — requires confirmed=true and admin role
+  // SEND path — requires confirmed=true
   if (effectiveAction === 'send') {
-    const userRole = (session.user as { role?: string }).role || 'reviewer'
-    if (userRole !== 'admin') {
-      return NextResponse.json({ error: 'Only admins can send messages directly' }, { status: 403 })
-    }
-
     if (!confirmed) {
       return NextResponse.json({
         requiresConfirmation: true,
