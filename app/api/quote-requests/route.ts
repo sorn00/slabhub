@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { query, run } from '@/lib/db'
+import { query, run, queryOne } from '@/lib/db'
+import { sendLeadConfirmationEmail } from '@/lib/email'
 
 const GHL_TOKEN = 'pit-73ab457e-2144-4120-9d2e-b9e408ecbea4'
 const GHL_LOCATION = 'qhOziWzmOO7mYbl3U7tm'
@@ -88,6 +89,17 @@ export async function POST(req: NextRequest) {
     createGHLContact(customer_name, phone, (session.user as { email?: string })?.email)
       .then(ghlId => { if (ghlId) createGHLOpportunity(ghlId, customer_name, stoneNames, sqft_estimate) })
       .catch(() => {})
+    // Send confirmation email (fire and forget)
+    const userRow = await queryOne('SELECT email FROM users WHERE id = $1', [session.user.id])
+    if (userRow?.email) {
+      sendLeadConfirmationEmail({
+        to: userRow.email,
+        customerName: customer_name,
+        stoneNames,
+        sqft: sqft_estimate,
+        layout,
+      }).catch(() => {})
+    }
     return NextResponse.json({ id: result.rows[0].id })
   }
 
@@ -105,6 +117,17 @@ export async function POST(req: NextRequest) {
   createGHLContact(customer_name, phone, (session.user as { email?: string })?.email)
     .then(ghlId => { if (ghlId) createGHLOpportunity(ghlId, customer_name, stone_name || stone_id, sqft_estimate) })
     .catch(() => {})
+  // Send confirmation email (fire and forget)
+  const userRow = await queryOne('SELECT email FROM users WHERE id = $1', [session.user.id])
+  if (userRow?.email) {
+    sendLeadConfirmationEmail({
+      to: userRow.email,
+      customerName: customer_name,
+      stoneNames: stone_name || stone_id || 'your selection',
+      sqft: sqft_estimate,
+      layout,
+    }).catch(() => {})
+  }
 
   return NextResponse.json({ id: result.rows[0].id })
 }
