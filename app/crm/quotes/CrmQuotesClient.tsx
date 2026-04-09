@@ -45,6 +45,8 @@ interface GhlLead {
   lastMessageDirection?: string
   hasStagedDraft?: boolean
   stagedDraftId?: string
+  missingPiece?: string  // 'area' | 'measurements' | 'style' | 'sketch' | 'templating' | 'complete' | 'unknown'
+  stagedMessage?: string
   createdAt: string
 }
 
@@ -468,6 +470,7 @@ export default function CrmQuotesClient({
   const [requests, setRequests] = useState<QuoteRequest[]>(initialRequests)
   const [ghlLeads] = useState<GhlLead[]>(initialGhlLeads)
   const [activeTab, setActiveTab] = useState<TabKey>('needs-quote')
+  const [missingFilter, setMissingFilter] = useState<string>('all')
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest')
   const [threadContactId, setThreadContactId] = useState<string | null>(null)
   const [threadMessages, setThreadMessages] = useState<any[]>([])
@@ -691,25 +694,73 @@ export default function CrmQuotesClient({
 
         {/* ⏳ Needs Quote tab — GHL leads */}
         {activeTab === 'needs-quote' && (
-          <div className="space-y-4">
-            {ghlLeads.length === 0 ? (
-              <div className="text-center py-20 border border-slate-700 rounded-2xl text-slate-500">
-                <div className="text-3xl mb-2">✅</div>
-                <div>No leads waiting for a quote</div>
-              </div>
-            ) : (
-              <>
-                <p className="text-slate-500 text-sm mb-4">
-                  GHL pipeline leads in Qualified / Sketch Received / Ready for Templating stages.
-                </p>
-                {[...ghlLeads].sort((a, b) => sortOrder === 'newest'
-                  ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-                  : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-                ).map(lead => (
-                  <GhlLeadCard key={lead.id} lead={lead} onViewThread={openThread} />
-                ))}
-              </>
-            )}
+          <div>
+            {/* Second-row filter tabs by missing piece */}
+            <div className="flex gap-1 flex-wrap mb-4">
+              {[
+                { key: 'all', label: 'All', emoji: '' },
+                { key: 'area', label: 'Area', emoji: '🏠' },
+                { key: 'measurements', label: 'Measurements', emoji: '📐' },
+                { key: 'style', label: 'Style', emoji: '🎨' },
+                { key: 'sketch', label: 'Sketch', emoji: '📸' },
+                { key: 'templating', label: 'Templating', emoji: '📅' },
+                { key: 'complete', label: 'Ready', emoji: '✅' },
+              ].map(f => {
+                const count = f.key === 'all'
+                  ? ghlLeads.length
+                  : ghlLeads.filter(l => l.missingPiece === f.key).length
+                if (count === 0 && f.key !== 'all') return null
+                return (
+                  <button
+                    key={f.key}
+                    onClick={() => setMissingFilter(f.key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                      missingFilter === f.key
+                        ? 'bg-[#d4a847]/20 text-[#d4a847] border border-[#d4a847]/30'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-700'
+                    }`}
+                  >
+                    {f.emoji && <span>{f.emoji}</span>}
+                    {f.label}
+                    <span className={`inline-flex items-center justify-center min-w-[18px] h-4 px-1 rounded-full text-xs font-bold ${
+                      missingFilter === f.key ? 'bg-[#d4a847]/30 text-[#d4a847]' : 'bg-slate-700 text-slate-400'
+                    }`}>
+                      {count}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Leads list filtered by missingPiece */}
+            {(() => {
+              const filteredGhlLeads = (missingFilter === 'all'
+                ? ghlLeads
+                : ghlLeads.filter(l => l.missingPiece === missingFilter)
+              ).sort((a, b) => sortOrder === 'newest'
+                ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+              )
+              return (
+                <div className="space-y-4">
+                  {filteredGhlLeads.length === 0 ? (
+                    <div className="text-center py-20 border border-slate-700 rounded-2xl text-slate-500">
+                      <div className="text-3xl mb-2">✅</div>
+                      <div>{ghlLeads.length === 0 ? 'No leads waiting for a quote' : 'No leads match this filter'}</div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-slate-500 text-sm mb-4">
+                        GHL pipeline leads in Qualified / Sketch Received / Ready for Templating stages.
+                      </p>
+                      {filteredGhlLeads.map(lead => (
+                        <GhlLeadCard key={lead.id} lead={lead} onViewThread={openThread} />
+                      ))}
+                    </>
+                  )}
+                </div>
+              )
+            })()}
           </div>
         )}
 

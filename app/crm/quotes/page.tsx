@@ -94,6 +94,8 @@ export default async function CrmQuotesPage() {
     lastMessageDirection?: string
     hasStagedDraft?: boolean
     stagedDraftId?: string
+    missingPiece?: string
+    stagedMessage?: string
     createdAt: string
   }> = []
 
@@ -144,13 +146,26 @@ export default async function CrmQuotesPage() {
       // Cross-reference staged_messages for draft badges
       try {
         const staged = await query(
-          "SELECT id, contact_id, contact_name, phone FROM staged_messages WHERE status = 'pending'"
+          "SELECT id, contact_id, contact_name, phone, context, message FROM staged_messages WHERE status = 'pending'"
         )
         const stagedByPhone = new Map<string, string>()
         const stagedByName = new Map<string, string>()
-        for (const s of staged as Array<{ id: string; contact_id: string; contact_name: string; phone: string }>) {
+        const stagedByContactId = new Map<string, { id: string; context: unknown; message: string }>()
+        for (const s of staged as Array<{ id: string; contact_id: string; contact_name: string; phone: string; context: unknown; message: string }>) {
           if (s.phone) stagedByPhone.set(s.phone.replace(/\D/g, ''), s.id)
           if (s.contact_name) stagedByName.set(s.contact_name.toLowerCase().trim(), s.id)
+          if (s.contact_id) stagedByContactId.set(s.contact_id, { id: s.id, context: s.context, message: s.message || '' })
+        }
+        // Build missingPiece lookup by contactId
+        const missingPieceMap = new Map<string, { missingPiece: string; message: string }>()
+        for (const s of staged as Array<{ id: string; contact_id: string; contact_name: string; phone: string; context: unknown; message: string }>) {
+          if (s.contact_id && s.context) {
+            const ctx = typeof s.context === 'string' ? JSON.parse(s.context) : s.context
+            missingPieceMap.set(s.contact_id, {
+              missingPiece: (ctx as { missingPiece?: string })?.missingPiece || 'unknown',
+              message: s.message || '',
+            })
+          }
         }
         for (const lead of results) {
           const phoneClean = (lead.phone || '').replace(/\D/g, '')
@@ -159,6 +174,12 @@ export default async function CrmQuotesPage() {
           if (draftId) {
             lead.hasStagedDraft = true
             lead.stagedDraftId = draftId
+          }
+          // Attach missingPiece from staged_messages context
+          const staged_ctx = missingPieceMap.get(lead.contactId)
+          if (staged_ctx) {
+            lead.missingPiece = staged_ctx.missingPiece
+            lead.stagedMessage = staged_ctx.message
           }
         }
       } catch {
