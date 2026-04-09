@@ -9,7 +9,7 @@ export async function GET() {
   const session = await auth()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const role = (session.user as { role?: string })?.role
-  if (role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!['admin','va'].includes(role || '')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const rows = await query('SELECT * FROM stone_prices ORDER BY stone_name ASC')
   return NextResponse.json(rows)
