@@ -422,9 +422,12 @@ export default function CrmQuotesClient({
             ) : (
               <>
                 <p className="text-slate-500 text-sm mb-4">
-                  GHL pipeline leads in Qualified / Sketch Received / Ready for Templating stages — sorted oldest first.
+                  GHL pipeline leads in Qualified / Sketch Received / Ready for Templating stages.
                 </p>
-                {ghlLeads.map(lead => (
+                {[...ghlLeads].sort((a, b) => sortOrder === 'newest'
+                  ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                  : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+                ).map(lead => (
                   <GhlLeadCard key={lead.id} lead={lead} />
                 ))}
               </>
@@ -441,7 +444,10 @@ export default function CrmQuotesClient({
                 <div>No website quote requests</div>
               </div>
             ) : (
-              requests.map(qr => (
+              [...requests].sort((a, b) => sortOrder === 'newest'
+                ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                : new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              ).map(qr => (
                 <QuarrivaCard
                   key={qr.id}
                   qr={qr}
