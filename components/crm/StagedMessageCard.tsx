@@ -55,10 +55,14 @@ export default function StagedMessageCard({ msg, isAdmin, onUpdated }: StagedMes
   const [notes, setNotes] = useState(msg.notes || '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [liveMessages, setLiveMessages] = useState<ContextMessage[] | null>(null)
+  const [liveMessages, setLiveMessages] = useState<(ContextMessage & { channelLabel?: string; channelType?: string })[] | null>(null)
   const [loadingThread, setLoadingThread] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [newMsgCount, setNewMsgCount] = useState(0)
+  const [composeText, setComposeText] = useState('')
+  const [composeSending, setComposeSending] = useState(false)
+  const [composeError, setComposeError] = useState('')
+  const [composeSuccess, setComposeSuccess] = useState('')
 
   const contextMessages: ContextMessage[] = (() => {
     try {
@@ -73,8 +77,9 @@ export default function StagedMessageCard({ msg, isAdmin, onUpdated }: StagedMes
     setLoadingThread(true)
     try {
       const params = new URLSearchParams()
-      if (msg.conversation_id) params.set('conversationId', msg.conversation_id)
-      else if (msg.contact_id) params.set('contactId', msg.contact_id)
+      // Always use contactId to fetch ALL conversation threads (SMS + FB + Email)
+      if (msg.contact_id) params.set('contactId', msg.contact_id)
+      else if (msg.conversation_id) params.set('conversationId', msg.conversation_id)
       const res = await fetch(`/api/crm/conversation?${params}`)
       const data = await res.json()
       setLiveMessages(data.messages || [])
@@ -91,8 +96,9 @@ export default function StagedMessageCard({ msg, isAdmin, onUpdated }: StagedMes
       const lastMsg = liveMessages?.[liveMessages.length - 1]
       const since = lastMsg?.sent_at || ''
       const params = new URLSearchParams()
-      if (msg.conversation_id) params.set('conversationId', msg.conversation_id)
-      else if (msg.contact_id) params.set('contactId', msg.contact_id)
+      // Always use contactId to get all channels
+      if (msg.contact_id) params.set('contactId', msg.contact_id)
+      else if (msg.conversation_id) params.set('conversationId', msg.conversation_id)
       params.set('refresh', 'true')
       if (since) params.set('since', String(since))
       const res = await fetch(`/api/crm/conversation?${params}`)
@@ -109,6 +115,72 @@ export default function StagedMessageCard({ msg, isAdmin, onUpdated }: StagedMes
   function toggleExpand() {
     if (!expanded) fetchThread()
     setExpanded(e => !e)
+  }
+
+  async function handleStage() {
+    if (!composeText.trim()) return
+    setComposeSending(true)
+    setComposeError('')
+    setComposeSuccess('')
+    try {
+      const res = await fetch('/api/crm/staged', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contact_id: msg.contact_id,
+          contact_name: msg.contact_name,
+          phone: msg.phone,
+          conversation_id: msg.conversation_id,
+          message: composeText.trim(),
+        }),
+      })
+      if (res.ok) {
+        setComposeText('')
+        setComposeSuccess('Staged ✓')
+        setTimeout(() => setComposeSuccess(''), 2500)
+        onUpdated()
+      } else {
+        const d = await res.json()
+        setComposeError(d.error || 'Failed to stage')
+      }
+    } catch {
+      setComposeError('Network error')
+    } finally {
+      setComposeSending(false)
+    }
+  }
+
+  async function handleSendNow() {
+    if (!composeText.trim()) return
+    setComposeSending(true)
+    setComposeError('')
+    setComposeSuccess('')
+    try {
+      const res = await fetch('/api/crm/send-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contactId: msg.contact_id,
+          conversationId: msg.conversation_id,
+          message: composeText.trim(),
+          action: 'send',
+          confirmed: true,
+        }),
+      })
+      if (res.ok) {
+        setComposeText('')
+        setComposeSuccess('Sent ✓')
+        setTimeout(() => setComposeSuccess(''), 2500)
+        if (expanded) refreshThread()
+      } else {
+        const d = await res.json()
+        setComposeError(d.error || 'Failed to send')
+      }
+    } catch {
+      setComposeError('Network error')
+    } finally {
+      setComposeSending(false)
+    }
   }
 
   const stageColor = STAGE_COLORS[msg.stage_name || ''] || STAGE_COLORS.default
@@ -218,13 +290,15 @@ export default function StagedMessageCard({ msg, isAdmin, onUpdated }: StagedMes
             {!loadingThread && liveMessages && liveMessages.map((m, i) => {
               const isInbound = m.direction === 'inbound'
               const date = m.sent_at ? new Date(m.sent_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : ''
+              const badge = m.channelLabel === 'FB' ? '📘' : m.channelLabel === 'Email' ? '📧' : null
               return (
                 <div key={i} className={`flex ${isInbound ? 'justify-start' : 'justify-end'}`}>
                   <div className={`max-w-[80%] rounded-xl px-3 py-2 text-xs ${
                     isInbound ? 'bg-slate-700 text-white rounded-tl-none' : 'bg-amber-600/30 text-amber-100 rounded-tr-none'
                   }`}>
-                    <div className={`text-[10px] mb-1 ${isInbound ? 'text-slate-400' : 'text-amber-400/70'}`}>
-                      {isInbound ? '← Lead' : '→ Us'} {date && `· ${date}`}
+                    <div className={`text-[10px] mb-1 ${isInbound ? 'text-slate-400' : 'text-amber-400/70'} flex items-center gap-1`}>
+                      <span>{isInbound ? '← Lead' : '→ Us'} {date && `· ${date}`}</span>
+                      {badge && <span className="text-slate-500 ml-0.5">{badge}</span>}
                     </div>
                     <div className="leading-relaxed">{m.body}</div>
                   </div>
@@ -239,6 +313,38 @@ export default function StagedMessageCard({ msg, isAdmin, onUpdated }: StagedMes
                 <div className="flex-1 border-t border-dashed border-amber-500/30"/>
               </div>
             )}
+
+            {/* Compose box */}
+            <div className="mt-3 border-t border-slate-700 pt-3 space-y-2">
+              <textarea
+                value={composeText}
+                onChange={e => setComposeText(e.target.value)}
+                placeholder="Type a message..."
+                className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white text-xs resize-none h-14 focus:outline-none focus:border-[#d4a847]"
+              />
+              {composeError && (
+                <div className="text-red-400 text-xs">{composeError}</div>
+              )}
+              {composeSuccess && (
+                <div className="text-green-400 text-xs">{composeSuccess}</div>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={handleStage}
+                  disabled={!composeText.trim() || composeSending}
+                  className="flex-1 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white text-xs font-semibold py-1.5 rounded-lg transition-colors"
+                >
+                  {composeSending ? '…' : '📋 Stage'}
+                </button>
+                <button
+                  onClick={handleSendNow}
+                  disabled={!composeText.trim() || composeSending}
+                  className="flex-1 bg-[#d4a847] hover:bg-yellow-400 disabled:opacity-50 text-black text-xs font-bold py-1.5 rounded-lg transition-colors"
+                >
+                  {composeSending ? '…' : '⚡ Send Now'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

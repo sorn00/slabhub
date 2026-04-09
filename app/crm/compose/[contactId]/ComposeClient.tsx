@@ -9,6 +9,8 @@ interface Message {
   direction: string
   body: string
   sent_at: string
+  channelLabel?: string
+  channelType?: string
 }
 
 interface Contact {
@@ -188,7 +190,11 @@ export default function ComposeClient({
                     }`}
                   >
                     <div>{msg.body}</div>
-                    <div className="text-xs opacity-50 mt-1 text-right">{formatTime(msg.sent_at)}</div>
+                    <div className="text-xs opacity-50 mt-1 text-right flex items-center justify-end gap-1">
+                      {msg.channelLabel === 'FB' && <span>📘</span>}
+                      {msg.channelLabel === 'Email' && <span>📧</span>}
+                      <span>{formatTime(msg.sent_at)}</span>
+                    </div>
                   </div>
                 </div>
               ))
