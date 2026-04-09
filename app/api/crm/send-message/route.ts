@@ -42,14 +42,27 @@ export async function POST(req: NextRequest) {
       }, { status: 200 })
     }
 
-    if (!conversationId) {
-      return NextResponse.json({ error: 'conversationId is required to send' }, { status: 400 })
+    // Look up conversation ID if not provided
+    let resolvedConvId = conversationId
+    if (!resolvedConvId) {
+      try {
+        const convSearch = await fetch(
+          `${GHL_API_BASE}/conversations/search?locationId=qhOziWzmOO7mYbl3U7tm&contactId=${contactId}&limit=1`,
+          { headers: { Authorization: `Bearer ${GHL_TOKEN}`, Version: '2021-04-15' } }
+        )
+        const convData = await convSearch.json()
+        resolvedConvId = convData.conversations?.[0]?.id
+      } catch {}
+    }
+
+    if (!resolvedConvId) {
+      return NextResponse.json({ error: 'Could not find conversation for this contact' }, { status: 400 })
     }
 
     try {
       const ghlBody = JSON.stringify({
         type: 'SMS',
-        conversationId,
+        conversationId: resolvedConvId,
         message,
       })
 
@@ -79,7 +92,7 @@ export async function POST(req: NextRequest) {
         await run(`
           INSERT INTO staged_messages (contact_id, contact_name, phone, conversation_id, message, status, stage_name, created_at, reviewed_at, reviewed_by, sent_at)
           VALUES ($1, $2, $3, $4, $5, 'sent', $6, NOW(), NOW(), $7, NOW())
-        `, [contactId, contactName || '', phone || '', conversationId, message, stageName || priority || '', userName])
+        `, [contactId, contactName || '', phone || '', resolvedConvId, message, stageName || priority || '', userName])
       } catch {
         // Non-fatal
       }
