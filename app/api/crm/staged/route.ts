@@ -31,6 +31,16 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url)
   const status = searchParams.get('status')
+  const contactId = searchParams.get('contactId')
+
+  // GET /api/crm/staged?contactId=xxx — return pending staged messages for a specific contact
+  if (contactId) {
+    const rows = await query(
+      'SELECT * FROM staged_messages WHERE contact_id = $1 AND status = $2 ORDER BY created_at DESC',
+      [contactId, 'pending']
+    )
+    return NextResponse.json(rows)
+  }
 
   let sql = 'SELECT * FROM staged_messages'
   const params: string[] = []

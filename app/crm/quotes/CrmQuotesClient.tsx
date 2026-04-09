@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 
 // --- Types ---
@@ -126,6 +126,104 @@ function UploadButton({
 // --- GHL Lead Card ---
 
 function GhlLeadCard({ lead, onViewThread }: { lead: GhlLead; onViewThread: (contactId: string) => void }) {
+  const [draftMessage, setDraftMessage] = useState('')
+  const [stagedId, setStagedId] = useState<string | null>(null)
+  const [isStaging, setIsStaging] = useState(false)
+  const [isSending, setIsSending] = useState(false)
+  const [cardStatus, setCardStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  useEffect(() => {
+    fetch(`/api/crm/staged?contactId=${lead.contactId}`)
+      .then(r => r.json())
+      .then((data: Array<{ id: string; message: string; status: string }>) => {
+        const pending = data.find(m => m.status === 'pending')
+        if (pending) setDraftMessage(pending.message)
+        setStagedId(pending?.id || null)
+      })
+      .catch(() => {})
+  }, [lead.contactId])
+
+  const handleStage = async () => {
+    if (!draftMessage.trim()) return
+    setIsStaging(true)
+    setCardStatus(null)
+    try {
+      if (stagedId) {
+        // Update existing staged message
+        const res = await fetch(`/api/crm/staged/${stagedId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'pending', message: draftMessage }),
+        })
+        if (res.ok) {
+          setCardStatus({ type: 'success', text: '📋 Draft updated' })
+        } else {
+          setCardStatus({ type: 'error', text: 'Stage failed' })
+        }
+      } else {
+        // Create new staged message
+        const res = await fetch('/api/crm/staged', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contact_id: lead.contactId,
+            conversation_id: lead.conversationId || '',
+            message: draftMessage,
+            contact_name: lead.customerName,
+            phone: lead.phone || '',
+            stage_name: lead.stageName,
+          }),
+        })
+        const data = await res.json()
+        if (res.ok) {
+          setStagedId(data.id || null)
+          setCardStatus({ type: 'success', text: '📋 Staged for review' })
+        } else {
+          setCardStatus({ type: 'error', text: data.error || 'Stage failed' })
+        }
+      }
+    } catch {
+      setCardStatus({ type: 'error', text: 'Network error' })
+    } finally {
+      setIsStaging(false)
+      setTimeout(() => setCardStatus(null), 3000)
+    }
+  }
+
+  const handleSend = async () => {
+    if (!draftMessage.trim() || !lead.conversationId) return
+    setIsSending(true)
+    setCardStatus(null)
+    try {
+      const res = await fetch('/api/crm/send-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contactId: lead.contactId,
+          conversationId: lead.conversationId,
+          message: draftMessage,
+          contactName: lead.customerName,
+          phone: lead.phone || '',
+          action: 'send',
+          confirmed: true,
+        }),
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        setCardStatus({ type: 'success', text: '⚡ Sent!' })
+        setDraftMessage('')
+        setStagedId(null)
+      } else {
+        setCardStatus({ type: 'error', text: data.error || 'Send failed' })
+      }
+    } catch {
+      setCardStatus({ type: 'error', text: 'Network error' })
+    } finally {
+      setIsSending(false)
+      setTimeout(() => setCardStatus(null), 3000)
+    }
+  }
+
   const stageBadgeClass = STAGE_BADGE[lead.stageName] || 'text-slate-300 bg-slate-700 border-slate-600'
   const ghlConvUrl = lead.conversationId
     ? `${GHL_APP_BASE}/v2/location/${GHL_LOC}/conversations/${lead.conversationId}`
@@ -150,7 +248,7 @@ function GhlLeadCard({ lead, onViewThread }: { lead: GhlLead; onViewThread: (con
             <span className={`inline-flex text-xs px-2 py-0.5 rounded-full border font-medium ${stageBadgeClass}`}>
               {lead.stageName}
             </span>
-            {lead.hasStagedDraft && (
+            {(lead.hasStagedDraft || stagedId) && (
               <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-indigo-500/40 bg-indigo-500/10 text-indigo-300 font-medium">
                 📋 Has Draft
               </span>
@@ -181,7 +279,7 @@ function GhlLeadCard({ lead, onViewThread }: { lead: GhlLead; onViewThread: (con
       </div>
 
       {lead.lastMessage && (
-        <div className="bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2.5">
+        <div className="bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2.5 mb-3">
           <div className="flex items-center gap-2 mb-1">
             <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
               lead.lastMessageDirection === 'inbound'
@@ -194,6 +292,40 @@ function GhlLeadCard({ lead, onViewThread }: { lead: GhlLead; onViewThread: (con
           <p className="text-slate-300 text-sm line-clamp-2">{lead.lastMessage}</p>
         </div>
       )}
+
+      {/* Inline message draft */}
+      <div className="mt-3 pt-3 border-t border-slate-700">
+        {cardStatus && (
+          <p className={`text-xs mb-2 ${cardStatus.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+            {cardStatus.text}
+          </p>
+        )}
+        <div className="flex gap-2">
+          <textarea
+            value={draftMessage}
+            onChange={e => setDraftMessage(e.target.value)}
+            className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm resize-none h-14 focus:outline-none focus:border-[#d4a847] placeholder-slate-500"
+            placeholder="Message..."
+          />
+          <div className="flex flex-col gap-1">
+            <button
+              onClick={handleStage}
+              disabled={isStaging || !draftMessage.trim()}
+              className="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1.5 rounded-lg transition disabled:opacity-50"
+            >
+              {isStaging ? '...' : '📋 Stage'}
+            </button>
+            <button
+              onClick={handleSend}
+              disabled={isSending || !draftMessage.trim() || !lead.conversationId}
+              className="text-xs bg-[#d4a847] hover:bg-yellow-400 text-black font-bold px-3 py-1.5 rounded-lg transition disabled:opacity-50"
+              title={!lead.conversationId ? 'No conversation ID — open in GHL first' : ''}
+            >
+              {isSending ? '...' : '⚡ Send'}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -340,14 +472,128 @@ export default function CrmQuotesClient({
   const [threadContactId, setThreadContactId] = useState<string | null>(null)
   const [threadMessages, setThreadMessages] = useState<any[]>([])
   const [threadLoading, setThreadLoading] = useState(false)
+  const [composeMessage, setComposeMessage] = useState('')
+  const [composeStagedId, setComposeStagedId] = useState<string | null>(null)
+  const [composeStatus, setComposeStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [composeSending, setComposeSending] = useState(false)
+  const [composeStaging, setComposeStaging] = useState(false)
 
   const openThread = async (contactId: string) => {
     setThreadContactId(contactId)
     setThreadLoading(true)
-    const res = await fetch(`/api/crm/conversation?contactId=${contactId}`)
+    setComposeMessage('')
+    setComposeStagedId(null)
+    setComposeStatus(null)
+
+    // Fetch messages and staged draft in parallel
+    const [convRes] = await Promise.all([
+      fetch(`/api/crm/conversation?contactId=${contactId}`),
+    ])
+    const convData = await convRes.json()
+    setThreadMessages(convData.messages || [])
+    setThreadLoading(false)
+
+    // Fetch staged draft for pre-fill
+    fetch(`/api/crm/staged?contactId=${contactId}`)
+      .then(r => r.json())
+      .then((data: Array<{ id: string; message: string; status: string }>) => {
+        const pending = data.find(m => m.status === 'pending')
+        if (pending) setComposeMessage(pending.message)
+        setComposeStagedId(pending?.id || null)
+      })
+      .catch(() => {})
+  }
+
+  const refreshThread = useCallback(async () => {
+    if (!threadContactId) return
+    const res = await fetch(`/api/crm/conversation?contactId=${threadContactId}`)
     const data = await res.json()
     setThreadMessages(data.messages || [])
-    setThreadLoading(false)
+  }, [threadContactId])
+
+  const activeThreadLead = threadContactId
+    ? [...ghlLeads].find(l => l.contactId === threadContactId) || null
+    : null
+
+  const handleThreadStage = async () => {
+    if (!composeMessage.trim() || !threadContactId) return
+    setComposeStaging(true)
+    setComposeStatus(null)
+    try {
+      if (composeStagedId) {
+        const res = await fetch(`/api/crm/staged/${composeStagedId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'pending', message: composeMessage }),
+        })
+        if (res.ok) {
+          setComposeStatus({ type: 'success', text: '📋 Draft updated' })
+        } else {
+          setComposeStatus({ type: 'error', text: 'Stage failed' })
+        }
+      } else {
+        const res = await fetch('/api/crm/staged', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contact_id: threadContactId,
+            conversation_id: activeThreadLead?.conversationId || '',
+            message: composeMessage,
+            contact_name: activeThreadLead?.customerName || '',
+            phone: activeThreadLead?.phone || '',
+            stage_name: activeThreadLead?.stageName || '',
+          }),
+        })
+        const data = await res.json()
+        if (res.ok) {
+          setComposeStagedId(data.id || null)
+          setComposeMessage('')
+          setComposeStatus({ type: 'success', text: '📋 Staged for review' })
+        } else {
+          setComposeStatus({ type: 'error', text: data.error || 'Stage failed' })
+        }
+      }
+    } catch {
+      setComposeStatus({ type: 'error', text: 'Network error' })
+    } finally {
+      setComposeStaging(false)
+      setTimeout(() => setComposeStatus(null), 3000)
+    }
+  }
+
+  const handleThreadSend = async () => {
+    if (!composeMessage.trim() || !threadContactId || !activeThreadLead?.conversationId) return
+    setComposeSending(true)
+    setComposeStatus(null)
+    try {
+      const res = await fetch('/api/crm/send-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contactId: threadContactId,
+          conversationId: activeThreadLead.conversationId,
+          message: composeMessage,
+          contactName: activeThreadLead.customerName,
+          phone: activeThreadLead.phone || '',
+          action: 'send',
+          confirmed: true,
+        }),
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        setComposeMessage('')
+        setComposeStagedId(null)
+        setComposeStatus({ type: 'success', text: '⚡ Sent!' })
+        await refreshThread()
+      } else {
+        setComposeStatus({ type: 'error', text: data.error || 'Send failed' })
+      }
+    } catch {
+      setComposeStatus({ type: 'error', text: 'Network error' })
+    } finally {
+      setComposeSending(false)
+      setTimeout(() => setComposeStatus(null), 3000)
+    }
   }
 
   const updateStatus = async (id: number, status: string) => {
@@ -531,9 +777,14 @@ export default function CrmQuotesClient({
       {threadContactId && (
         <div className="fixed inset-y-0 right-0 w-96 bg-[#1a1a2e] border-l border-slate-700 flex flex-col z-50 shadow-2xl">
           <div className="flex items-center justify-between p-4 border-b border-slate-700">
-            <h3 className="font-semibold text-white">Conversation</h3>
+            <div>
+              <h3 className="font-semibold text-white">Conversation</h3>
+              {activeThreadLead && (
+                <p className="text-xs text-slate-400 mt-0.5">{activeThreadLead.customerName}</p>
+              )}
+            </div>
             <div className="flex gap-2">
-              <button onClick={() => openThread(threadContactId)} className="text-slate-400 hover:text-white text-xs">🔄 Refresh</button>
+              <button onClick={refreshThread} className="text-slate-400 hover:text-white text-xs">🔄 Refresh</button>
               <button onClick={() => setThreadContactId(null)} className="text-slate-400 hover:text-white text-xl">×</button>
             </div>
           </div>
@@ -561,6 +812,40 @@ export default function CrmQuotesClient({
                 </div>
               ))
             )}
+          </div>
+
+          {/* Compose box at bottom of thread panel */}
+          <div className="border-t border-slate-700 p-3">
+            {composeStatus && (
+              <p className={`text-xs mb-2 ${composeStatus.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                {composeStatus.text}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <textarea
+                value={composeMessage}
+                onChange={e => setComposeMessage(e.target.value)}
+                placeholder="Type a message..."
+                className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm resize-none h-16 focus:outline-none focus:border-[#d4a847]"
+              />
+              <div className="flex flex-col gap-1">
+                <button
+                  onClick={handleThreadStage}
+                  disabled={composeStaging || !composeMessage.trim()}
+                  className="text-xs bg-slate-700 text-slate-300 hover:bg-slate-600 px-3 py-1.5 rounded-lg disabled:opacity-50"
+                >
+                  {composeStaging ? '...' : '📋 Stage'}
+                </button>
+                <button
+                  onClick={handleThreadSend}
+                  disabled={composeSending || !composeMessage.trim() || !activeThreadLead?.conversationId}
+                  className="text-xs bg-[#d4a847] text-black font-bold hover:bg-yellow-400 px-3 py-1.5 rounded-lg disabled:opacity-50"
+                  title={!activeThreadLead?.conversationId ? 'No conversation ID' : ''}
+                >
+                  {composeSending ? '...' : '⚡ Send'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
