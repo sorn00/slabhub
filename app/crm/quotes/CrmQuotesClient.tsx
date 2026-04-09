@@ -30,6 +30,7 @@ interface QuoteRequest {
   quote_file_name?: string | null
   quote_file_uploaded_at?: string | null
   stones?: StoneItem[] | null
+  contactId?: string | null
 }
 
 interface GhlLead {
@@ -63,6 +64,7 @@ const STAGE_BADGE: Record<string, string> = {
 }
 
 const GHL_APP_BASE = 'https://app.gohighlevel.com'
+const GHL_LOC = 'qhOziWzmOO7mYbl3U7tm'
 
 // --- Upload Button ---
 
@@ -123,11 +125,11 @@ function UploadButton({
 
 // --- GHL Lead Card ---
 
-function GhlLeadCard({ lead }: { lead: GhlLead }) {
+function GhlLeadCard({ lead, onViewThread }: { lead: GhlLead; onViewThread: (contactId: string) => void }) {
   const stageBadgeClass = STAGE_BADGE[lead.stageName] || 'text-slate-300 bg-slate-700 border-slate-600'
   const ghlConvUrl = lead.conversationId
-    ? `${GHL_APP_BASE}/v2/location/${process.env.NEXT_PUBLIC_GHL_LOCATION_ID || 'qhOziWzmOO7mYbl3U7tm'}/conversations/${lead.conversationId}`
-    : `${GHL_APP_BASE}/v2/location/qhOziWzmOO7mYbl3U7tm/contacts/${lead.contactId}`
+    ? `${GHL_APP_BASE}/v2/location/${GHL_LOC}/conversations/${lead.conversationId}`
+    : `${GHL_APP_BASE}/v2/location/${GHL_LOC}/contacts/${lead.contactId}`
 
   const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime()
@@ -160,14 +162,22 @@ function GhlLeadCard({ lead }: { lead: GhlLead }) {
             <span className="text-slate-500">{timeAgo(lead.createdAt)}</span>
           </div>
         </div>
-        <a
-          href={ghlConvUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="shrink-0 inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 transition-colors"
-        >
-          View in GHL →
-        </a>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => onViewThread(lead.contactId)}
+            className="text-xs text-slate-400 hover:text-white border border-slate-700 px-2 py-1 rounded"
+          >
+            💬 Conversation
+          </button>
+          <a
+            href={ghlConvUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 transition-colors"
+          >
+            View in GHL →
+          </a>
+        </div>
       </div>
 
       {lead.lastMessage && (
@@ -194,10 +204,12 @@ function QuarrivaCard({
   qr,
   onStatusChange,
   onUploaded,
+  onViewThread,
 }: {
   qr: QuoteRequest
   onStatusChange: (id: number, status: string) => void
   onUploaded: (id: number, filename: string, originalName: string) => void
+  onViewThread: (contactId: string) => void
 }) {
   const displayStones: StoneItem[] =
     qr.stones && qr.stones.length > 0
@@ -297,6 +309,14 @@ function QuarrivaCard({
             📞 Call
           </a>
         )}
+        {qr.contactId && (
+          <button
+            onClick={() => onViewThread(qr.contactId!)}
+            className="text-xs text-slate-400 hover:text-white border border-slate-700 px-2 py-1.5 rounded-lg transition-colors"
+          >
+            💬 Conversation
+          </button>
+        )}
       </div>
     </div>
   )
@@ -317,6 +337,18 @@ export default function CrmQuotesClient({
   const [ghlLeads] = useState<GhlLead[]>(initialGhlLeads)
   const [activeTab, setActiveTab] = useState<TabKey>('needs-quote')
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest')
+  const [threadContactId, setThreadContactId] = useState<string | null>(null)
+  const [threadMessages, setThreadMessages] = useState<any[]>([])
+  const [threadLoading, setThreadLoading] = useState(false)
+
+  const openThread = async (contactId: string) => {
+    setThreadContactId(contactId)
+    setThreadLoading(true)
+    const res = await fetch(`/api/crm/conversation?contactId=${contactId}`)
+    const data = await res.json()
+    setThreadMessages(data.messages || [])
+    setThreadLoading(false)
+  }
 
   const updateStatus = async (id: number, status: string) => {
     await fetch('/api/quote-requests', {
@@ -428,7 +460,7 @@ export default function CrmQuotesClient({
                   ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
                   : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
                 ).map(lead => (
-                  <GhlLeadCard key={lead.id} lead={lead} />
+                  <GhlLeadCard key={lead.id} lead={lead} onViewThread={openThread} />
                 ))}
               </>
             )}
@@ -453,6 +485,7 @@ export default function CrmQuotesClient({
                   qr={qr}
                   onStatusChange={updateStatus}
                   onUploaded={handleUploaded}
+                  onViewThread={openThread}
                 />
               ))
             )}
@@ -473,7 +506,7 @@ export default function CrmQuotesClient({
                   return (
                     <div key={`ghl-${entry.lead.id}`} className="relative">
                       <span className="absolute -top-2 left-4 text-xs bg-[#0f172a] px-1.5 text-amber-500 font-medium z-10">GHL</span>
-                      <GhlLeadCard lead={entry.lead} />
+                      <GhlLeadCard lead={entry.lead} onViewThread={openThread} />
                     </div>
                   )
                 }
@@ -484,6 +517,7 @@ export default function CrmQuotesClient({
                       qr={entry.req}
                       onStatusChange={updateStatus}
                       onUploaded={handleUploaded}
+                      onViewThread={openThread}
                     />
                   </div>
                 )
@@ -492,6 +526,44 @@ export default function CrmQuotesClient({
           </div>
         )}
       </div>
+
+      {/* Thread Panel — slide-in from right */}
+      {threadContactId && (
+        <div className="fixed inset-y-0 right-0 w-96 bg-[#1a1a2e] border-l border-slate-700 flex flex-col z-50 shadow-2xl">
+          <div className="flex items-center justify-between p-4 border-b border-slate-700">
+            <h3 className="font-semibold text-white">Conversation</h3>
+            <div className="flex gap-2">
+              <button onClick={() => openThread(threadContactId)} className="text-slate-400 hover:text-white text-xs">🔄 Refresh</button>
+              <button onClick={() => setThreadContactId(null)} className="text-slate-400 hover:text-white text-xl">×</button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {threadLoading ? (
+              <div className="text-slate-500 text-center py-8">Loading...</div>
+            ) : threadMessages.length === 0 ? (
+              <div className="text-slate-500 text-center py-8">No messages yet</div>
+            ) : (
+              threadMessages.map((msg: any, i: number) => (
+                <div key={i} className={`flex ${msg.direction === 'outbound' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[80%] rounded-xl px-3 py-2 text-sm ${
+                    msg.direction === 'outbound'
+                      ? 'bg-[#d4a847]/20 text-[#d4a847] border border-[#d4a847]/30'
+                      : 'bg-slate-700 text-white'
+                  }`}>
+                    <p>{msg.body || '(attachment)'}</p>
+                    <p className="text-xs opacity-60 mt-1">
+                      {new Date(msg.dateAdded).toLocaleDateString()} {new Date(msg.dateAdded).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
+                      {msg.channelLabel && msg.channelLabel !== 'SMS' && (
+                        <span className="ml-1">{msg.channelLabel === 'FB' ? '📘' : '📧'}</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
