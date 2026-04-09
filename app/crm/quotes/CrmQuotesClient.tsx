@@ -193,7 +193,7 @@ function GhlLeadCard({ lead, onViewThread }: { lead: GhlLead; onViewThread: (con
   }
 
   const handleSend = async () => {
-    if (!draftMessage.trim() || !lead.conversationId) return
+    if (!draftMessage.trim()) return
     setIsSending(true)
     setCardStatus(null)
     try {
@@ -319,7 +319,7 @@ function GhlLeadCard({ lead, onViewThread }: { lead: GhlLead; onViewThread: (con
             </button>
             <button
               onClick={handleSend}
-              disabled={isSending || !draftMessage.trim() || !lead.conversationId}
+              disabled={isSending || !draftMessage.trim()}
               className="text-xs bg-[#d4a847] hover:bg-yellow-400 text-black font-bold px-3 py-1.5 rounded-lg transition disabled:opacity-50"
               title={!lead.conversationId ? 'No conversation ID — open in GHL first' : ''}
             >
@@ -565,7 +565,7 @@ export default function CrmQuotesClient({
   }
 
   const handleThreadSend = async () => {
-    if (!composeMessage.trim() || !threadContactId || !activeThreadLead?.conversationId) return
+    if (!composeMessage.trim() || !threadContactId) return
     setComposeSending(true)
     setComposeStatus(null)
     try {
@@ -889,7 +889,7 @@ export default function CrmQuotesClient({
                 </button>
                 <button
                   onClick={handleThreadSend}
-                  disabled={composeSending || !composeMessage.trim() || !activeThreadLead?.conversationId}
+                  disabled={composeSending || !composeMessage.trim()}
                   className="text-xs bg-[#d4a847] text-black font-bold hover:bg-yellow-400 px-3 py-1.5 rounded-lg disabled:opacity-50"
                   title={!activeThreadLead?.conversationId ? 'No conversation ID' : ''}
                 >
