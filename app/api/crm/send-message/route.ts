@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
       const ghlBody = JSON.stringify({
         type: 'SMS',
         conversationId: resolvedConvId,
+        contactId,
         message,
       })
 

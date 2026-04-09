@@ -56,6 +56,7 @@ function httpsRequest(
 
 export async function sendGhlMessage(params: {
   conversationId: string
+  contactId?: string
   message: string
   type?: string
 }): Promise<{ success: boolean; messageId?: string; error?: string }> {
@@ -63,12 +64,14 @@ export async function sendGhlMessage(params: {
 
   const body = JSON.stringify({
     type: params.type || 'SMS',
+    conversationId: params.conversationId,
+    contactId: params.contactId,
     message: params.message,
   })
 
   const result = await httpsRequest(
     'POST',
-    `${cfg.apiBase}/conversations/${params.conversationId}/messages`,
+    `${cfg.apiBase}/conversations/messages`,
     {
       Authorization: `Bearer ${cfg.apiToken}`,
       'Content-Type': 'application/json',

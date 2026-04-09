@@ -68,6 +68,7 @@ export async function PATCH(
 
     const result = await sendGhlMessage({
       conversationId,
+      contactId: staged.contact_id,
       message: messageToSend,
       type: ghlType,
     })
