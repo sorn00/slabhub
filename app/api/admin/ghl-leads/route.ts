@@ -1,25 +1,16 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
 
-const BATCH_DIR = '/Users/sorn/.openclaw/workspace/agents/ghl'
-
-function getLatestBatch() {
-  const files = fs.readdirSync(BATCH_DIR)
-    .filter(f => f.startsWith('batch-draft-') && f.endsWith('.json'))
-    .sort()
-    .reverse()
-  if (!files.length) return null
-  const raw = fs.readFileSync(path.join(BATCH_DIR, files[0]), 'utf8')
-  return JSON.parse(raw)
-}
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    const batch = getLatestBatch()
-    if (!batch) return NextResponse.json({ contacts: [], batchId: null })
+    // Fetch from public static file (updated on each batch run)
+    const base = process.env.NEXT_PUBLIC_BASE_URL || 'https://quarriva.com'
+    const res = await fetch(`${base}/data/ghl-batch-latest.json`, { cache: 'no-store' })
+    if (!res.ok) return NextResponse.json({ contacts: [], batchId: null })
+    const batch = await res.json()
     return NextResponse.json({ contacts: batch.contacts || [], batchId: batch.batchId, createdAt: batch.createdAt, total: batch.totalContacts })
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'Failed to load batch' }, { status: 500 })
   }
 }

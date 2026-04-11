@@ -1,0 +1,665 @@
+{
+  "batchId": "20260411T122747Z",
+  "generatedAt": "2026-04-11T12:27:47Z",
+  "totalContacts": 25,
+  "status": "PENDING_APPROVAL",
+  "flags": [
+    "Contact #23 'Mr Shah' — SMS greeting will be 'Hi Mr,' — verify correct first name before sending",
+    "Contact #22 'Mass development group' — SMS greeting 'Hi Mass,' looks like a business not a person — may need manual review",
+    "Contact 'F A R R A H' (not in this batch) — SMS uses 'Hi F,' — flag for next batch",
+    "Contact 'Abdallah' (not in this batch) — international phone +971 (UAE) — verify SMS deliverability",
+    "Contact 'anastacia byers' (not in this batch) — name appears uncapitalized — review for email formatting"
+  ],
+  "contacts": [
+    {
+      "position": 1,
+      "id": "Y8O88zP3Ob0HgvuLvdPL",
+      "contactId": "aXpMHiNQPvkptw27Cxn1",
+      "name": "Tracy Bonanno Compton",
+      "stage": "Ready For Templating",
+      "hoursStuck": 1363,
+      "hoursStuckFormatted": "57d 19h",
+      "monetaryValue": 0,
+      "ghlLink": "https://app.gohighlevel.com/contacts/aXpMHiNQPvkptw27Cxn1",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+15082507587",
+          "message": "Hi Tracy! Great news — you're approved and ready for templating! Let's get you scheduled. When works best for you this week or next? 📅",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "tbella71074@gmail.com",
+          "subject": "Let's Schedule Your Templating Appointment!",
+          "message": "Hi Tracy,\n\nExciting news — everything is set and you're ready for templating! This is the step where we come out and take precise measurements to ensure a perfect fit.\n\nIt takes about 1-2 hours and is completely free. Once we have your template, we can finalize production and get your countertops installed quickly.\n\nWhat days/times work best for you? We have availability this week and next.\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 2,
+      "id": "VRz5BT9B7zGF3I2BnSkM",
+      "contactId": "XY5Tylfo94sFlJM86FjM",
+      "name": "Jennifer Wooters",
+      "stage": "Sketch/Measurements Received",
+      "hoursStuck": 1654,
+      "hoursStuckFormatted": "69d 22h",
+      "monetaryValue": 0,
+      "ghlLink": "https://app.gohighlevel.com/contacts/XY5Tylfo94sFlJM86FjM",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+15083330252",
+          "message": "Hi Jennifer! We received your measurements — working on your quote now. You'll hear from us shortly with pricing. Excited to show you what we can do! 🪨",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "glacier9@hotmail.com",
+          "subject": "Your Quote is Being Prepared – New England Stone",
+          "message": "Hi Jennifer,\n\nGreat news — we have your measurements and we're preparing your custom countertop quote now.\n\nWe'll send it over shortly. If you have any questions or want to discuss material options in the meantime, feel free to reply or call us.\n\nTalk soon,\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 3,
+      "id": "SsmyJWUAedIaIlVcEgIs",
+      "contactId": "QiLX1SuQNiJqnodykvS3",
+      "name": "Judi Scott",
+      "stage": "Sketch/Measurements Received",
+      "hoursStuck": 1298,
+      "hoursStuckFormatted": "54d 2h",
+      "monetaryValue": 0,
+      "ghlLink": "https://app.gohighlevel.com/contacts/QiLX1SuQNiJqnodykvS3",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+15088732447",
+          "message": "Hi Judi! We received your measurements — working on your quote now. You'll hear from us shortly with pricing. Excited to show you what we can do! 🪨",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "juditiger@townisp.com",
+          "subject": "Your Quote is Being Prepared – New England Stone",
+          "message": "Hi Judi,\n\nGreat news — we have your measurements and we're preparing your custom countertop quote now.\n\nWe'll send it over shortly. If you have any questions or want to discuss material options in the meantime, feel free to reply or call us.\n\nTalk soon,\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 4,
+      "id": "SORkOjjMDg3R3U4IbP8F",
+      "contactId": "H4brInPb6YmyTgxI57Ix",
+      "name": "Cory Szklarz",
+      "stage": "Sketch/Measurements Received",
+      "hoursStuck": 24,
+      "hoursStuckFormatted": "1d 0h",
+      "monetaryValue": 0,
+      "ghlLink": "https://app.gohighlevel.com/contacts/H4brInPb6YmyTgxI57Ix",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+17746967253",
+          "message": "Hi Cory! We received your measurements — working on your quote now. You'll hear from us shortly with pricing. Excited to show you what we can do! 🪨",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "corynba1@aol.com",
+          "subject": "Your Quote is Being Prepared – New England Stone",
+          "message": "Hi Cory,\n\nGreat news — we have your measurements and we're preparing your custom countertop quote now.\n\nWe'll send it over shortly. If you have any questions or want to discuss material options in the meantime, feel free to reply or call us.\n\nTalk soon,\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 5,
+      "id": "ktl8BFxCOVTfdHnjEVHj",
+      "contactId": "v9smG3NzZtECEdLSjKUS",
+      "name": "Raghuram Samudrala",
+      "stage": "Quote Sent",
+      "hoursStuck": 1987,
+      "hoursStuckFormatted": "83d 19h",
+      "monetaryValue": 8000,
+      "ghlLink": "https://app.gohighlevel.com/contacts/v9smG3NzZtECEdLSjKUS",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+15083305065",
+          "message": "Hi Raghuram, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "samudrala@hotmail.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Raghuram,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 6,
+      "id": "hxvfxJkFhFABYCtln4y9",
+      "contactId": "ZSJkpfDFuyEulhob7JbK",
+      "name": "Christopher Kerivan",
+      "stage": "Quote Sent",
+      "hoursStuck": 2035,
+      "hoursStuckFormatted": "85d 19h",
+      "monetaryValue": 6177.5,
+      "ghlLink": "https://app.gohighlevel.com/contacts/ZSJkpfDFuyEulhob7JbK",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+19782351112",
+          "message": "Hi Christopher, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "kvan1000@aol.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Christopher,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 7,
+      "id": "ov4KfPTlGfMLSdaGDzSE",
+      "contactId": "UVEZAZK5DqhA0PbrGCLl",
+      "name": "Barbara Aldrich-Clougherty",
+      "stage": "Quote Sent",
+      "hoursStuck": 1408,
+      "hoursStuckFormatted": "59d 16h",
+      "monetaryValue": 5300,
+      "ghlLink": "https://app.gohighlevel.com/contacts/UVEZAZK5DqhA0PbrGCLl",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+19788152266",
+          "message": "Hi Barbara, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "barbara@baystatellc.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Barbara,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 8,
+      "id": "xjIm0QJ1eNaYbT1BNEf2",
+      "contactId": "tSb1Be3TJks3WPZJLk7z",
+      "name": "Tariq Chohan",
+      "stage": "Quote Sent",
+      "hoursStuck": 1795,
+      "hoursStuckFormatted": "75d 19h",
+      "monetaryValue": 4200,
+      "ghlLink": "https://app.gohighlevel.com/contacts/tSb1Be3TJks3WPZJLk7z",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+19176917285",
+          "message": "Hi Tariq, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "chohantm@gmail.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Tariq,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 9,
+      "id": "ATR4mB1w140OdCMKbsiK",
+      "contactId": "PfuL2PB6XMDXrTGKduUW",
+      "name": "Tony Ruscio",
+      "stage": "Quote Sent",
+      "hoursStuck": 1379,
+      "hoursStuckFormatted": "57d 11h",
+      "monetaryValue": 4200,
+      "ghlLink": "https://app.gohighlevel.com/contacts/PfuL2PB6XMDXrTGKduUW",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+15089622567",
+          "message": "Hi Tony, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "tonrusc65@gmail.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Tony,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 10,
+      "id": "KvRM8oW509KDivLSWoNc",
+      "contactId": "J7afwN2f7QyDoNdpIUsS",
+      "name": "Manny Da Rosa",
+      "stage": "Quote Sent",
+      "hoursStuck": 1794,
+      "hoursStuckFormatted": "75d 18h",
+      "monetaryValue": 4000,
+      "ghlLink": "https://app.gohighlevel.com/contacts/J7afwN2f7QyDoNdpIUsS",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+18577728880",
+          "message": "Hi Manny, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "jmilot08@gmail.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Manny,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 11,
+      "id": "GT9CyfiKwutgd43lX4TL",
+      "contactId": "EtP8dId14TrWaD3fucEJ",
+      "name": "Russ Victor",
+      "stage": "Quote Sent",
+      "hoursStuck": 406,
+      "hoursStuckFormatted": "17d 22h",
+      "monetaryValue": 3900,
+      "ghlLink": "https://app.gohighlevel.com/contacts/EtP8dId14TrWaD3fucEJ",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+16177922752",
+          "message": "Hi Russ, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "russconsulting@yahoo.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Russ,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 12,
+      "id": "0vDoDofCnrzg6JR8gIYQ",
+      "contactId": "MLTz11XLP3ZFjwKQfS77",
+      "name": "Michelle Pereira",
+      "stage": "Quote Sent",
+      "hoursStuck": 1316,
+      "hoursStuckFormatted": "55d 20h",
+      "monetaryValue": 3801,
+      "ghlLink": "https://app.gohighlevel.com/contacts/MLTz11XLP3ZFjwKQfS77",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+15087370274",
+          "message": "Hi Michelle, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "michelle_pereira23@hotmail.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Michelle,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 13,
+      "id": "sIPYZf377PBNffl4ahUa",
+      "contactId": "HlmtG0t13lcgpaiVr7cS",
+      "name": "Ann Caccavale",
+      "stage": "Quote Sent",
+      "hoursStuck": 1811,
+      "hoursStuckFormatted": "75d 11h",
+      "monetaryValue": 3295,
+      "ghlLink": "https://app.gohighlevel.com/contacts/HlmtG0t13lcgpaiVr7cS",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+17812646389",
+          "message": "Hi Ann, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "acscituate@aol.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Ann,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 14,
+      "id": "pzZDBZqumk2fsSPrX3ma",
+      "contactId": "2RQgJSGrhI8eQshP5GEG",
+      "name": "Jessica Richer",
+      "stage": "Quote Sent",
+      "hoursStuck": 1811,
+      "hoursStuckFormatted": "75d 11h",
+      "monetaryValue": 2500,
+      "ghlLink": "https://app.gohighlevel.com/contacts/2RQgJSGrhI8eQshP5GEG",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+17745734509",
+          "message": "Hi Jessica, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "jes_mullaly@aol.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Jessica,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 15,
+      "id": "4h78q9ccdasgKiRoffCe",
+      "contactId": "tEmW6cbCPgNZah05COFl",
+      "name": "Akmal Hossain",
+      "stage": "Quote Sent",
+      "hoursStuck": 1744,
+      "hoursStuckFormatted": "73d 16h",
+      "monetaryValue": 1700,
+      "ghlLink": "https://app.gohighlevel.com/contacts/tEmW6cbCPgNZah05COFl",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+18579282982",
+          "message": "Hi Akmal, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "akmalhb@yahoo.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Akmal,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 16,
+      "id": "sWtGZJjpwlPofpyT6CeR",
+      "contactId": "Us8yMsHcZRjHSxO4UGvQ",
+      "name": "Sham Sahni",
+      "stage": "Quote Sent",
+      "hoursStuck": 1409,
+      "hoursStuckFormatted": "59d 17h",
+      "monetaryValue": 0,
+      "ghlLink": "https://app.gohighlevel.com/contacts/Us8yMsHcZRjHSxO4UGvQ",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+17813924709",
+          "message": "Hi Sham, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "sham.sahni@glgbos.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Sham,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 17,
+      "id": "6uKEIpxgJggFr9QGhr3t",
+      "contactId": "10QE4xJLILCgGVhguvJQ",
+      "name": "Silvania Vargas Costa",
+      "stage": "Quote Sent",
+      "hoursStuck": 1407,
+      "hoursStuckFormatted": "59d 15h",
+      "monetaryValue": 0,
+      "ghlLink": "https://app.gohighlevel.com/contacts/10QE4xJLILCgGVhguvJQ",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+15082827084",
+          "message": "Hi Silvania, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "silvanausa2011@hotmail.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Silvania,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 18,
+      "id": "iZZT9cw9B1G4DaLWi2B2",
+      "contactId": "VnF9HLS4vgZ8zz0EXq5p",
+      "name": "Katie Morgan Neale",
+      "stage": "Quote Sent",
+      "hoursStuck": 1388,
+      "hoursStuckFormatted": "58d 20h",
+      "monetaryValue": 0,
+      "ghlLink": "https://app.gohighlevel.com/contacts/VnF9HLS4vgZ8zz0EXq5p",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+18042011261",
+          "message": "Hi Katie, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "kathleenmor099@gmail.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Katie,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 19,
+      "id": "GOQSrceQPWkOkzsMgDQD",
+      "contactId": "iH5t39io0kBysNoeeF3c",
+      "name": "Scott Adler",
+      "stage": "Quote Sent",
+      "hoursStuck": 1263,
+      "hoursStuckFormatted": "53d 15h",
+      "monetaryValue": 0,
+      "ghlLink": "https://app.gohighlevel.com/contacts/iH5t39io0kBysNoeeF3c",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+14123048037",
+          "message": "Hi Scott, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "sadler850@yahoo.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Scott,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 20,
+      "id": "ohUgrroaCXf5594PBWAO",
+      "contactId": "J44dTlLp90ABBoPVPepW",
+      "name": "Tanya Fernandez",
+      "stage": "Quote Sent",
+      "hoursStuck": 1106,
+      "hoursStuckFormatted": "46d 2h",
+      "monetaryValue": 0,
+      "ghlLink": "https://app.gohighlevel.com/contacts/J44dTlLp90ABBoPVPepW",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+13128905229",
+          "message": "Hi Tanya, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "nikigosalia@gmail.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Tanya,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 21,
+      "id": "RjQj986rnnnLhshNuHQC",
+      "contactId": "i8T4scHsfk4QOJmo7Zoq",
+      "name": "Nina Chan",
+      "stage": "Quote Sent",
+      "hoursStuck": 1098,
+      "hoursStuckFormatted": "46d 18h",
+      "monetaryValue": 0,
+      "ghlLink": "https://app.gohighlevel.com/contacts/i8T4scHsfk4QOJmo7Zoq",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+16038585996",
+          "message": "Hi Nina, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "lemonhead603@gmail.com",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Nina,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 22,
+      "id": "OLJ1inhh5TR0214tH72T",
+      "contactId": "N0rf7T5qDl3gwYnE0rNF",
+      "name": "Shawn M. Brown",
+      "stage": "Quote Sent",
+      "hoursStuck": 191,
+      "hoursStuckFormatted": "8d 23h",
+      "monetaryValue": 0,
+      "ghlLink": "https://app.gohighlevel.com/contacts/N0rf7T5qDl3gwYnE0rNF",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+15082804635",
+          "message": "Hi Shawn, just following up on the quote we sent over! Any questions? We're happy to walk you through it or adjust anything. What are your thoughts? 😊",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "shawnbrownflooring@comcast.net",
+          "subject": "Quick follow-up on your countertop quote",
+          "message": "Hi Shawn,\n\nI wanted to follow up on the quote we sent over. Did you get a chance to look it over?\n\nIf you have any questions about pricing, materials, or the process — I'm happy to walk you through everything. We can also adjust the quote if your needs have changed.\n\nLooking forward to hearing from you!\n\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 23,
+      "id": "xu9qZ38Piv24WSyppAoD",
+      "contactId": "11eCoYlWz91LHXZIxPj6",
+      "name": "Kathy MacDonald",
+      "stage": "New Lead",
+      "hoursStuck": 1409,
+      "hoursStuckFormatted": "59d 17h",
+      "monetaryValue": 0,
+      "ghlLink": "https://app.gohighlevel.com/contacts/11eCoYlWz91LHXZIxPj6",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+15082789261",
+          "message": "Hey Kathy! This is New England Stone 👋 We saw you were interested in granite/quartz countertops. We'd love to help — do you have a quick minute to chat about what you're looking for? Reply STOP to opt out.",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "dmkm12194@aol.com",
+          "subject": "Your Countertop Quote – New England Stone",
+          "message": "Hi Kathy,\n\nThanks for reaching out about new countertops! We specialize in granite and quartz installations in the MA area and would love to get you a free quote.\n\nCould you share:\n- What material are you considering? (granite, quartz, marble)\n- Which room(s)? (kitchen, bathroom, both)\n- Rough timeline for the project?\n\nWe'll get back to you with pricing fast.\n\nBest,\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 24,
+      "id": "yldRJ9G9Lxr2G06bRynV",
+      "contactId": "SnyNTbE1m6vsv3NOavyt",
+      "name": "April Eady",
+      "stage": "New Lead",
+      "hoursStuck": 986,
+      "hoursStuckFormatted": "41d 2h",
+      "monetaryValue": 0,
+      "ghlLink": "https://app.gohighlevel.com/contacts/SnyNTbE1m6vsv3NOavyt",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+18608698792",
+          "message": "Hey April! This is New England Stone 👋 We saw you were interested in granite/quartz countertops. We'd love to help — do you have a quick minute to chat about what you're looking for? Reply STOP to opt out.",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "apulleady@yahoo.com",
+          "subject": "Your Countertop Quote – New England Stone",
+          "message": "Hi April,\n\nThanks for reaching out about new countertops! We specialize in granite and quartz installations in the MA area and would love to get you a free quote.\n\nCould you share:\n- What material are you considering? (granite, quartz, marble)\n- Which room(s)? (kitchen, bathroom, both)\n- Rough timeline for the project?\n\nWe'll get back to you with pricing fast.\n\nBest,\nNew England Stone",
+          "approved": false
+        }
+      ]
+    },
+    {
+      "position": 25,
+      "id": "6wot87VXn5wpod78pV82",
+      "contactId": "mggsU2adNyli2Q3WaJ3Q",
+      "name": "Russell Tarascio",
+      "stage": "New Lead",
+      "hoursStuck": 974,
+      "hoursStuckFormatted": "41d 14h",
+      "monetaryValue": 0,
+      "ghlLink": "https://app.gohighlevel.com/contacts/mggsU2adNyli2Q3WaJ3Q",
+      "outreach": [
+        {
+          "channel": "sms",
+          "to": "+17818537183",
+          "message": "Hey Russell! This is New England Stone 👋 We saw you were interested in granite/quartz countertops. We'd love to help — do you have a quick minute to chat about what you're looking for? Reply STOP to opt out.",
+          "approved": false
+        },
+        {
+          "channel": "email",
+          "to": "russelltarascio@yahoo.com",
+          "subject": "Your Countertop Quote – New England Stone",
+          "message": "Hi Russell,\n\nThanks for reaching out about new countertops! We specialize in granite and quartz installations in the MA area and would love to get you a free quote.\n\nCould you share:\n- What material are you considering? (granite, quartz, marble)\n- Which room(s)? (kitchen, bathroom, both)\n- Rough timeline for the project?\n\nWe'll get back to you with pricing fast.\n\nBest,\nNew England Stone",
+          "approved": false
+        }
+      ]
+    }
+  ]
+}

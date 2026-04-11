@@ -8,7 +8,7 @@ export async function GET() {
       u.id as user_id,
       u.name as user_name,
       u.email as user_email,
-      u.phone as user_phone,
+      COALESCE(u.phone, '') as user_phone,
       json_agg(
         json_build_object(
           'stone_id', qs.stone_id,
