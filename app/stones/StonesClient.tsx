@@ -52,10 +52,10 @@ const STYLES = [
 ]
 
 const PRICE_RANGES = [
-  { label: 'Budget (under $45/sqft)', min: 0, max: 45 },
-  { label: 'Mid-Range ($45-75/sqft)', min: 45, max: 75 },
-  { label: 'Premium ($75-120/sqft)', min: 75, max: 120 },
-  { label: 'Luxury ($120+/sqft)', min: 120, max: null },
+  { label: '$ — Entry Level', min: 0, max: 45 },
+  { label: '$$ — Mid-Range', min: 45, max: 75 },
+  { label: '$$$ — Premium', min: 75, max: 120 },
+  { label: '$$$$ — Luxury', min: 120, max: null },
 ]
 
 const SORT_OPTIONS = [
