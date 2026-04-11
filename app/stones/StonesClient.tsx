@@ -611,13 +611,15 @@ function StoneCard({ stone }: { stone: Stone }) {
 
         {/* Price */}
         <div className="mt-auto">
-          {stone.retail_sqft ? (
-            <div className="text-[#d4a847] font-semibold text-sm mb-3">
-              ${stone.retail_sqft.toFixed(0)}<span className="text-slate-400 font-normal">/sqft</span>
-            </div>
-          ) : (
-            <div className="text-slate-500 text-sm mb-3">Price on request</div>
-          )}
+          <div className="text-[#d4a847] font-semibold text-sm mb-3">
+            {stone.retail_sqft
+              ? stone.retail_sqft >= 120 ? '$$$$'
+                : stone.retail_sqft >= 75 ? '$$$'
+                : stone.retail_sqft >= 45 ? '$$'
+                : '$'
+              : '$$'
+            }
+          </div>
 
           <div className="flex gap-2">
             <Link

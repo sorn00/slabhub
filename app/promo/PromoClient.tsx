@@ -120,8 +120,10 @@ export default function PromoClient() {
 
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <span className="text-2xl font-bold text-amber-400">${slab.promo_price_per_slab.toLocaleString()}</span>
-                        <span className="text-slate-400 text-sm ml-1">/slab</span>
+                        <span className="text-2xl font-bold text-amber-400">
+                          {slab.promo_price_per_slab >= 800 ? '$$$' : slab.promo_price_per_slab >= 600 ? '$$' : '$'}
+                        </span>
+                        <span className="text-slate-400 text-sm ml-1">contact for pricing</span>
                       </div>
                       <span className="text-slate-400 text-sm">{slab.promo_qty} available</span>
                     </div>
