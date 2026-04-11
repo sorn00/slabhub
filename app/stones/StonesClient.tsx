@@ -43,7 +43,12 @@ const FINISHES = [
 ]
 
 const STYLES = [
-  'marble-look', 'concrete-look', 'granite-look', 'bold-veining', 'subtle-veining', 'solid',
+  { value: 'marble-look', label: 'Marble Look' },
+  { value: 'concrete-look', label: 'Concrete Look' },
+  { value: 'granite-look', label: 'Granite Look' },
+  { value: 'bold-veining', label: 'Bold Veining' },
+  { value: 'subtle-veining', label: 'Subtle Veining' },
+  { value: 'solid', label: 'Solid / No Veining' },
 ]
 
 const PRICE_RANGES = [
@@ -77,9 +82,14 @@ function SkeletonCard() {
   )
 }
 
+interface FilterOption {
+  value: string
+  label: string
+}
+
 interface FilterSectionProps {
   title: string
-  options: string[]
+  options: string[] | FilterOption[]
   selected: string[]
   onToggle: (val: string) => void
   defaultOpen?: boolean
@@ -87,6 +97,9 @@ interface FilterSectionProps {
 
 function FilterSection({ title, options, selected, onToggle, defaultOpen = true }: FilterSectionProps) {
   const [open, setOpen] = useState(defaultOpen)
+  const normalized = (options as Array<string | FilterOption>).map(o =>
+    typeof o === 'string' ? { value: o, label: o } : o
+  )
   return (
     <div className="border-b border-slate-700/50 pb-4 mb-4">
       <button
@@ -100,29 +113,29 @@ function FilterSection({ title, options, selected, onToggle, defaultOpen = true 
       </button>
       {open && (
         <div className="space-y-2">
-          {options.map(opt => (
-            <label key={opt} className="flex items-center gap-2.5 cursor-pointer group">
+          {normalized.map(opt => (
+            <label key={opt.value} className="flex items-center gap-2.5 cursor-pointer group">
               <div
-                onClick={() => onToggle(opt)}
+                onClick={() => onToggle(opt.value)}
                 className={`w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-all ${
-                  selected.includes(opt)
+                  selected.includes(opt.value)
                     ? 'bg-[#d4a847] border-[#d4a847]'
                     : 'border-slate-500 group-hover:border-[#d4a847]/60'
                 }`}
               >
-                {selected.includes(opt) && (
+                {selected.includes(opt.value) && (
                   <svg className="w-2.5 h-2.5 text-slate-900" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                 )}
               </div>
               <span
-                onClick={() => onToggle(opt)}
+                onClick={() => onToggle(opt.value)}
                 className={`text-sm transition-colors ${
-                  selected.includes(opt) ? 'text-[#d4a847]' : 'text-slate-400 group-hover:text-slate-200'
+                  selected.includes(opt.value) ? 'text-[#d4a847]' : 'text-slate-400 group-hover:text-slate-200'
                 }`}
               >
-                {opt}
+                {opt.label}
               </span>
             </label>
           ))}
