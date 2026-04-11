@@ -1,271 +1,367 @@
 'use client'
 
-import { useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
 
-const STEPS = [
-  'Project Type',
-  'Material',
-  'Size',
-  'Color',
-  'Timeline',
-  'Contact Info',
-]
+const STEPS = ['Stone', 'Project', 'Photos', 'Submit']
 
 function QuoteForm() {
   const searchParams = useSearchParams()
-  const initialZip = searchParams.get('zip') || ''
+  const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [matchedState, setMatchedState] = useState<string | null>(null)
+  const [user, setUser] = useState<{ name: string; email: string; phone?: string } | null>(null)
+  const [authChecked, setAuthChecked] = useState(false)
+
   const [data, setData] = useState({
-    projectType: '',
-    material: '',
-    size: '',
-    color: '',
-    timeline: '',
-    name: '',
-    phone: '',
-    email: '',
-    zip: initialZip,
+    stoneName: searchParams.get('stone') || '',
+    stoneId: searchParams.get('stoneId') || '',
+    roomType: '',
+    sqft: '',
+    notes: '',
   })
+  const [files, setFiles] = useState<File[]>([])
+  const [previews, setPreviews] = useState<string[]>([])
+  const [stoneSearch, setStoneSearch] = useState(searchParams.get('stone') || '')
+  const [stoneResults, setStoneResults] = useState<Array<{ stone_id: string; stone_name: string; image_url: string | null }>>([])
+
+  // Check auth
+  useEffect(() => {
+    fetch('/api/auth/session')
+      .then(r => r.json())
+      .then(s => {
+        if (s?.user) {
+          setUser({ name: s.user.name || '', email: s.user.email || '' })
+        }
+        setAuthChecked(true)
+      })
+      .catch(() => setAuthChecked(true))
+  }, [])
+
+  // Stone search
+  useEffect(() => {
+    if (!stoneSearch || stoneSearch.length < 2) { setStoneResults([]); return }
+    const t = setTimeout(() => {
+      fetch(`/api/stones/search?q=${encodeURIComponent(stoneSearch)}&page=1`)
+        .then(r => r.json())
+        .then(d => setStoneResults((d.stones || []).slice(0, 6)))
+        .catch(() => {})
+    }, 300)
+    return () => clearTimeout(t)
+  }, [stoneSearch])
 
   const update = (key: string, value: string) => setData(prev => ({ ...prev, [key]: value }))
 
-  const next = () => setStep(s => s + 1)
-  const back = () => setStep(s => s - 1)
+  const handleFiles = (newFiles: FileList | null) => {
+    if (!newFiles) return
+    const arr = Array.from(newFiles).slice(0, 5 - files.length)
+    setFiles(prev => [...prev, ...arr])
+    arr.forEach(f => {
+      const reader = new FileReader()
+      reader.onload = e => setPreviews(prev => [...prev, e.target?.result as string])
+      reader.readAsDataURL(f)
+    })
+  }
+
+  const removeFile = (i: number) => {
+    setFiles(prev => prev.filter((_, idx) => idx !== i))
+    setPreviews(prev => prev.filter((_, idx) => idx !== i))
+  }
 
   const submit = async () => {
     setLoading(true)
     try {
-      // Call route-lead which handles matching + notification
-      const res = await fetch('/api/route-lead', {
+      // Upload photos first
+      let photoUrls: string[] = []
+      if (files.length > 0) {
+        const formData = new FormData()
+        files.forEach(f => formData.append('files', f))
+        const uploadRes = await fetch('/api/uploads/quote-photos', { method: 'POST', body: formData })
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json()
+          photoUrls = uploadData.urls || []
+        }
+      }
+
+      await fetch('/api/quote-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          zip: data.zip,
-          customerName: data.name,
-          phone: data.phone,
-          email: data.email,
-          material: data.material,
-          sqft: data.size,
-          stones: [data.color, data.projectType].filter(Boolean),
+          stone_id: data.stoneId || data.stoneName.toLowerCase().replace(/\s+/g, '-'),
+          stone_name: data.stoneName,
+          customer_name: user?.name || '',
+          phone: user?.phone || '',
+          sqft_estimate: data.sqft ? parseInt(data.sqft) : null,
+          notes: data.notes || null,
+          room_type: data.roomType || null,
+          photo_urls: photoUrls,
         }),
       })
-      if (res.ok) {
-        const result = await res.json()
-        if (result.matched && result.fabricatorState) {
-          setMatchedState(result.fabricatorState)
-        }
-      }
-      // Also save full quote record
-      await fetch('/api/save-quote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).catch(() => {})
       setSubmitted(true)
     } catch (err) {
       console.error(err)
-      setSubmitted(true) // Still show success
+      setSubmitted(true)
     } finally {
       setLoading(false)
     }
   }
 
-  if (submitted) {
+  if (!authChecked) {
+    return <div className="text-center py-20 text-slate-400 animate-pulse">Loading...</div>
+  }
+
+  if (!user) {
     return (
-      <div className="text-center py-16 px-4">
-        <div className="text-5xl mb-6">🎉</div>
-        <h2 className="text-3xl font-bold text-white mb-4">You're matched!</h2>
-        <p className="text-slate-400 text-lg max-w-md mx-auto">
-          {matchedState
-            ? `Great! We're connecting you with our ${matchedState} partner. You'll hear from them within 24 hours.`
-            : `We're matching you with fabricators in your area. You'll hear from them within 24 hours.`}
-        </p>
-        <div className="mt-8 bg-amber-500/10 border border-amber-500/20 rounded-xl p-6 max-w-sm mx-auto">
-          <p className="text-amber-400 text-sm font-medium">What happens next?</p>
-          <ul className="text-slate-400 text-sm mt-2 space-y-1 text-left list-disc list-inside">
-            <li>Fabricators review your project</li>
-            <li>They contact you within 24 hours</li>
-            <li>Compare quotes and choose your fit</li>
-          </ul>
+      <div className="max-w-md mx-auto px-4 py-20 text-center">
+        <div className="text-5xl mb-6">🔐</div>
+        <h2 className="text-2xl font-bold text-white mb-3">Sign in to request a quote</h2>
+        <p className="text-slate-400 mb-8">Create a free account to track your quotes and upload project photos.</p>
+        <div className="flex flex-col gap-3">
+          <Link href={`/login?redirect=/quote${searchParams.get('stone') ? `?stone=${searchParams.get('stone')}` : ''}`}
+            className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-3 px-8 rounded-lg transition-colors">
+            Sign In
+          </Link>
+          <Link href={`/register?redirect=/quote${searchParams.get('stone') ? `?stone=${searchParams.get('stone')}` : ''}`}
+            className="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-8 rounded-lg transition-colors">
+            Create Account
+          </Link>
         </div>
       </div>
     )
   }
 
+  if (submitted) {
+    return (
+      <div className="text-center py-16 px-4">
+        <div className="text-5xl mb-6">✅</div>
+        <h2 className="text-3xl font-bold text-white mb-4">Quote request sent!</h2>
+        <p className="text-slate-400 text-lg max-w-md mx-auto mb-8">
+          We received your request for <strong className="text-white">{data.stoneName || 'your selection'}</strong>. We'll be in touch within 24 hours.
+        </p>
+        <Link href="/stones" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-8 py-3 rounded-lg transition-colors">
+          Browse More Stones
+        </Link>
+      </div>
+    )
+  }
+
   const progress = ((step + 1) / STEPS.length) * 100
+  const canNext0 = !!data.stoneName
+  const canNext1 = !!data.roomType
+  const canSubmit = !!data.stoneName && !!data.roomType
 
   return (
     <div className="max-w-xl mx-auto px-4 py-12">
+      {/* Progress */}
       <div className="mb-8">
-        <div className="flex justify-between text-xs text-slate-500 mb-1">
-          <span>Step {step + 1} of {STEPS.length}</span>
-          <span>{STEPS[step]}</span>
+        <div className="flex justify-between text-xs text-slate-500 mb-2">
+          {STEPS.map((s, i) => (
+            <span key={s} className={i === step ? 'text-amber-400 font-medium' : i < step ? 'text-slate-400' : 'text-slate-600'}>{s}</span>
+          ))}
         </div>
         <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-amber-500 rounded-full transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
+          <div className="h-full bg-amber-500 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
         </div>
       </div>
 
       <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 md:p-8">
-        {/* Step 0: Project type */}
+
+        {/* Step 0: Stone Selection */}
         {step === 0 && (
           <div>
-            <h2 className="text-2xl font-bold text-white mb-2">What type of project?</h2>
-            <p className="text-slate-400 mb-6">Select the primary space you're upgrading.</p>
-            <div className="grid grid-cols-2 gap-3">
-              {['Kitchen', 'Bathroom', 'Island', 'Other'].map(type => (
-                <button
-                  key={type}
-                  onClick={() => { update('projectType', type); next() }}
-                  className={`p-4 rounded-xl border text-left transition-all ${data.projectType === type ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-600 hover:border-slate-500 text-white'}`}
-                >
-                  <div className="font-medium">{type}</div>
-                </button>
-              ))}
-            </div>
+            <h2 className="text-2xl font-bold text-white mb-1">Which stone?</h2>
+            <p className="text-slate-400 mb-5">Search by name or browse the catalog.</p>
+
+            {data.stoneName ? (
+              <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-4">
+                <span className="text-amber-400 text-xl">◆</span>
+                <div className="flex-1">
+                  <div className="text-white font-medium">{data.stoneName}</div>
+                  <div className="text-slate-400 text-sm">Selected</div>
+                </div>
+                <button onClick={() => { update('stoneName', ''); update('stoneId', ''); setStoneSearch('') }}
+                  className="text-slate-500 hover:text-slate-300 text-sm">✕ Change</button>
+              </div>
+            ) : (
+              <div className="relative mb-4">
+                <input
+                  type="text"
+                  value={stoneSearch}
+                  onChange={e => setStoneSearch(e.target.value)}
+                  placeholder="Search stones (e.g. Calacatta, Carrara...)"
+                  className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                />
+                {stoneResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden z-10 shadow-xl">
+                    {stoneResults.map(s => (
+                      <button key={s.stone_id}
+                        onClick={() => { update('stoneName', s.stone_name); update('stoneId', s.stone_id); setStoneSearch(s.stone_name); setStoneResults([]) }}
+                        className="flex items-center gap-3 w-full px-4 py-3 hover:bg-slate-700 transition-colors text-left">
+                        {s.image_url && <img src={s.image_url} alt={s.stone_name} className="w-10 h-10 rounded object-cover flex-shrink-0" />}
+                        <span className="text-white text-sm">{s.stone_name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <p className="text-slate-500 text-sm mb-1">Not sure yet?</p>
+            <Link href="/stones" className="text-amber-400 hover:text-amber-300 text-sm">Browse the catalog →</Link>
+
+            <button onClick={() => setStep(1)} disabled={!canNext0}
+              className="mt-6 w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-900 font-bold py-3 rounded-xl transition-colors">
+              Continue →
+            </button>
           </div>
         )}
 
-        {/* Step 1: Material */}
+        {/* Step 1: Project Details */}
         {step === 1 && (
           <div>
-            <h2 className="text-2xl font-bold text-white mb-2">Material preference?</h2>
-            <p className="text-slate-400 mb-6">We'll match you with specialists.</p>
-            <div className="grid grid-cols-2 gap-3">
-              {['Granite', 'Quartz', 'Marble', 'Not sure'].map(mat => (
-                <button
-                  key={mat}
-                  onClick={() => { update('material', mat); next() }}
-                  className={`p-4 rounded-xl border text-left transition-all ${data.material === mat ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-600 hover:border-slate-500 text-white'}`}
-                >
-                  <div className="font-medium">{mat}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+            <h2 className="text-2xl font-bold text-white mb-1">Tell us about your project</h2>
+            <p className="text-slate-400 mb-5">Helps us give you the most accurate quote.</p>
 
-        {/* Step 2: Size */}
-        {step === 2 && (
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-2">Approximate size?</h2>
-            <p className="text-slate-400 mb-6">This helps fabricators quote accurately.</p>
-            <div className="flex flex-col gap-3">
-              {['Under 30 sqft', '30-60 sqft', '60-100 sqft', '100+ sqft'].map(size => (
-                <button
-                  key={size}
-                  onClick={() => { update('size', size); next() }}
-                  className={`p-4 rounded-xl border text-left transition-all ${data.size === size ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-600 hover:border-slate-500 text-white'}`}
-                >
-                  <div className="font-medium">{size}</div>
-                </button>
-              ))}
+            <div className="mb-5">
+              <label className="text-slate-300 text-sm font-medium mb-2 block">Room type</label>
+              <div className="grid grid-cols-2 gap-3">
+                {['Kitchen', 'Bathroom', 'Island', 'Laundry Room', 'Office', 'Other'].map(r => (
+                  <button key={r} onClick={() => update('roomType', r)}
+                    className={`p-3 rounded-xl border text-sm font-medium transition-all ${data.roomType === r ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-600 hover:border-slate-500 text-slate-300'}`}>
+                    {r}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
 
-        {/* Step 3: Color */}
-        {step === 3 && (
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-2">Color preference?</h2>
-            <p className="text-slate-400 mb-6">We'll show fabricators your style direction.</p>
-            <div className="grid grid-cols-2 gap-3">
-              {['White/Cream', 'Gray', 'Black', 'Brown/Beige', 'Blue', 'Not sure'].map(color => (
-                <button
-                  key={color}
-                  onClick={() => { update('color', color); next() }}
-                  className={`p-4 rounded-xl border text-left transition-all ${data.color === color ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-600 hover:border-slate-500 text-white'}`}
-                >
-                  <div className="font-medium">{color}</div>
-                </button>
-              ))}
+            <div className="mb-5">
+              <label className="text-slate-300 text-sm font-medium mb-2 block">Approximate square footage <span className="text-slate-500">(optional)</span></label>
+              <div className="grid grid-cols-2 gap-3">
+                {['Under 30 sqft', '30–60 sqft', '60–100 sqft', '100+ sqft'].map(s => (
+                  <button key={s} onClick={() => update('sqft', s)}
+                    className={`p-3 rounded-xl border text-sm font-medium transition-all ${data.sqft === s ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-600 hover:border-slate-500 text-slate-300'}`}>
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
 
-        {/* Step 4: Timeline */}
-        {step === 4 && (
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-2">What's your timeline?</h2>
-            <p className="text-slate-400 mb-6">Helps fabricators prioritize your request.</p>
-            <div className="flex flex-col gap-3">
-              {['ASAP', '1-3 months', '3-6 months', 'Just browsing'].map(tl => (
-                <button
-                  key={tl}
-                  onClick={() => { update('timeline', tl); next() }}
-                  className={`p-4 rounded-xl border text-left transition-all ${data.timeline === tl ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-600 hover:border-slate-500 text-white'}`}
-                >
-                  <div className="font-medium">{tl}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Step 5: Contact info */}
-        {step === 5 && (
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-2">Almost there!</h2>
-            <p className="text-slate-400 mb-6">Where should fabricators reach you?</p>
-            <div className="flex flex-col gap-4">
-              <input
-                type="text"
-                placeholder="Full name"
-                value={data.name}
-                onChange={e => update('name', e.target.value)}
-                className="bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
-              />
-              <input
-                type="tel"
-                placeholder="Phone number"
-                value={data.phone}
-                onChange={e => update('phone', e.target.value)}
-                className="bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
-              />
-              <input
-                type="email"
-                placeholder="Email address"
-                value={data.email}
-                onChange={e => update('email', e.target.value)}
-                className="bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
-              />
-              <input
-                type="text"
-                placeholder="Zip code"
-                value={data.zip}
-                onChange={e => update('zip', e.target.value)}
-                className="bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
-              />
-              <button
-                onClick={submit}
-                disabled={loading || !data.name || !data.email || !data.zip}
-                className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 font-bold py-3 rounded-lg transition-colors mt-2"
-              >
-                {loading ? 'Submitting...' : 'Get My Quotes →'}
+            <div className="flex gap-3 mt-2">
+              <button onClick={() => setStep(0)} className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 rounded-xl transition-colors">← Back</button>
+              <button onClick={() => setStep(2)} disabled={!canNext1}
+                className="flex-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-900 font-bold py-3 rounded-xl transition-colors">
+                Continue →
               </button>
             </div>
           </div>
         )}
 
-        {/* Back button */}
-        {step > 0 && step < 5 && (
-          <button onClick={back} className="mt-4 text-slate-500 hover:text-slate-300 text-sm transition-colors">
-            ← Back
-          </button>
+        {/* Step 2: Photos */}
+        {step === 2 && (
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-1">Upload photos & sketch</h2>
+            <p className="text-slate-400 mb-5">Add photos of your space and a sketch with measurements if you have one. Up to 5 files.</p>
+
+            {/* Drop zone */}
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={e => e.preventDefault()}
+              onDrop={e => { e.preventDefault(); handleFiles(e.dataTransfer.files) }}
+              className="border-2 border-dashed border-slate-600 hover:border-amber-500/50 rounded-xl p-8 text-center cursor-pointer transition-colors mb-4 group"
+            >
+              <div className="text-3xl mb-2">📎</div>
+              <p className="text-slate-300 font-medium group-hover:text-white transition-colors">Click or drag to upload</p>
+              <p className="text-slate-500 text-sm mt-1">Photos, sketches, PDFs — max 5 files</p>
+              <input ref={fileInputRef} type="file" multiple accept="image/*,.pdf" className="hidden"
+                onChange={e => handleFiles(e.target.files)} />
+            </div>
+
+            {/* Previews */}
+            {previews.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                {previews.map((src, i) => (
+                  <div key={i} className="relative group">
+                    <img src={src} alt="" className="w-full h-24 object-cover rounded-lg border border-slate-700" />
+                    <button onClick={() => removeFile(i)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mb-4">
+              <label className="text-slate-300 text-sm font-medium mb-2 block">Additional notes <span className="text-slate-500">(optional)</span></label>
+              <textarea
+                value={data.notes}
+                onChange={e => update('notes', e.target.value)}
+                placeholder="Sink cutouts, edge profile preference, special requirements..."
+                rows={3}
+                className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 resize-none"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={() => setStep(1)} className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 rounded-xl transition-colors">← Back</button>
+              <button onClick={() => setStep(3)} className="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-3 rounded-xl transition-colors">
+                Review →
+              </button>
+            </div>
+          </div>
         )}
-        {step === 5 && (
-          <button onClick={back} className="mt-4 text-slate-500 hover:text-slate-300 text-sm transition-colors">
-            ← Back
-          </button>
+
+        {/* Step 3: Review & Submit */}
+        {step === 3 && (
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-1">Review & submit</h2>
+            <p className="text-slate-400 mb-5">Confirm your details before we send this over.</p>
+
+            <div className="bg-slate-900/60 rounded-xl p-4 space-y-3 mb-5 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Stone</span>
+                <span className="text-white font-medium">{data.stoneName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Room</span>
+                <span className="text-white">{data.roomType}</span>
+              </div>
+              {data.sqft && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Size</span>
+                  <span className="text-white">{data.sqft}</span>
+                </div>
+              )}
+              {files.length > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Photos</span>
+                  <span className="text-white">{files.length} file{files.length > 1 ? 's' : ''}</span>
+                </div>
+              )}
+              {data.notes && (
+                <div className="flex justify-between gap-4">
+                  <span className="text-slate-400 flex-shrink-0">Notes</span>
+                  <span className="text-white text-right">{data.notes}</span>
+                </div>
+              )}
+              <div className="border-t border-slate-700 pt-3 flex justify-between">
+                <span className="text-slate-400">Submitting as</span>
+                <span className="text-white">{user?.name} ({user?.email})</span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={() => setStep(2)} className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 rounded-xl transition-colors">← Back</button>
+              <button onClick={submit} disabled={loading || !canSubmit}
+                className="flex-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-900 font-bold py-3 rounded-xl transition-colors">
+                {loading ? 'Sending...' : 'Submit Request ✓'}
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>
@@ -274,8 +370,16 @@ function QuoteForm() {
 
 export default function QuotePage() {
   return (
-    <Suspense fallback={<div className="text-center py-20 text-slate-400">Loading...</div>}>
-      <QuoteForm />
-    </Suspense>
+    <div className="min-h-screen bg-[#0f172a]">
+      <div className="border-b border-slate-800 py-6 px-4">
+        <div className="max-w-xl mx-auto">
+          <h1 className="text-xl font-bold text-white">Request a Quote</h1>
+          <p className="text-slate-400 text-sm">Get pricing from Arts Marble & Granite</p>
+        </div>
+      </div>
+      <Suspense fallback={<div className="text-center py-20 text-slate-400">Loading...</div>}>
+        <QuoteForm />
+      </Suspense>
+    </div>
   )
 }
