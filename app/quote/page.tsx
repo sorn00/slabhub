@@ -17,16 +17,20 @@ function QuoteForm() {
   const [user, setUser] = useState<{ name: string; email: string; phone?: string } | null>(null)
   const [authChecked, setAuthChecked] = useState(false)
 
+  const initialStone = searchParams.get('stone')
+  const initialStoneId = searchParams.get('stoneId')
+
+  const [selectedStones, setSelectedStones] = useState<Array<{ stone_id: string; stone_name: string; image_url?: string | null }>>(
+    initialStone ? [{ stone_id: initialStoneId || '', stone_name: initialStone }] : []
+  )
   const [data, setData] = useState({
-    stoneName: searchParams.get('stone') || '',
-    stoneId: searchParams.get('stoneId') || '',
     roomType: '',
     sqft: '',
     notes: '',
   })
   const [files, setFiles] = useState<File[]>([])
   const [previews, setPreviews] = useState<string[]>([])
-  const [stoneSearch, setStoneSearch] = useState(searchParams.get('stone') || '')
+  const [stoneSearch, setStoneSearch] = useState('')
   const [stoneResults, setStoneResults] = useState<Array<{ stone_id: string; stone_name: string; image_url: string | null }>>([])
 
   // Check auth
@@ -87,18 +91,20 @@ function QuoteForm() {
         }
       }
 
+      const primary = selectedStones[0]
       await fetch('/api/quote-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          stone_id: data.stoneId || data.stoneName.toLowerCase().replace(/\s+/g, '-'),
-          stone_name: data.stoneName,
+          stone_id: primary?.stone_id || '',
+          stone_name: primary?.stone_name || '',
           customer_name: user?.name || '',
           phone: user?.phone || '',
           sqft_estimate: data.sqft ? parseInt(data.sqft) : null,
           notes: data.notes || null,
           room_type: data.roomType || null,
           photo_urls: photoUrls,
+          stones: selectedStones.map(s => ({ stoneId: s.stone_id, stoneName: s.stone_name })),
         }),
       })
       setSubmitted(true)
@@ -140,7 +146,7 @@ function QuoteForm() {
         <div className="text-5xl mb-6">✅</div>
         <h2 className="text-3xl font-bold text-white mb-4">Quote request sent!</h2>
         <p className="text-slate-400 text-lg max-w-md mx-auto mb-8">
-          We received your request for <strong className="text-white">{data.stoneName || 'your selection'}</strong>. We'll be in touch within 24 hours.
+          We received your request for <strong className="text-white">{selectedStones.map(s => s.stone_name).join(', ') || 'your selection'}</strong>. We'll be in touch within 24 hours.
         </p>
         <Link href="/stones" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-8 py-3 rounded-lg transition-colors">
           Browse More Stones
@@ -150,9 +156,9 @@ function QuoteForm() {
   }
 
   const progress = ((step + 1) / STEPS.length) * 100
-  const canNext0 = !!data.stoneName
+  const canNext0 = selectedStones.length > 0
   const canNext1 = !!data.roomType
-  const canSubmit = !!data.stoneName && !!data.roomType
+  const canSubmit = selectedStones.length > 0 && !!data.roomType
 
   return (
     <div className="max-w-xl mx-auto px-4 py-12">
@@ -173,49 +179,57 @@ function QuoteForm() {
         {/* Step 0: Stone Selection */}
         {step === 0 && (
           <div>
-            <h2 className="text-2xl font-bold text-white mb-1">Which stone?</h2>
-            <p className="text-slate-400 mb-5">Search by name or browse the catalog.</p>
+            <h2 className="text-2xl font-bold text-white mb-1">Which stones?</h2>
+            <p className="text-slate-400 mb-5">Add one or more stones to compare. We'll quote all of them.</p>
 
-            {data.stoneName ? (
-              <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-4">
-                <span className="text-amber-400 text-xl">◆</span>
-                <div className="flex-1">
-                  <div className="text-white font-medium">{data.stoneName}</div>
-                  <div className="text-slate-400 text-sm">Selected</div>
-                </div>
-                <button onClick={() => { update('stoneName', ''); update('stoneId', ''); setStoneSearch('') }}
-                  className="text-slate-500 hover:text-slate-300 text-sm">✕ Change</button>
+            {/* Selected stones list */}
+            {selectedStones.length > 0 && (
+              <div className="space-y-2 mb-4">
+                {selectedStones.map((s, i) => (
+                  <div key={s.stone_id + i} className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3">
+                    {s.image_url && <img src={s.image_url} alt={s.stone_name} className="w-8 h-8 rounded object-cover flex-shrink-0" />}
+                    <span className="text-white font-medium flex-1 text-sm">{s.stone_name}</span>
+                    <button onClick={() => setSelectedStones(prev => prev.filter((_, idx) => idx !== i))}
+                      className="text-slate-500 hover:text-red-400 text-sm transition-colors">✕</button>
+                  </div>
+                ))}
               </div>
-            ) : (
-              <div className="relative mb-4">
-                <input
-                  type="text"
-                  value={stoneSearch}
-                  onChange={e => setStoneSearch(e.target.value)}
-                  placeholder="Search stones (e.g. Calacatta, Carrara...)"
-                  className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
-                />
-                {stoneResults.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden z-10 shadow-xl">
-                    {stoneResults.map(s => (
+            )}
+
+            {/* Search */}
+            <div className="relative mb-4">
+              <input
+                type="text"
+                value={stoneSearch}
+                onChange={e => setStoneSearch(e.target.value)}
+                placeholder={selectedStones.length > 0 ? 'Add another stone...' : 'Search stones (e.g. Calacatta, Carrara...)'}
+                className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+              />
+              {stoneResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden z-10 shadow-xl">
+                  {stoneResults
+                    .filter(s => !selectedStones.find(sel => sel.stone_id === s.stone_id))
+                    .map(s => (
                       <button key={s.stone_id}
-                        onClick={() => { update('stoneName', s.stone_name); update('stoneId', s.stone_id); setStoneSearch(s.stone_name); setStoneResults([]) }}
+                        onClick={() => {
+                          setSelectedStones(prev => [...prev, s])
+                          setStoneSearch('')
+                          setStoneResults([])
+                        }}
                         className="flex items-center gap-3 w-full px-4 py-3 hover:bg-slate-700 transition-colors text-left">
                         {s.image_url && <img src={s.image_url} alt={s.stone_name} className="w-10 h-10 rounded object-cover flex-shrink-0" />}
                         <span className="text-white text-sm">{s.stone_name}</span>
                       </button>
                     ))}
-                  </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+            </div>
 
-            <p className="text-slate-500 text-sm mb-1">Not sure yet?</p>
-            <Link href="/stones" className="text-amber-400 hover:text-amber-300 text-sm">Browse the catalog →</Link>
+            <Link href="/stones" className="text-amber-400 hover:text-amber-300 text-sm">Browse catalog to pick stones →</Link>
 
             <button onClick={() => setStep(1)} disabled={!canNext0}
               className="mt-6 w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-900 font-bold py-3 rounded-xl transition-colors">
-              Continue →
+              Continue {selectedStones.length > 0 ? `with ${selectedStones.length} stone${selectedStones.length > 1 ? 's' : ''}` : ''} →
             </button>
           </div>
         )}
@@ -322,9 +336,9 @@ function QuoteForm() {
             <p className="text-slate-400 mb-5">Confirm your details before we send this over.</p>
 
             <div className="bg-slate-900/60 rounded-xl p-4 space-y-3 mb-5 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Stone</span>
-                <span className="text-white font-medium">{data.stoneName}</span>
+              <div className="flex justify-between gap-4">
+                <span className="text-slate-400 flex-shrink-0">Stone{selectedStones.length > 1 ? 's' : ''}</span>
+                <span className="text-white font-medium text-right">{selectedStones.map(s => s.stone_name).join(', ')}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Room</span>
