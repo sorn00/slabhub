@@ -145,13 +145,58 @@ function FilterSection({ title, options, selected, onToggle, defaultOpen = true 
   )
 }
 
+interface StoneCard {
+  stone_id: string
+  stone_name: string
+  image_url: string | null
+}
+
+function AddToQuoteButton({ stone }: { stone: StoneCard }) {
+  const router = useRouter()
+  const [added, setAdded] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const handleAdd = async () => {
+    setLoading(true)
+    const res = await fetch('/api/quote-selections', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stone_id: stone.stone_id, stone_name: stone.stone_name, image_url: stone.image_url }),
+    })
+    if (res.status === 401) {
+      // Not logged in — redirect to login
+      router.push(`/login?redirect=/stones`)
+      return
+    }
+    if (res.ok) {
+      setAdded(true)
+      window.dispatchEvent(new Event('quoteStonesUpdated'))
+    }
+    setLoading(false)
+  }
+
+  return (
+    <button
+      onClick={handleAdd}
+      disabled={loading}
+      className={`flex-1 text-center text-xs font-bold py-2 rounded-lg transition-colors ${
+        added
+          ? 'bg-green-600 text-white cursor-default'
+          : 'bg-[#d4a847] hover:bg-[#c49a40] text-slate-900'
+      }`}
+    >
+      {loading ? '...' : added ? '✓ Added' : '+ Add to Quote'}
+    </button>
+  )
+}
+
 function QuoteBar() {
   const [count, setCount] = useState(0)
   const refresh = () => {
-    try {
-      const saved = sessionStorage.getItem('quoteStones')
-      setCount(saved ? JSON.parse(saved).length : 0)
-    } catch {}
+    fetch('/api/quote-selections')
+      .then(r => r.json())
+      .then(d => setCount(d.stones?.length || 0))
+      .catch(() => {})
   }
   useEffect(() => {
     refresh()
@@ -665,21 +710,7 @@ function StoneCard({ stone }: { stone: Stone }) {
             >
               View Details
             </Link>
-            <button
-              onClick={() => {
-                try {
-                  const saved = JSON.parse(sessionStorage.getItem('quoteStones') || '[]')
-                  if (!saved.find((s: {stone_id: string}) => s.stone_id === stone.stone_id)) {
-                    saved.push({ stone_id: stone.stone_id, stone_name: stone.stone_name, image_url: stone.image_url })
-                    sessionStorage.setItem('quoteStones', JSON.stringify(saved))
-                  }
-                  window.dispatchEvent(new Event('quoteStonesUpdated'))
-                } catch {}
-              }}
-              className="flex-1 text-center bg-[#d4a847] hover:bg-[#c49a40] text-slate-900 text-xs font-bold py-2 rounded-lg transition-colors"
-            >
-              + Add to Quote
-            </button>
+            <AddToQuoteButton stone={stone} />
           </div>
         </div>
       </div>

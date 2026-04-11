@@ -17,25 +17,7 @@ function QuoteForm() {
   const [user, setUser] = useState<{ name: string; email: string; phone?: string } | null>(null)
   const [authChecked, setAuthChecked] = useState(false)
 
-  const incomingStone = searchParams.get('stone')
-  const incomingStoneId = searchParams.get('stoneId')
-
-  const [selectedStones, setSelectedStones] = useState<Array<{ stone_id: string; stone_name: string; image_url?: string | null }>>(() => {
-    // Load saved selection from sessionStorage
-    let saved: Array<{ stone_id: string; stone_name: string; image_url?: string | null }> = []
-    try {
-      const raw = typeof window !== 'undefined' ? sessionStorage.getItem('quoteStones') : null
-      if (raw) saved = JSON.parse(raw)
-    } catch {}
-    // If a new stone came in via URL, add it if not already in list
-    if (incomingStone) {
-      const alreadyAdded = saved.find(s => s.stone_id === (incomingStoneId || incomingStone))
-      if (!alreadyAdded) {
-        saved = [...saved, { stone_id: incomingStoneId || '', stone_name: incomingStone }]
-      }
-    }
-    return saved
-  })
+  const [selectedStones, setSelectedStones] = useState<Array<{ stone_id: string; stone_name: string; image_url?: string | null }>>([])
   interface Room { roomType: string; sqft: string }
   const [rooms, setRooms] = useState<Room[]>([{ roomType: '', sqft: '' }])
   const [notes, setNotes] = useState('')
@@ -49,14 +31,18 @@ function QuoteForm() {
   const [stoneSearch, setStoneSearch] = useState('')
   const [stoneResults, setStoneResults] = useState<Array<{ stone_id: string; stone_name: string; image_url: string | null }>>([])
 
-  // Persist stone selection to sessionStorage
+  // Load saved stones from DB once user is confirmed
   useEffect(() => {
-    try { sessionStorage.setItem('quoteStones', JSON.stringify(selectedStones)) } catch {}
-  }, [selectedStones])
+    if (!user) return
+    fetch('/api/quote-selections')
+      .then(r => r.json())
+      .then(d => { if (d.stones) setSelectedStones(d.stones) })
+      .catch(() => {})
+  }, [user])
 
-  // Clear on successful submit
-  const clearSession = () => {
-    try { sessionStorage.removeItem('quoteStones') } catch {}
+  // Clear DB selections on submit
+  const clearSession = async () => {
+    await fetch('/api/quote-selections/clear', { method: 'POST' }).catch(() => {})
   }
 
   // Check auth
@@ -217,7 +203,11 @@ function QuoteForm() {
                   <div key={s.stone_id + i} className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3">
                     {s.image_url && <img src={s.image_url} alt={s.stone_name} className="w-8 h-8 rounded object-cover flex-shrink-0" />}
                     <span className="text-white font-medium flex-1 text-sm">{s.stone_name}</span>
-                    <button onClick={() => setSelectedStones(prev => prev.filter((_, idx) => idx !== i))}
+                    <button onClick={() => {
+                        const removed = selectedStones[i]
+                        setSelectedStones(prev => prev.filter((_, idx) => idx !== i))
+                        fetch('/api/quote-selections', { method: 'DELETE', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ stone_id: removed.stone_id }) }).catch(() => {})
+                      }}
                       className="text-slate-500 hover:text-red-400 text-sm transition-colors">✕</button>
                   </div>
                 ))}
@@ -243,6 +233,7 @@ function QuoteForm() {
                           setSelectedStones(prev => [...prev, s])
                           setStoneSearch('')
                           setStoneResults([])
+                          fetch('/api/quote-selections', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ stone_id: s.stone_id, stone_name: s.stone_name, image_url: s.image_url }) }).catch(() => {})
                         }}
                         className="flex items-center gap-3 w-full px-4 py-3 hover:bg-slate-700 transition-colors text-left">
                         {s.image_url && <img src={s.image_url} alt={s.stone_name} className="w-10 h-10 rounded object-cover flex-shrink-0" />}
