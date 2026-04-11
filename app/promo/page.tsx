@@ -3,7 +3,7 @@ import PromoClient from './PromoClient'
 
 export const metadata: Metadata = {
   title: 'Current Stone Promo | Arts Marble & Granite',
-  description: 'Limited time MSI Classic Material promo — Grade B quartz slabs at unbeatable prices. First come, first served. No holds.',
+  description: 'Limited time promo — premium quartz slabs at special pricing. First come, first served. While supplies last.',
 }
 
 export default function PromoPage() {

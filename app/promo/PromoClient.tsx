@@ -49,7 +49,7 @@ export default function PromoClient() {
             🔥 Limited Time Offer
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
-            MSI Classic Material <span className="text-amber-400">Promo</span>
+            Current Stone <span className="text-amber-400">Promo</span>
           </h1>
           <p className="text-slate-400 text-lg max-w-2xl mx-auto mb-4">
             Premium MSI quartz slabs at special pricing. First come, first served. While supplies last.
