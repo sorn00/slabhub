@@ -3,11 +3,14 @@
 import { useEffect, useState } from 'react'
 
 interface AdStat {
+  id?: string
   name: string
   spend: number
   leads: number
   cpl: number | null
   status: string
+  impressions?: number
+  ctr?: number
 }
 
 interface DailyBreakdown {
@@ -27,6 +30,8 @@ interface Stats {
   campaign: { status: string; name: string; dailyBudget: number | null }
   account?: { statusCode: number | null; statusLabel: string | null; isActive: boolean; amountSpent: number | null }
   alerts: { level: string; msg: string }[]
+  recommendation?: string
+  avgCpl?: number | null
   _empty?: boolean
 }
 
@@ -49,12 +54,21 @@ function CPLBadge({ cpl }: { cpl: number | null }) {
 
 function StatusBadge({ status }: { status: string }) {
   const isActive = status === 'ACTIVE'
+  const isDraft = status === 'IN_DRAFT'
+  const isPaused = status === 'PAUSED' || status === 'CAMPAIGN_PAUSED'
+  const colorClass = isActive
+    ? 'bg-green-500/15 text-green-400 border border-green-500/30'
+    : isDraft
+    ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+    : isPaused
+    ? 'bg-orange-500/15 text-orange-400 border border-orange-500/30'
+    : 'bg-slate-600/30 text-slate-400 border border-slate-600/40'
+  const dotClass = isActive ? 'bg-green-400' : isDraft ? 'bg-blue-400' : isPaused ? 'bg-orange-400' : 'bg-slate-400'
+  const label = isDraft ? 'Draft' : isPaused ? 'Paused' : status
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
-      isActive ? 'bg-green-500/15 text-green-400 border border-green-500/30' : 'bg-slate-600/30 text-slate-400 border border-slate-600/40'
-    }`}>
-      <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-green-400' : 'bg-slate-400'}`} />
-      {status}
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${colorClass}`}>
+      <span className={`w-2 h-2 rounded-full ${dotClass}`} />
+      {label}
     </span>
   )
 }
@@ -145,7 +159,7 @@ export default function AdsPageClient() {
 
   if (!stats) return null
 
-  const { today, last7d, last30d, ads, campaign, account, alerts, dailyBreakdown, lastUpdated, _empty } = stats
+  const { today, last7d, last30d, ads, campaign, account, alerts, dailyBreakdown, lastUpdated, _empty, recommendation, avgCpl } = stats
   const acctInactive = account && !account.isActive
 
   const adsFB = `https://adsmanager.facebook.com/adsmanager/manage/campaigns`
@@ -253,8 +267,11 @@ export default function AdsPageClient() {
 
       {/* Ads Performance Table */}
       <div className="bg-[#1a1a2e] border border-slate-700/50 rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-700/50">
+        <div className="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between gap-3">
           <h2 className="text-white font-semibold text-sm">⚡ Ads Performance (Last 7 Days)</h2>
+          {avgCpl != null && (
+            <span className="text-slate-400 text-xs">Avg CPL: <span className="text-white font-semibold">{fmtMoney(avgCpl)}</span></span>
+          )}
         </div>
         {ads.length === 0 ? (
           <div className="px-5 py-8 text-center text-slate-500 text-sm">No ad data available</div>
@@ -267,33 +284,55 @@ export default function AdsPageClient() {
                   <th className="px-4 py-3 text-right text-slate-400 font-medium">Spend</th>
                   <th className="px-4 py-3 text-right text-slate-400 font-medium">Leads</th>
                   <th className="px-4 py-3 text-right text-slate-400 font-medium">CPL</th>
+                  <th className="px-4 py-3 text-right text-slate-400 font-medium">Impr</th>
+                  <th className="px-4 py-3 text-right text-slate-400 font-medium">CTR</th>
                   <th className="px-4 py-3 text-center text-slate-400 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {[...ads]
                   .sort((a, b) => (b.leads - a.leads) || ((a.cpl ?? 9999) - (b.cpl ?? 9999)))
-                  .map((ad, i) => (
-                  <tr key={i} className="border-b border-slate-700/30 hover:bg-slate-800/30 transition-colors">
-                    <td className="px-5 py-3 text-white font-medium">{ad.name}</td>
-                    <td className="px-4 py-3 text-right text-slate-300">{fmtMoney(ad.spend)}</td>
-                    <td className="px-4 py-3 text-right text-slate-300">{ad.leads}</td>
-                    <td className="px-4 py-3 text-right">
-                      {ad.cpl !== null ? (
-                        <span className={`font-semibold ${ad.cpl < 20 ? 'text-green-400' : ad.cpl < 35 ? 'text-yellow-400' : 'text-red-400'}`}>
-                          {fmtMoney(ad.cpl)} {ad.cpl < 20 ? '✅' : ad.cpl < 35 ? '⚠️' : '🔴'}
-                        </span>
-                      ) : (
-                        <span className="text-slate-500">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <StatusBadge status={ad.status} />
-                    </td>
-                  </tr>
-                ))}
+                  .map((ad, i) => {
+                    const isBest = i === 0 && ad.leads > 0
+                    const shortName = ad.name.length > 35 ? ad.name.slice(0, 35) + '…' : ad.name
+                    return (
+                    <tr key={i} className={`border-b border-slate-700/30 hover:bg-slate-800/30 transition-colors ${isBest ? 'bg-green-500/5' : ''}`}>
+                      <td className="px-5 py-3 text-white font-medium">
+                        <div className="flex items-center gap-1.5">
+                          {isBest && <span className="text-[#d4a847] text-xs">🏆</span>}
+                          <span title={ad.name}>{shortName}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right text-slate-300">{fmtMoney(ad.spend)}</td>
+                      <td className="px-4 py-3 text-right text-slate-300">{ad.leads}</td>
+                      <td className="px-4 py-3 text-right">
+                        {ad.cpl !== null ? (
+                          <span className={`font-semibold ${ad.cpl < 20 ? 'text-green-400' : ad.cpl < 35 ? 'text-yellow-400' : 'text-red-400'}`}>
+                            {fmtMoney(ad.cpl)} {ad.cpl < 20 ? '✅' : ad.cpl < 35 ? '⚠️' : '🔴'}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right text-slate-400 text-xs">
+                        {ad.impressions ? fmtNum(ad.impressions) : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-right text-slate-400 text-xs">
+                        {ad.ctr ? `${ad.ctr.toFixed(2)}%` : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <StatusBadge status={ad.status} />
+                      </td>
+                    </tr>
+                  )})
+                }
               </tbody>
             </table>
+          </div>
+        )}
+        {recommendation && (
+          <div className="px-5 py-3 border-t border-slate-700/50 bg-blue-500/5">
+            <span className="text-blue-400 text-xs">{recommendation}</span>
           </div>
         )}
       </div>
