@@ -55,10 +55,7 @@ export default function PromoClient() {
             Premium MSI quartz slabs at special pricing. First come, first served. While supplies last.
           </p>
           <div className="flex flex-wrap justify-center gap-4 text-sm">
-            <span className="bg-slate-800 border border-slate-700 rounded-full px-4 py-1.5 text-slate-300">📦 Bundle pricing shown</span>
-            <span className="bg-slate-800 border border-slate-700 rounded-full px-4 py-1.5 text-slate-300">➕ Add $50/slab for single purchases</span>
             <span className="bg-slate-800 border border-slate-700 rounded-full px-4 py-1.5 text-slate-300">⚡ While supplies last</span>
-            <span className="bg-slate-800 border border-slate-700 rounded-full px-4 py-1.5 text-slate-300">🚫 No holds — all sales final</span>
           </div>
         </div>
       </div>
