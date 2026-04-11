@@ -17,12 +17,25 @@ function QuoteForm() {
   const [user, setUser] = useState<{ name: string; email: string; phone?: string } | null>(null)
   const [authChecked, setAuthChecked] = useState(false)
 
-  const initialStone = searchParams.get('stone')
-  const initialStoneId = searchParams.get('stoneId')
+  const incomingStone = searchParams.get('stone')
+  const incomingStoneId = searchParams.get('stoneId')
 
-  const [selectedStones, setSelectedStones] = useState<Array<{ stone_id: string; stone_name: string; image_url?: string | null }>>(
-    initialStone ? [{ stone_id: initialStoneId || '', stone_name: initialStone }] : []
-  )
+  const [selectedStones, setSelectedStones] = useState<Array<{ stone_id: string; stone_name: string; image_url?: string | null }>>(() => {
+    // Load saved selection from sessionStorage
+    let saved: Array<{ stone_id: string; stone_name: string; image_url?: string | null }> = []
+    try {
+      const raw = typeof window !== 'undefined' ? sessionStorage.getItem('quoteStones') : null
+      if (raw) saved = JSON.parse(raw)
+    } catch {}
+    // If a new stone came in via URL, add it if not already in list
+    if (incomingStone) {
+      const alreadyAdded = saved.find(s => s.stone_id === (incomingStoneId || incomingStone))
+      if (!alreadyAdded) {
+        saved = [...saved, { stone_id: incomingStoneId || '', stone_name: incomingStone }]
+      }
+    }
+    return saved
+  })
   interface Room { roomType: string; sqft: string }
   const [rooms, setRooms] = useState<Room[]>([{ roomType: '', sqft: '' }])
   const [notes, setNotes] = useState('')
@@ -35,6 +48,16 @@ function QuoteForm() {
   const [previews, setPreviews] = useState<string[]>([])
   const [stoneSearch, setStoneSearch] = useState('')
   const [stoneResults, setStoneResults] = useState<Array<{ stone_id: string; stone_name: string; image_url: string | null }>>([])
+
+  // Persist stone selection to sessionStorage
+  useEffect(() => {
+    try { sessionStorage.setItem('quoteStones', JSON.stringify(selectedStones)) } catch {}
+  }, [selectedStones])
+
+  // Clear on successful submit
+  const clearSession = () => {
+    try { sessionStorage.removeItem('quoteStones') } catch {}
+  }
 
   // Check auth
   useEffect(() => {
@@ -111,6 +134,7 @@ function QuoteForm() {
           rooms: rooms.filter(r => r.roomType),
         }),
       })
+      clearSession()
       setSubmitted(true)
     } catch (err) {
       console.error(err)

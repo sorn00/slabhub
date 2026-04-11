@@ -145,6 +145,29 @@ function FilterSection({ title, options, selected, onToggle, defaultOpen = true 
   )
 }
 
+function QuoteBar() {
+  const [count, setCount] = useState(0)
+  const refresh = () => {
+    try {
+      const saved = sessionStorage.getItem('quoteStones')
+      setCount(saved ? JSON.parse(saved).length : 0)
+    } catch {}
+  }
+  useEffect(() => {
+    refresh()
+    window.addEventListener('quoteStonesUpdated', refresh)
+    return () => window.removeEventListener('quoteStonesUpdated', refresh)
+  }, [])
+  if (count === 0) return null
+  return (
+    <div className="sticky top-0 z-40 bg-amber-500 text-slate-900 py-2 px-4 text-center text-sm font-medium">
+      <Link href="/quote" className="hover:underline">
+        ◆ {count} stone{count > 1 ? 's' : ''} in your quote request — tap to continue →
+      </Link>
+    </div>
+  )
+}
+
 export default function StonesClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -370,6 +393,7 @@ export default function StonesClient() {
 
   return (
     <div className="min-h-screen bg-[#0f1117] text-white">
+      <QuoteBar />
       {/* Page header */}
       <div className="border-b border-slate-800 px-6 py-6">
         <div className="max-w-[1400px] mx-auto">
@@ -641,12 +665,21 @@ function StoneCard({ stone }: { stone: Stone }) {
             >
               View Details
             </Link>
-            <Link
-              href={`/quote?stone=${encodeURIComponent(stone.stone_name)}&stoneId=${stone.stone_id}`}
+            <button
+              onClick={() => {
+                try {
+                  const saved = JSON.parse(sessionStorage.getItem('quoteStones') || '[]')
+                  if (!saved.find((s: {stone_id: string}) => s.stone_id === stone.stone_id)) {
+                    saved.push({ stone_id: stone.stone_id, stone_name: stone.stone_name, image_url: stone.image_url })
+                    sessionStorage.setItem('quoteStones', JSON.stringify(saved))
+                  }
+                  window.dispatchEvent(new Event('quoteStonesUpdated'))
+                } catch {}
+              }}
               className="flex-1 text-center bg-[#d4a847] hover:bg-[#c49a40] text-slate-900 text-xs font-bold py-2 rounded-lg transition-colors"
             >
-              Get Quote
-            </Link>
+              + Add to Quote
+            </button>
           </div>
         </div>
       </div>
