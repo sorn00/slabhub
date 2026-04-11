@@ -97,16 +97,10 @@ export default function StoneDetailClient({ stone, related }: StoneDetailClientP
 
   const handleQuote = () => {
     if (!session?.user) {
-      router.push('/register')
+      router.push(`/login?redirect=/quote?stone=${encodeURIComponent(stone.name)}&stoneId=${stone.id}`)
       return
     }
-    // Store this stone for quote, then go to dashboard
-    sessionStorage.setItem('compareQuoteStones', JSON.stringify([{
-      stone_id: stone.id,
-      stone_name: stone.name,
-      stone_image: stone.imageUrl || '',
-    }]))
-    router.push('/dashboard')
+    router.push(`/quote?stone=${encodeURIComponent(stone.name)}&stoneId=${stone.id}`)
   }
 
   return (

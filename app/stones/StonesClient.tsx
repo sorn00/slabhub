@@ -642,7 +642,7 @@ function StoneCard({ stone }: { stone: Stone }) {
               View Details
             </Link>
             <Link
-              href={`/quote?stone=${stone.stone_id}`}
+              href={`/quote?stone=${encodeURIComponent(stone.stone_name)}&stoneId=${stone.stone_id}`}
               className="flex-1 text-center bg-[#d4a847] hover:bg-[#c49a40] text-slate-900 text-xs font-bold py-2 rounded-lg transition-colors"
             >
               Get Quote
