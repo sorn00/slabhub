@@ -52,12 +52,13 @@ export default function PromoClient() {
             MSI Classic Material <span className="text-amber-400">Promo</span>
           </h1>
           <p className="text-slate-400 text-lg max-w-2xl mx-auto mb-4">
-            Grade B quartz slabs — possible minor imperfections, incredible prices. First come, first served. No holds. All sales final.
+            Premium MSI quartz slabs at special pricing. First come, first served. While supplies last.
           </p>
           <div className="flex flex-wrap justify-center gap-4 text-sm">
             <span className="bg-slate-800 border border-slate-700 rounded-full px-4 py-1.5 text-slate-300">📦 Bundle pricing shown</span>
             <span className="bg-slate-800 border border-slate-700 rounded-full px-4 py-1.5 text-slate-300">➕ Add $50/slab for single purchases</span>
             <span className="bg-slate-800 border border-slate-700 rounded-full px-4 py-1.5 text-slate-300">⚡ While supplies last</span>
+            <span className="bg-slate-800 border border-slate-700 rounded-full px-4 py-1.5 text-slate-300">🚫 No holds — all sales final</span>
           </div>
         </div>
       </div>
@@ -139,7 +140,7 @@ export default function PromoClient() {
             {/* Bottom CTA */}
             <div className="mt-12 bg-slate-800/40 border border-slate-700 rounded-2xl p-8 text-center">
               <h2 className="text-2xl font-bold text-white mb-2">Ready to order?</h2>
-              <p className="text-slate-400 mb-6">These slabs move fast. Call or text us to hold your spot — no holds on Grade B, so first payment wins.</p>
+              <p className="text-slate-400 mb-6">These slabs move fast. First payment wins — no holds.</p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <a href="tel:+1-617-555-0100" className="bg-slate-700 hover:bg-slate-600 text-white font-bold px-8 py-3 rounded-lg transition-colors">
                   📞 Call Us
