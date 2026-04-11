@@ -159,11 +159,10 @@ export default function HomePage() {
             <span>◆</span> The #1 Stone Marketplace
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-            Find Your Perfect Stone.<br />
-            <span className="text-amber-400">Get quotes from local fabricators.</span>
+            Find Your Perfect Stone.
           </h1>
           <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-10">
-            Browse 200+ premium quartz, granite &amp; marble surfaces. Get quotes from local fabricators in minutes.
+            Browse 200+ premium quartz, granite &amp; marble surfaces. Get an instant quote in minutes.
           </p>
 
           {/* Search bar */}
