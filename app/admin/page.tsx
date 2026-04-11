@@ -760,6 +760,194 @@ function CustomerQuoteRequests() {
   )
 }
 
+// ─── GHL Leads ──────────────────────────────────────────────────────────────
+
+const STAGE_COLORS: Record<string, string> = {
+  'Ready For Templating': 'green',
+  'Sketch/Measurements Received': 'amber',
+  'Quote Sent': 'blue',
+  'Engaging': 'amber',
+  'Waiting for Response': 'slate',
+  'Qualified': 'blue',
+  'Live Transfer Ready': 'green',
+  'Choosing Material': 'blue',
+  'Unresponsive/Nurture': 'red',
+}
+
+interface GHLContact {
+  id: string
+  contactId: string
+  name: string
+  stage: string
+  hoursStuck: number
+  ghlLink: string
+  sms: { to: string; message: string }
+  email: { to: string; subject: string; message: string }
+}
+
+function GHLLeads() {
+  const [contacts, setContacts] = useState<GHLContact[]>([])
+  const [batchId, setBatchId] = useState('')
+  const [createdAt, setCreatedAt] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [expanded, setExpanded] = useState<string | null>(null)
+  const [edits, setEdits] = useState<Record<string, { sms: string; email: string }>>({})
+  const [channel, setChannel] = useState<Record<string, 'sms' | 'email'>>({})
+  const [sending, setSending] = useState<string | null>(null)
+  const [sent, setSent] = useState<Record<string, boolean>>({})
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    fetch('/api/admin/ghl-leads')
+      .then(r => r.json())
+      .then(d => {
+        setContacts(d.contacts || [])
+        setBatchId(d.batchId || '')
+        setCreatedAt(d.createdAt || '')
+        // Init edits from draft
+        const init: Record<string, { sms: string; email: string }> = {}
+        const initCh: Record<string, 'sms' | 'email'> = {}
+        for (const c of (d.contacts || [])) {
+          init[c.id] = { sms: c.sms?.message || '', email: c.email?.message || '' }
+          initCh[c.id] = 'sms'
+        }
+        setEdits(init)
+        setChannel(initCh)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  const send = async (c: GHLContact) => {
+    const ch = channel[c.id] || 'sms'
+    const msg = edits[c.id]?.[ch]
+    if (!msg?.trim()) return
+    setSending(c.id)
+    setErrors(prev => ({ ...prev, [c.id]: '' }))
+    const body: Record<string, string> = {
+      phone: c.sms.to,
+      name: c.name,
+      message: msg,
+      type: ch === 'sms' ? 'SMS' : 'Email',
+    }
+    if (ch === 'email') {
+      body.email = c.email.to
+      body.subject = c.email.subject
+    }
+    const res = await fetch('/api/admin/ghl-send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    const data = await res.json()
+    setSending(null)
+    if (res.ok) {
+      setSent(prev => ({ ...prev, [c.id]: true }))
+    } else {
+      setErrors(prev => ({ ...prev, [c.id]: data.error || 'Send failed' }))
+    }
+  }
+
+  const daysStuck = (h: number) => {
+    if (h < 24) return h + 'h'
+    return Math.floor(h / 24) + 'd'
+  }
+
+  return (
+    <div>
+      <SectionHeader
+        title="GHL Leads"
+        subtitle={batchId ? `Draft batch: ${batchId} · ${contacts.length} leads · ${createdAt ? new Date(createdAt).toLocaleString() : ''}` : 'AI-drafted outreach from GHL pipeline. Edit and send.'}
+      />
+      {loading ? (
+        <div className="text-slate-500 text-sm py-8 text-center">Loading…</div>
+      ) : contacts.length === 0 ? (
+        <div className="text-slate-500 text-sm py-8 text-center border border-slate-700 rounded-xl">No leads loaded.</div>
+      ) : (
+        <div className="space-y-2">
+          {contacts.map(c => (
+            <div key={c.id} className={`border rounded-xl overflow-hidden transition-colors ${
+              sent[c.id] ? 'border-green-500/40 bg-green-500/5' : 'border-slate-700'
+            }`}>
+              {/* Row */}
+              <button
+                onClick={() => setExpanded(expanded === c.id ? null : c.id)}
+                className="w-full flex items-center justify-between px-5 py-3 hover:bg-slate-700/30 transition-colors text-left"
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-300 font-bold text-xs shrink-0">
+                    {c.name?.[0]?.toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-white font-medium text-sm truncate">{c.name}</div>
+                    <div className="text-slate-500 text-xs">{c.sms.to}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 shrink-0 ml-3">
+                  <Badge color={STAGE_COLORS[c.stage] || 'slate'}>{c.stage}</Badge>
+                  <span className={`text-xs font-medium ${
+                    c.hoursStuck > 720 ? 'text-red-400' : c.hoursStuck > 168 ? 'text-amber-400' : 'text-slate-400'
+                  }`}>{daysStuck(c.hoursStuck)}</span>
+                  {sent[c.id] && <span className="text-green-400 text-xs font-bold">✓ Sent</span>}
+                  <a href={c.ghlLink} target="_blank" onClick={e => e.stopPropagation()}
+                    className="text-slate-500 hover:text-amber-400 text-xs transition-colors">GHL ↗</a>
+                  <span className="text-slate-500 text-xs">{expanded === c.id ? '▲' : '▼'}</span>
+                </div>
+              </button>
+
+              {/* Expanded */}
+              {expanded === c.id && (
+                <div className="border-t border-slate-700 px-5 py-4 bg-slate-900/40">
+                  {/* Channel toggle */}
+                  <div className="flex gap-2 mb-3">
+                    {(['sms', 'email'] as const).map(ch => (
+                      <button key={ch}
+                        onClick={() => setChannel(prev => ({ ...prev, [c.id]: ch }))}
+                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                          (channel[c.id] || 'sms') === ch
+                            ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400'
+                            : 'bg-slate-800 border border-slate-600 text-slate-400 hover:text-white'
+                        }`}>
+                        {ch.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Message editor */}
+                  <textarea
+                    value={edits[c.id]?.[channel[c.id] || 'sms'] || ''}
+                    onChange={e => setEdits(prev => ({ ...prev, [c.id]: { ...prev[c.id], [channel[c.id] || 'sms']: e.target.value } }))}
+                    rows={4}
+                    className="w-full bg-slate-800 border border-slate-600 focus:border-amber-500 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-500 resize-none outline-none mb-3"
+                  />
+
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-slate-500 text-xs">
+                      {(channel[c.id] || 'sms') === 'email' ? `To: ${c.email.to}` : `To: ${c.sms.to}`}
+                    </span>
+                    <button
+                      onClick={() => send(c)}
+                      disabled={sending === c.id || sent[c.id]}
+                      className={`px-5 py-2 rounded-lg font-bold text-sm transition-colors ${
+                        sent[c.id]
+                          ? 'bg-green-600 text-white cursor-default'
+                          : 'bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-900'
+                      }`}
+                    >
+                      {sending === c.id ? 'Sending…' : sent[c.id] ? '✓ Sent' : `Send ${(channel[c.id] || 'sms').toUpperCase()}`}
+                    </button>
+                  </div>
+                  {errors[c.id] && <p className="text-red-400 text-xs mt-2">{errors[c.id]}</p>}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Lead Inbox ─────────────────────────────────────────────────────────────
 
 const QUICK_REPLIES = [
@@ -933,7 +1121,8 @@ function LeadInbox() {
 // ─── Main Admin Page ─────────────────────────────────────────────────────────
 
 const SECTIONS = [
-  { id: 'lead-inbox', label: '💬 Lead Inbox', component: LeadInbox },
+  { id: 'ghl-leads', label: '🔥 GHL Leads', component: GHLLeads },
+  { id: 'lead-inbox', label: '💬 Quarriva Leads', component: LeadInbox },
   { id: 'customer-quotes', label: '🏠 Customer Quotes', component: CustomerQuoteRequests },
   { id: 'quotes', label: '📋 Lead Quotes', component: QuoteRequests },
   { id: 'featured', label: '⭐ Featured Stones', component: FeaturedStones },
@@ -943,7 +1132,7 @@ const SECTIONS = [
 ]
 
 export default function AdminPage() {
-  const [activeSection, setActiveSection] = useState('lead-inbox')
+  const [activeSection, setActiveSection] = useState('ghl-leads')
 
   const ActiveComponent = SECTIONS.find(s => s.id === activeSection)?.component || FeaturedStones
 
