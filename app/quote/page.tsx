@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-const STEPS = ['Stone', 'Project', 'Photos', 'Submit']
+const STEPS = ['Stones', 'Rooms', 'Photos', 'Submit']
 
 function QuoteForm() {
   const searchParams = useSearchParams()
@@ -23,11 +23,14 @@ function QuoteForm() {
   const [selectedStones, setSelectedStones] = useState<Array<{ stone_id: string; stone_name: string; image_url?: string | null }>>(
     initialStone ? [{ stone_id: initialStoneId || '', stone_name: initialStone }] : []
   )
-  const [data, setData] = useState({
-    roomType: '',
-    sqft: '',
-    notes: '',
-  })
+  interface Room { roomType: string; sqft: string }
+  const [rooms, setRooms] = useState<Room[]>([{ roomType: '', sqft: '' }])
+  const [notes, setNotes] = useState('')
+
+  const addRoom = () => setRooms(prev => [...prev, { roomType: '', sqft: '' }])
+  const removeRoom = (i: number) => setRooms(prev => prev.filter((_, idx) => idx !== i))
+  const updateRoom = (i: number, key: keyof Room, val: string) =>
+    setRooms(prev => prev.map((r, idx) => idx === i ? { ...r, [key]: val } : r))
   const [files, setFiles] = useState<File[]>([])
   const [previews, setPreviews] = useState<string[]>([])
   const [stoneSearch, setStoneSearch] = useState('')
@@ -58,7 +61,6 @@ function QuoteForm() {
     return () => clearTimeout(t)
   }, [stoneSearch])
 
-  const update = (key: string, value: string) => setData(prev => ({ ...prev, [key]: value }))
 
   const handleFiles = (newFiles: FileList | null) => {
     if (!newFiles) return
@@ -92,6 +94,7 @@ function QuoteForm() {
       }
 
       const primary = selectedStones[0]
+      const roomSummary = rooms.filter(r => r.roomType).map(r => `${r.roomType}${r.sqft ? ' (' + r.sqft + ')' : ''}`).join(', ')
       await fetch('/api/quote-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -100,11 +103,12 @@ function QuoteForm() {
           stone_name: primary?.stone_name || '',
           customer_name: user?.name || '',
           phone: user?.phone || '',
-          sqft_estimate: data.sqft ? parseInt(data.sqft) : null,
-          notes: data.notes || null,
-          room_type: data.roomType || null,
+          sqft_estimate: null,
+          notes: [notes, roomSummary ? `Rooms: ${roomSummary}` : ''].filter(Boolean).join('\n') || null,
+          room_type: rooms.filter(r => r.roomType).map(r => r.roomType).join(', ') || null,
           photo_urls: photoUrls,
           stones: selectedStones.map(s => ({ stoneId: s.stone_id, stoneName: s.stone_name })),
+          rooms: rooms.filter(r => r.roomType),
         }),
       })
       setSubmitted(true)
@@ -157,8 +161,8 @@ function QuoteForm() {
 
   const progress = ((step + 1) / STEPS.length) * 100
   const canNext0 = selectedStones.length > 0
-  const canNext1 = !!data.roomType
-  const canSubmit = selectedStones.length > 0 && !!data.roomType
+  const canNext1 = rooms.some(r => !!r.roomType)
+  const canSubmit = selectedStones.length > 0 && rooms.some(r => !!r.roomType)
 
   return (
     <div className="max-w-xl mx-auto px-4 py-12">
@@ -234,37 +238,47 @@ function QuoteForm() {
           </div>
         )}
 
-        {/* Step 1: Project Details */}
+        {/* Step 1: Rooms / Projects */}
         {step === 1 && (
           <div>
-            <h2 className="text-2xl font-bold text-white mb-1">Tell us about your project</h2>
-            <p className="text-slate-400 mb-5">Helps us give you the most accurate quote.</p>
+            <h2 className="text-2xl font-bold text-white mb-1">What spaces need countertops?</h2>
+            <p className="text-slate-400 mb-5">Add each room separately — we'll quote them all.</p>
 
-            <div className="mb-5">
-              <label className="text-slate-300 text-sm font-medium mb-2 block">Room type</label>
-              <div className="grid grid-cols-2 gap-3">
-                {['Kitchen', 'Bathroom', 'Island', 'Laundry Room', 'Office', 'Other'].map(r => (
-                  <button key={r} onClick={() => update('roomType', r)}
-                    className={`p-3 rounded-xl border text-sm font-medium transition-all ${data.roomType === r ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-600 hover:border-slate-500 text-slate-300'}`}>
-                    {r}
-                  </button>
-                ))}
-              </div>
+            <div className="space-y-4 mb-4">
+              {rooms.map((room, i) => (
+                <div key={i} className="bg-slate-900/60 border border-slate-700 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-slate-300 text-sm font-medium">Room {i + 1}</span>
+                    {rooms.length > 1 && (
+                      <button onClick={() => removeRoom(i)} className="text-slate-500 hover:text-red-400 text-sm transition-colors">✕ Remove</button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {['Kitchen', 'Bathroom', 'Island', 'Laundry', 'Office', 'Other'].map(r => (
+                      <button key={r} onClick={() => updateRoom(i, 'roomType', r)}
+                        className={`p-2 rounded-lg border text-xs font-medium transition-all ${room.roomType === r ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-600 hover:border-slate-500 text-slate-300'}`}>
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['Under 30 sqft', '30–60 sqft', '60–100 sqft', '100+ sqft'].map(s => (
+                      <button key={s} onClick={() => updateRoom(i, 'sqft', s)}
+                        className={`p-2 rounded-lg border text-xs font-medium transition-all ${room.sqft === s ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-600 hover:border-slate-500 text-slate-300'}`}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
 
-            <div className="mb-5">
-              <label className="text-slate-300 text-sm font-medium mb-2 block">Approximate square footage <span className="text-slate-500">(optional)</span></label>
-              <div className="grid grid-cols-2 gap-3">
-                {['Under 30 sqft', '30–60 sqft', '60–100 sqft', '100+ sqft'].map(s => (
-                  <button key={s} onClick={() => update('sqft', s)}
-                    className={`p-3 rounded-xl border text-sm font-medium transition-all ${data.sqft === s ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-600 hover:border-slate-500 text-slate-300'}`}>
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <button onClick={addRoom}
+              className="w-full border border-dashed border-slate-600 hover:border-amber-500/50 text-slate-400 hover:text-amber-400 py-3 rounded-xl text-sm font-medium transition-all mb-5">
+              + Add another room
+            </button>
 
-            <div className="flex gap-3 mt-2">
+            <div className="flex gap-3">
               <button onClick={() => setStep(0)} className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 rounded-xl transition-colors">← Back</button>
               <button onClick={() => setStep(2)} disabled={!canNext1}
                 className="flex-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-900 font-bold py-3 rounded-xl transition-colors">
@@ -312,8 +326,8 @@ function QuoteForm() {
             <div className="mb-4">
               <label className="text-slate-300 text-sm font-medium mb-2 block">Additional notes <span className="text-slate-500">(optional)</span></label>
               <textarea
-                value={data.notes}
-                onChange={e => update('notes', e.target.value)}
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
                 placeholder="Sink cutouts, edge profile preference, special requirements..."
                 rows={3}
                 className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 resize-none"
@@ -340,26 +354,22 @@ function QuoteForm() {
                 <span className="text-slate-400 flex-shrink-0">Stone{selectedStones.length > 1 ? 's' : ''}</span>
                 <span className="text-white font-medium text-right">{selectedStones.map(s => s.stone_name).join(', ')}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Room</span>
-                <span className="text-white">{data.roomType}</span>
-              </div>
-              {data.sqft && (
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Size</span>
-                  <span className="text-white">{data.sqft}</span>
+              {rooms.filter(r => r.roomType).map((r, i) => (
+                <div key={i} className="flex justify-between">
+                  <span className="text-slate-400">Room {i + 1}</span>
+                  <span className="text-white">{r.roomType}{r.sqft ? ` — ${r.sqft}` : ''}</span>
                 </div>
-              )}
+              ))}
               {files.length > 0 && (
                 <div className="flex justify-between">
                   <span className="text-slate-400">Photos</span>
                   <span className="text-white">{files.length} file{files.length > 1 ? 's' : ''}</span>
                 </div>
               )}
-              {data.notes && (
+              {notes && (
                 <div className="flex justify-between gap-4">
                   <span className="text-slate-400 flex-shrink-0">Notes</span>
-                  <span className="text-white text-right">{data.notes}</span>
+                  <span className="text-white text-right">{notes}</span>
                 </div>
               )}
               <div className="border-t border-slate-700 pt-3 flex justify-between">
