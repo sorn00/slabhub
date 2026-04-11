@@ -760,19 +760,190 @@ function CustomerQuoteRequests() {
   )
 }
 
+// ─── Lead Inbox ─────────────────────────────────────────────────────────────
+
+const QUICK_REPLIES = [
+  { label: 'Following up', text: 'Hi {name}, just following up on the stones you were looking at. Any questions I can help with?' },
+  { label: 'In stock', text: 'Hi {name}, good news — the stone you saved is in stock and ready for viewing. Want to schedule a time to come in?' },
+  { label: 'Ready to quote', text: 'Hi {name}, we have everything we need to put together a quote for you. I\'ll send it over shortly!' },
+  { label: 'Book a visit', text: 'Hi {name}, would you like to come see the slabs in person? We\'re in Framingham — happy to set up a time that works for you.' },
+]
+
+interface LeadStone {
+  stone_id: string
+  stone_name: string
+  image_url: string | null
+  added_at: string
+  status: string
+}
+
+interface Lead {
+  user_id: string
+  user_name: string
+  user_email: string
+  user_phone: string | null
+  saved_stones: LeadStone[]
+  last_activity: string
+}
+
+function LeadInbox() {
+  const [leads, setLeads] = useState<Lead[]>([])
+  const [loading, setLoading] = useState(true)
+  const [expanded, setExpanded] = useState<string | null>(null)
+  const [message, setMessage] = useState<Record<string, string>>({})
+  const [sending, setSending] = useState<string | null>(null)
+  const [sent, setSent] = useState<Record<string, boolean>>({})
+  const [error, setError] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    fetch('/api/admin/leads')
+      .then(r => r.json())
+      .then(d => { setLeads(d.leads || []); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
+
+  const send = async (lead: Lead) => {
+    const msg = message[lead.user_id]
+    if (!msg?.trim()) return
+    const phone = lead.user_phone
+    if (!phone) { setError(prev => ({ ...prev, [lead.user_id]: 'No phone number on file' })); return }
+    setSending(lead.user_id)
+    setError(prev => ({ ...prev, [lead.user_id]: '' }))
+    const res = await fetch('/api/admin/ghl-send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, name: lead.user_name, email: lead.user_email, message: msg })
+    })
+    const data = await res.json()
+    setSending(null)
+    if (res.ok) {
+      setSent(prev => ({ ...prev, [lead.user_id]: true }))
+      setMessage(prev => ({ ...prev, [lead.user_id]: '' }))
+      setTimeout(() => setSent(prev => ({ ...prev, [lead.user_id]: false })), 3000)
+    } else {
+      setError(prev => ({ ...prev, [lead.user_id]: data.error || 'Send failed' }))
+    }
+  }
+
+  const applyTemplate = (lead: Lead, template: string) => {
+    const filled = template.replace('{name}', lead.user_name?.split(' ')[0] || 'there')
+    setMessage(prev => ({ ...prev, [lead.user_id]: filled }))
+  }
+
+  return (
+    <div>
+      <SectionHeader
+        title="Lead Inbox"
+        subtitle="Quarriva users who have saved stones. Fire responses directly to GHL."
+      />
+      {loading ? (
+        <div className="text-slate-500 text-sm py-8 text-center">Loading…</div>
+      ) : leads.length === 0 ? (
+        <div className="text-slate-500 text-sm py-8 text-center border border-slate-700 rounded-xl">
+          No leads with saved stones yet.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {leads.map(lead => (
+            <div key={lead.user_id} className="border border-slate-700 rounded-xl overflow-hidden">
+              {/* Lead header */}
+              <button
+                onClick={() => setExpanded(expanded === lead.user_id ? null : lead.user_id)}
+                className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-700/30 transition-colors text-left"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-9 h-9 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-sm">
+                    {lead.user_name?.[0]?.toUpperCase() || '?'}
+                  </div>
+                  <div>
+                    <div className="text-white font-medium">{lead.user_name}</div>
+                    <div className="text-slate-400 text-xs">{lead.user_email} {lead.user_phone ? '· ' + lead.user_phone : '· no phone'}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <div className="text-slate-300 text-xs">{lead.saved_stones?.length || 0} stone{(lead.saved_stones?.length || 0) !== 1 ? 's' : ''} saved</div>
+                    <div className="text-slate-500 text-xs">{new Date(lead.last_activity).toLocaleDateString()}</div>
+                  </div>
+                  <span className="text-slate-500 text-sm">{expanded === lead.user_id ? '▲' : '▼'}</span>
+                </div>
+              </button>
+
+              {/* Expanded */}
+              {expanded === lead.user_id && (
+                <div className="border-t border-slate-700 px-5 py-4 bg-slate-900/40">
+                  {/* Saved stones */}
+                  <div className="mb-4">
+                    <p className="text-slate-400 text-xs font-medium mb-2 uppercase tracking-wide">Saved Stones</p>
+                    <div className="flex flex-wrap gap-2">
+                      {(lead.saved_stones || []).map((s, i) => (
+                        <div key={i} className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5">
+                          {s.image_url && <img src={s.image_url} alt={s.stone_name} className="w-6 h-6 rounded object-cover" />}
+                          <span className="text-white text-xs font-medium">{s.stone_name}</span>
+                          <Badge color={s.status === 'submitted' ? 'green' : 'amber'}>{s.status}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Quick reply templates */}
+                  <div className="mb-3">
+                    <p className="text-slate-400 text-xs font-medium mb-2 uppercase tracking-wide">Quick Replies</p>
+                    <div className="flex flex-wrap gap-2">
+                      {QUICK_REPLIES.map(t => (
+                        <button key={t.label}
+                          onClick={() => applyTemplate(lead, t.text)}
+                          className="text-xs px-3 py-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 hover:border-amber-500/50 text-slate-300 hover:text-amber-400 rounded-lg transition-colors">
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Message box */}
+                  <div className="flex gap-2">
+                    <textarea
+                      value={message[lead.user_id] || ''}
+                      onChange={e => setMessage(prev => ({ ...prev, [lead.user_id]: e.target.value }))}
+                      placeholder={lead.user_phone ? 'Type a message to send via SMS...' : 'No phone on file — message will go via email'}
+                      rows={2}
+                      className="flex-1 bg-slate-800 border border-slate-600 focus:border-amber-500 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-500 resize-none outline-none"
+                    />
+                    <button
+                      onClick={() => send(lead)}
+                      disabled={!message[lead.user_id]?.trim() || sending === lead.user_id}
+                      className="px-4 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-900 font-bold rounded-lg transition-colors text-sm shrink-0"
+                    >
+                      {sending === lead.user_id ? '...' : sent[lead.user_id] ? '✓ Sent' : 'Send'}
+                    </button>
+                  </div>
+                  {error[lead.user_id] && (
+                    <p className="text-red-400 text-xs mt-1">{error[lead.user_id]}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main Admin Page ─────────────────────────────────────────────────────────
 
 const SECTIONS = [
+  { id: 'lead-inbox', label: '💬 Lead Inbox', component: LeadInbox },
+  { id: 'customer-quotes', label: '🏠 Customer Quotes', component: CustomerQuoteRequests },
+  { id: 'quotes', label: '📋 Lead Quotes', component: QuoteRequests },
   { id: 'featured', label: '⭐ Featured Stones', component: FeaturedStones },
   { id: 'specials', label: '🏷️ Stone Specials', component: StoneSpecials },
   { id: 'pricing', label: '💰 Lead Pricing', component: LeadPricing },
   { id: 'fabricators', label: '🔨 Fabricators', component: Fabricators },
-  { id: 'quotes', label: '📋 Lead Quotes', component: QuoteRequests },
-  { id: 'customer-quotes', label: '🏠 Customer Quotes', component: CustomerQuoteRequests },
 ]
 
 export default function AdminPage() {
-  const [activeSection, setActiveSection] = useState('featured')
+  const [activeSection, setActiveSection] = useState('lead-inbox')
 
   const ActiveComponent = SECTIONS.find(s => s.id === activeSection)?.component || FeaturedStones
 
