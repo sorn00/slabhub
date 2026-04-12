@@ -25,6 +25,9 @@ interface Stone {
   seoTitle?: string
   seoMetaDescription?: string
   seoKeywords?: string[]
+  inStock?: boolean
+  stockSqft?: number
+  stockSlabs?: number
 }
 
 interface StoneDetailClientProps {
@@ -138,6 +141,12 @@ export default function StoneDetailClient({ stone, related }: StoneDetailClientP
               <span className="bg-slate-900/70 text-amber-400 text-sm font-bold px-3 py-1 rounded-full">
                 {PRICE_LABELS[stone.priceRange] || '$$'} · {PRICE_DESC[stone.priceRange] || 'Mid-range'}
               </span>
+              {stone.inStock && (
+                <span className="bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-bold px-3 py-1 rounded-full">
+                  ✓ In Stock — Boston
+                  {stone.stockSqft ? ` · ${stone.stockSqft.toLocaleString()} sqft` : ''}
+                </span>
+              )}
             </div>
           </div>
         </div>

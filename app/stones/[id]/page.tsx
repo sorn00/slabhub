@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import catalogData from '@/public/data/msi-catalog.json'
 import StoneDetailClient from './StoneDetailClient'
+import { query } from '@/lib/db'
 
 interface Stone {
   id: string
@@ -84,13 +85,30 @@ function getRelatedStones(stone: Stone, allStones: Stone[]): Stone[] {
   return combined.slice(0, 4)
 }
 
-export default function StoneDetailPage({ params }: PageProps) {
+export default async function StoneDetailPage({ params }: PageProps) {
   const stone = catalog.find(s => s.id === params.id)
   if (!stone) {
     notFound()
   }
 
-  const related = getRelatedStones(stone, catalog)
+  // Fetch live stock data from DB
+  let inStock = false
+  let stockSqft = 0
+  let stockSlabs = 0
+  try {
+    const rows = await query(
+      `SELECT in_stock, stock_sqft, stock_slabs FROM stone_prices WHERE stone_id = $1 LIMIT 1`,
+      [stone!.id]
+    )
+    if (rows.length > 0) {
+      inStock = rows[0].in_stock || false
+      stockSqft = rows[0].stock_sqft || 0
+      stockSlabs = rows[0].stock_slabs || 0
+    }
+  } catch { /* ignore */ }
 
-  return <StoneDetailClient stone={stone} related={related} />
+  const related = getRelatedStones(stone!, catalog)
+  const stoneWithStock = { ...stone!, inStock, stockSqft, stockSlabs }
+
+  return <StoneDetailClient stone={stoneWithStock} related={related} />
 }

@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
   const priceMin = searchParams.get('priceMin') ? parseFloat(searchParams.get('priceMin')!) : null
   const priceMax = searchParams.get('priceMax') ? parseFloat(searchParams.get('priceMax')!) : null
   const q = searchParams.get('q') || null
+  const inStock = searchParams.get('inStock') === 'true'
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
   const sort = searchParams.get('sort') || 'popular'
   const pageSize = 25
@@ -52,6 +53,10 @@ export async function GET(req: NextRequest) {
     conditions.push(`retail_sqft <= $${params.length}`)
   }
 
+  if (inStock) {
+    conditions.push(`in_stock = true`)
+  }
+
   if (q) {
     params.push(q)
     conditions.push(`stone_name ILIKE '%' || $${params.length} || '%'`)
@@ -89,7 +94,10 @@ export async function GET(req: NextRequest) {
       closeup_url,
       slab_url,
       description,
-      thickness
+      thickness,
+      in_stock,
+      stock_sqft,
+      stock_slabs
     FROM stone_prices
     ${whereClause}
     ORDER BY ${orderBy}

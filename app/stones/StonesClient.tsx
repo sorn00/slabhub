@@ -18,6 +18,9 @@ interface Stone {
   image_url: string | null
   closeup_url: string | null
   description: string | null
+  in_stock: boolean | null
+  stock_sqft: number | null
+  stock_slabs: number | null
 }
 
 interface SearchResult {
@@ -223,6 +226,7 @@ export default function StonesClient() {
   const [finishes, setFinishes] = useState<string[]>([])
   const [styles, setStyles] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState<string | null>(null)
+  const [inStockOnly, setInStockOnly] = useState(false)
   const [searchQ, setSearchQ] = useState('')
   const [sort, setSort] = useState('popular')
   const [page, setPage] = useState(1)
@@ -274,8 +278,9 @@ export default function StonesClient() {
     if (q) params.set('q', q)
     params.set('sort', srt)
     params.set('page', String(pg))
+    if (inStockOnly) params.set('inStock', 'true')
     return `/api/stones/search?${params.toString()}`
-  }, [])
+  }, [inStockOnly])
 
   const buildPageUrl = useCallback((
     mats: string[], cols: string[], fins: string[], sts: string[],
@@ -327,7 +332,7 @@ export default function StonesClient() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [materials, colors, finishes, styles, priceRange, searchQ, sort, page, fetchResults, buildPageUrl])
+  }, [materials, colors, finishes, styles, priceRange, inStockOnly, searchQ, sort, page, fetchResults, buildPageUrl])
 
   const toggleMulti = (setter: React.Dispatch<React.SetStateAction<string[]>>, val: string) => {
     setter(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val])
@@ -351,10 +356,29 @@ export default function StonesClient() {
   }
 
   const hasActiveFilters = materials.length > 0 || colors.length > 0 || finishes.length > 0 ||
-    styles.length > 0 || priceRange !== null || searchQ !== ''
+    styles.length > 0 || priceRange !== null || searchQ !== '' || inStockOnly
 
   const filterPanel = (
     <div className="space-y-1">
+      {/* In Stock toggle */}
+      <div className="mb-4">
+        <button
+          onClick={() => { setInStockOnly(prev => !prev); setPage(1) }}
+          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${
+            inStockOnly
+              ? 'bg-green-500/15 border-green-500/40 text-green-400'
+              : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'
+          }`}
+        >
+          <span>✓ In Stock — Boston</span>
+          <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+            inStockOnly ? 'border-green-400 bg-green-400' : 'border-slate-500'
+          }`}>
+            {inStockOnly && <span className="text-slate-900 text-xs font-bold">✓</span>}
+          </span>
+        </button>
+      </div>
+
       {/* Search */}
       <div className="mb-6">
         <div className="text-xs font-bold tracking-widest text-slate-300 uppercase mb-3">Search</div>
@@ -687,6 +711,11 @@ function StoneCard({ stone }: { stone: Stone }) {
           {stone.finish && stone.finish.length > 0 && (
             <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-400">
               {stone.finish[0]}
+            </span>
+          )}
+          {stone.in_stock && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30 font-medium">
+              ✓ In Stock
             </span>
           )}
         </div>
