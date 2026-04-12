@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 interface PromoSlab {
   id: number
@@ -19,8 +19,31 @@ interface PromoSlab {
 }
 
 export default function PromoClient() {
+  const router = useRouter()
   const [slabs, setSlabs] = useState<PromoSlab[]>([])
   const [loading, setLoading] = useState(true)
+
+  const handleQuote = async (slab: PromoSlab) => {
+    // Try to save to DB (requires login); fallback to sessionStorage
+    const res = await fetch('/api/quote-selections', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stone_id: slab.stone_id, stone_name: slab.stone_name, image_url: slab.image_url }),
+    })
+    if (res.status === 401) {
+      // Not logged in — store in sessionStorage and redirect to login
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('quoteStones') || '[]')
+        if (!saved.find((s: {stone_id: string}) => s.stone_id === slab.stone_id)) {
+          saved.push({ stone_id: slab.stone_id, stone_name: slab.stone_name, image_url: slab.image_url })
+          sessionStorage.setItem('quoteStones', JSON.stringify(saved))
+        }
+      } catch {}
+      router.push(`/login?redirect=/quote`)
+      return
+    }
+    router.push('/quote')
+  }
 
   useEffect(() => {
     fetch('/api/stones/promo')
@@ -125,12 +148,12 @@ export default function PromoClient() {
                       <span className="text-slate-400 text-sm">{slab.promo_qty} available</span>
                     </div>
 
-                    <Link
-                      href={`/quote?stone=${encodeURIComponent(slab.stone_name)}&promo=true`}
+                    <button
+                      onClick={() => handleQuote(slab)}
                       className="block w-full text-center bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-2.5 rounded-lg transition-colors"
                     >
                       Get a Quote →
-                    </Link>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -144,9 +167,9 @@ export default function PromoClient() {
                 <a href="tel:+1-617-555-0100" className="bg-slate-700 hover:bg-slate-600 text-white font-bold px-8 py-3 rounded-lg transition-colors">
                   📞 Call Us
                 </a>
-                <Link href="/quote" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-8 py-3 rounded-lg transition-colors">
+                <button onClick={() => router.push('/quote')} className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-8 py-3 rounded-lg transition-colors">
                   Request a Quote
-                </Link>
+                </button>
               </div>
             </div>
           </>
