@@ -20,7 +20,7 @@ export async function GET() {
       ) FILTER (WHERE qs.stone_id IS NOT NULL) as saved_stones,
       MAX(qs.added_at) as last_activity
     FROM users u
-    LEFT JOIN quote_selections qs ON qs.user_id = u.id
+    LEFT JOIN quote_selections qs ON qs.user_id = u.id::text
     GROUP BY u.id, u.name, u.email, u.phone
     HAVING MAX(qs.added_at) IS NOT NULL
     ORDER BY last_activity DESC
