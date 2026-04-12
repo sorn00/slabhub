@@ -139,15 +139,21 @@ export async function GET(req: NextRequest) {
     const requests = await query(`
       SELECT qr.*, u.name as user_name, u.email as user_email,
              qf.filename as quote_file, qf.original_name as quote_file_name,
-             qf.uploaded_at as quote_file_uploaded_at
+             qf.uploaded_at as quote_file_uploaded_at,
+             COUNT(qm.id) FILTER (WHERE qm.sender = 'user' AND qm.read_at IS NULL) as unread_count,
+             COUNT(qm.id) as message_count
       FROM quote_requests qr
       JOIN users u ON u.id = qr.user_id
       LEFT JOIN quote_files qf ON qf.quote_request_id = qr.id
+      LEFT JOIN quote_messages qm ON qm.quote_request_id = qr.id
+      GROUP BY qr.id, u.name, u.email, qf.filename, qf.original_name, qf.uploaded_at
       ORDER BY qr.created_at DESC
     `)
     return NextResponse.json(requests.map(r => ({
       ...r,
       stones: typeof r.stones === 'string' ? JSON.parse(r.stones) : (r.stones ?? null),
+      unread_count: parseInt(r.unread_count || '0'),
+      message_count: parseInt(r.message_count || '0'),
     })))
   }
 
@@ -160,15 +166,21 @@ export async function GET(req: NextRequest) {
   const requests = await query(`
     SELECT qr.*,
            qf.filename as quote_file, qf.original_name as quote_file_name,
-           qf.uploaded_at as quote_file_uploaded_at
+           qf.uploaded_at as quote_file_uploaded_at,
+           COUNT(qm.id) FILTER (WHERE qm.sender = 'admin' AND qm.read_at IS NULL) as unread_count,
+           COUNT(qm.id) as message_count
     FROM quote_requests qr
     LEFT JOIN quote_files qf ON qf.quote_request_id = qr.id
+    LEFT JOIN quote_messages qm ON qm.quote_request_id = qr.id
     WHERE qr.user_id = $1
+    GROUP BY qr.id, qf.filename, qf.original_name, qf.uploaded_at
     ORDER BY qr.created_at DESC
   `, [session.user.id])
 
   return NextResponse.json(requests.map(r => ({
     ...r,
     stones: typeof r.stones === 'string' ? JSON.parse(r.stones) : (r.stones ?? null),
+    unread_count: parseInt(r.unread_count || '0'),
+    message_count: parseInt(r.message_count || '0'),
   })))
 }

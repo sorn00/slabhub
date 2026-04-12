@@ -632,6 +632,105 @@ interface CustomerQuoteRequest {
   user_email: string
   quote_file: string | null
   quote_file_name: string | null
+  unread_count: number
+  message_count: number
+}
+
+interface QuoteMessage {
+  id: number
+  sender: 'admin' | 'user'
+  body: string
+  created_at: string
+  read_at: string | null
+}
+
+function MessageThread({ quoteId, customerName, onClose }: { quoteId: number; customerName: string; onClose: () => void }) {
+  const [messages, setMessages] = useState<QuoteMessage[]>([])
+  const [loading, setLoading] = useState(true)
+  const [reply, setReply] = useState('')
+  const [sending, setSending] = useState(false)
+  const bottomRef = useState<HTMLDivElement | null>(null)
+
+  const load = useCallback(() => {
+    fetch(`/api/quote-requests/${quoteId}/messages`)
+      .then(r => r.json())
+      .then(d => { setMessages(d.messages || []); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [quoteId])
+
+  useEffect(() => { load() }, [load])
+
+  const send = async () => {
+    if (!reply.trim()) return
+    setSending(true)
+    await fetch(`/api/quote-requests/${quoteId}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body: reply.trim() }),
+    })
+    setReply('')
+    setSending(false)
+    load()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-end md:items-center justify-center p-4">
+      <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg flex flex-col" style={{ maxHeight: '80vh' }}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700">
+          <div>
+            <div className="text-white font-bold">Thread with {customerName}</div>
+            <div className="text-slate-400 text-xs">Quote #{quoteId}</div>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-white text-xl">✕</button>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {loading ? (
+            <div className="text-slate-500 text-sm text-center py-8">Loading…</div>
+          ) : messages.length === 0 ? (
+            <div className="text-slate-500 text-sm text-center py-8">No messages yet. Send the first one.</div>
+          ) : (
+            messages.map(m => (
+              <div key={m.id} className={`flex ${m.sender === 'admin' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] px-4 py-2 rounded-2xl text-sm ${
+                  m.sender === 'admin'
+                    ? 'bg-amber-500 text-slate-900 rounded-br-sm'
+                    : 'bg-slate-800 text-white border border-slate-700 rounded-bl-sm'
+                }`}>
+                  <p>{m.body}</p>
+                  <p className={`text-xs mt-1 ${m.sender === 'admin' ? 'text-amber-900' : 'text-slate-500'}`}>
+                    {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {m.sender === 'admin' && m.read_at && ' · Seen'}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Input */}
+        <div className="border-t border-slate-700 p-4 flex gap-2">
+          <textarea
+            value={reply}
+            onChange={e => setReply(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
+            placeholder="Type a reply…"
+            rows={2}
+            className="flex-1 bg-slate-800 border border-slate-600 focus:border-amber-500 rounded-xl px-3 py-2 text-white text-sm resize-none outline-none"
+          />
+          <button
+            onClick={send}
+            disabled={!reply.trim() || sending}
+            className="px-4 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-900 font-bold rounded-xl text-sm"
+          >
+            {sending ? '…' : 'Send'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function CustomerQuoteRequests() {
@@ -639,6 +738,7 @@ function CustomerQuoteRequests() {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState<number | null>(null)
   const [uploadError, setUploadError] = useState('')
+  const [activeThread, setActiveThread] = useState<{ id: number; name: string } | null>(null)
 
   const load = useCallback(() => {
     fetch('/api/quote-requests')
@@ -724,6 +824,22 @@ function CustomerQuoteRequests() {
                 </div>
 
                 <div className="shrink-0 flex flex-col items-end gap-2">
+                  {/* Message button */}
+                  <button
+                    onClick={() => setActiveThread({ id: req.id, name: req.customer_name })}
+                    className="relative inline-flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-300 hover:text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors"
+                  >
+                    💬 Message
+                    {req.unread_count > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                        {req.unread_count}
+                      </span>
+                    )}
+                    {req.message_count > 0 && req.unread_count === 0 && (
+                      <span className="text-slate-500 text-xs">({req.message_count})</span>
+                    )}
+                  </button>
+
                   {req.quote_file ? (
                     <div className="flex flex-col items-end gap-1">
                       <span className="text-green-400 text-xs">PDF uploaded ✓</span>
@@ -755,6 +871,13 @@ function CustomerQuoteRequests() {
             </div>
           ))}
         </div>
+      )}
+      {activeThread && (
+        <MessageThread
+          quoteId={activeThread.id}
+          customerName={activeThread.name}
+          onClose={() => { setActiveThread(null); load() }}
+        />
       )}
     </div>
   )

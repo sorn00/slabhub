@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -30,6 +30,8 @@ interface QuoteRequest {
   quote_file: string | null
   quote_file_name: string | null
   stones: Array<{ stoneId: string; stoneName: string; stoneImage: string }> | null
+  unread_count: number
+  message_count: number
 }
 
 const PRICE_LABELS: Record<number, string> = { 1: '$', 2: '$$', 3: '$$$', 4: '$$$$' }
@@ -400,6 +402,7 @@ export default function DashboardPage() {
   const [requestModalStone, setRequestModalStone] = useState<Favorite | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [multiQuoteOpen, setMultiQuoteOpen] = useState(false)
+  const [activeThread, setActiveThread] = useState<{ id: number; name: string } | null>(null)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -674,7 +677,19 @@ export default function DashboardPage() {
                           <p className="text-slate-500 text-sm mt-2 italic">&ldquo;{qr.notes}&rdquo;</p>
                         )}
                       </div>
-                      <div className="shrink-0">
+                      <div className="shrink-0 flex flex-col gap-2 items-end">
+                        {/* Message button */}
+                        <button
+                          onClick={() => setActiveThread({ id: qr.id, name: session?.user?.name || 'You' })}
+                          className="relative inline-flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-300 hover:text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors"
+                        >
+                          💬 Message Us
+                          {qr.unread_count > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                              {qr.unread_count}
+                            </span>
+                          )}
+                        </button>
                         {qr.quote_file ? (
                           <a
                             href={`/api/quotes/download/${qr.quote_file}`}
@@ -749,6 +764,97 @@ export default function DashboardPage() {
           onSubmit={refreshQuotes}
         />
       )}
+
+      {/* Message thread modal */}
+      {activeThread && (
+        <UserMessageThread
+          quoteId={activeThread.id}
+          onClose={() => { setActiveThread(null); refreshQuotes() }}
+        />
+      )}
+    </div>
+  )
+}
+
+function UserMessageThread({ quoteId, onClose }: { quoteId: number; onClose: () => void }) {
+  const [messages, setMessages] = useState<Array<{ id: number; sender: string; body: string; created_at: string; read_at: string | null }>>([])
+  const [loading, setLoading] = useState(true)
+  const [reply, setReply] = useState('')
+  const [sending, setSending] = useState(false)
+
+  const load = useCallback(() => {
+    fetch(`/api/quote-requests/${quoteId}/messages`)
+      .then(r => r.json())
+      .then(d => { setMessages(d.messages || []); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [quoteId])
+
+  useEffect(() => { load() }, [load])
+
+  const send = async () => {
+    if (!reply.trim()) return
+    setSending(true)
+    await fetch(`/api/quote-requests/${quoteId}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body: reply.trim() }),
+    })
+    setReply('')
+    setSending(false)
+    load()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-end md:items-center justify-center p-4">
+      <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg flex flex-col" style={{ maxHeight: '80vh' }}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700">
+          <div>
+            <div className="text-white font-bold">Messages</div>
+            <div className="text-slate-400 text-xs">Quote #{quoteId} · Arts Marble & Granite</div>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-white text-xl">✕</button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {loading ? (
+            <div className="text-slate-500 text-sm text-center py-8">Loading…</div>
+          ) : messages.length === 0 ? (
+            <div className="text-slate-500 text-sm text-center py-8">No messages yet. Ask us anything about your quote.</div>
+          ) : (
+            messages.map(m => (
+              <div key={m.id} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] px-4 py-2 rounded-2xl text-sm ${
+                  m.sender === 'user'
+                    ? 'bg-amber-500 text-slate-900 rounded-br-sm'
+                    : 'bg-slate-800 text-white border border-slate-700 rounded-bl-sm'
+                }`}>
+                  <p className={m.sender === 'admin' ? 'text-xs text-amber-400 font-medium mb-1' : 'hidden'}>Arts Marble & Granite</p>
+                  <p>{m.body}</p>
+                  <p className={`text-xs mt-1 ${m.sender === 'user' ? 'text-amber-900' : 'text-slate-500'}`}>
+                    {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        <div className="border-t border-slate-700 p-4 flex gap-2">
+          <textarea
+            value={reply}
+            onChange={e => setReply(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }}
+            placeholder="Ask a question about your quote…"
+            rows={2}
+            className="flex-1 bg-slate-800 border border-slate-600 focus:border-amber-500 rounded-xl px-3 py-2 text-white text-sm resize-none outline-none"
+          />
+          <button
+            onClick={send}
+            disabled={!reply.trim() || sending}
+            className="px-4 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-900 font-bold rounded-xl text-sm"
+          >
+            {sending ? '…' : 'Send'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
