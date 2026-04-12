@@ -824,22 +824,6 @@ function CustomerQuoteRequests() {
                 </div>
 
                 <div className="shrink-0 flex flex-col items-end gap-2">
-                  {/* Message button */}
-                  <button
-                    onClick={() => setActiveThread({ id: req.id, name: req.customer_name })}
-                    className="relative inline-flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-300 hover:text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors"
-                  >
-                    💬 Message
-                    {req.unread_count > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                        {req.unread_count}
-                      </span>
-                    )}
-                    {req.message_count > 0 && req.unread_count === 0 && (
-                      <span className="text-slate-500 text-xs">({req.message_count})</span>
-                    )}
-                  </button>
-
                   {req.quote_file ? (
                     <div className="flex flex-col items-end gap-1">
                       <span className="text-green-400 text-xs">PDF uploaded ✓</span>
@@ -871,13 +855,6 @@ function CustomerQuoteRequests() {
             </div>
           ))}
         </div>
-      )}
-      {activeThread && (
-        <MessageThread
-          quoteId={activeThread.id}
-          customerName={activeThread.name}
-          onClose={() => { setActiveThread(null); load() }}
-        />
       )}
     </div>
   )

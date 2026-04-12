@@ -22,6 +22,37 @@ async function createGHLContact(name: string, phone: string, email?: string) {
   } catch { return null }
 }
 
+async function sendGHLSMS(contactId: string, message: string) {
+  try {
+    // Find conversation
+    const convRes = await fetch(
+      `https://services.leadconnectorhq.com/conversations/search?locationId=${GHL_LOCATION}&contactId=${contactId}&limit=1`,
+      { headers: { Authorization: `Bearer ${GHL_TOKEN}`, Version: '2021-04-15' } }
+    )
+    const convData = await convRes.json()
+    let conversationId = convData?.conversations?.[0]?.id
+
+    // Create conversation if none
+    if (!conversationId) {
+      const newConv = await fetch('https://services.leadconnectorhq.com/conversations/', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${GHL_TOKEN}`, Version: '2021-04-15', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locationId: GHL_LOCATION, contactId })
+      })
+      const newConvData = await newConv.json()
+      conversationId = newConvData?.conversation?.id
+    }
+
+    if (!conversationId) return
+
+    await fetch('https://services.leadconnectorhq.com/conversations/messages', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${GHL_TOKEN}`, Version: '2021-04-15', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'SMS', conversationId, message })
+    })
+  } catch { /* silent */ }
+}
+
 async function createGHLOpportunity(contactId: string, name: string, stones: string, sqft?: number) {
   try {
     const stoneList = stones || 'Quarriva website request'
@@ -86,8 +117,13 @@ export async function POST(req: NextRequest) {
     )
     // Sync to GHL in background
     const stoneNames = (stones as Array<{ stoneName?: string }>).map(s => s.stoneName).filter(Boolean).join(', ')
+    const firstName = customer_name.split(' ')[0]
     createGHLContact(customer_name, phone, (session.user as { email?: string })?.email)
-      .then(ghlId => { if (ghlId) createGHLOpportunity(ghlId, customer_name, stoneNames, sqft_estimate) })
+      .then(async ghlId => {
+        if (!ghlId) return
+        await createGHLOpportunity(ghlId, customer_name, stoneNames, sqft_estimate)
+        await sendGHLSMS(ghlId, `Hi ${firstName}! We received your quote request for ${stoneNames}. We'll review and get back to you within 24 hours. — Arts Marble & Granite`)
+      })
       .catch(() => {})
     // Send confirmation email (fire and forget)
     const userRow = await queryOne('SELECT email FROM users WHERE id = $1', [session.user.id])
@@ -114,8 +150,13 @@ export async function POST(req: NextRequest) {
     [session.user.id, stone_id, stone_name ?? null, customer_name, phone, sqft_estimate ?? null, notes ?? null, layout ?? null, sink_type ?? null]
   )
   // Sync to GHL in background
+  const firstName2 = customer_name.split(' ')[0]
   createGHLContact(customer_name, phone, (session.user as { email?: string })?.email)
-    .then(ghlId => { if (ghlId) createGHLOpportunity(ghlId, customer_name, stone_name || stone_id, sqft_estimate) })
+    .then(async ghlId => {
+      if (!ghlId) return
+      await createGHLOpportunity(ghlId, customer_name, stone_name || stone_id, sqft_estimate)
+      await sendGHLSMS(ghlId, `Hi ${firstName2}! We received your quote request for ${stone_name || stone_id}. We'll review and get back to you within 24 hours. — Arts Marble & Granite`)
+    })
     .catch(() => {})
   // Send confirmation email (fire and forget)
   const userRow = await queryOne('SELECT email FROM users WHERE id = $1', [session.user.id])
