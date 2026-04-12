@@ -21,6 +21,9 @@ interface Stone {
   in_stock: boolean | null
   stock_sqft: number | null
   stock_slabs: number | null
+  is_promo: boolean | null
+  promo_price_per_slab: number | null
+  promo_qty: number | null
 }
 
 interface SearchResult {
@@ -227,6 +230,7 @@ export default function StonesClient() {
   const [styles, setStyles] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState<string | null>(null)
   const [inStockOnly, setInStockOnly] = useState(false)
+  const [promoOnly, setPromoOnly] = useState(false)
   const [searchQ, setSearchQ] = useState('')
   const [sort, setSort] = useState('popular')
   const [page, setPage] = useState(1)
@@ -257,6 +261,7 @@ export default function StonesClient() {
     if (q) setSearchQ(q)
     if (so) setSort(so)
     if (pg) setPage(parseInt(pg, 10))
+    if (searchParams.get('promo') === 'true') setPromoOnly(true)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const buildApiUrl = useCallback((
@@ -279,8 +284,9 @@ export default function StonesClient() {
     params.set('sort', srt)
     params.set('page', String(pg))
     if (inStockOnly) params.set('inStock', 'true')
+    if (promoOnly) params.set('promo', 'true')
     return `/api/stones/search?${params.toString()}`
-  }, [inStockOnly])
+  }, [inStockOnly, promoOnly])
 
   const buildPageUrl = useCallback((
     mats: string[], cols: string[], fins: string[], sts: string[],
@@ -332,7 +338,7 @@ export default function StonesClient() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [materials, colors, finishes, styles, priceRange, inStockOnly, searchQ, sort, page, fetchResults, buildPageUrl])
+  }, [materials, colors, finishes, styles, priceRange, inStockOnly, promoOnly, searchQ, sort, page, fetchResults, buildPageUrl])
 
   const toggleMulti = (setter: React.Dispatch<React.SetStateAction<string[]>>, val: string) => {
     setter(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val])
@@ -356,7 +362,7 @@ export default function StonesClient() {
   }
 
   const hasActiveFilters = materials.length > 0 || colors.length > 0 || finishes.length > 0 ||
-    styles.length > 0 || priceRange !== null || searchQ !== '' || inStockOnly
+    styles.length > 0 || priceRange !== null || searchQ !== '' || inStockOnly || promoOnly
 
   const filterPanel = (
     <div className="space-y-1">
@@ -463,13 +469,43 @@ export default function StonesClient() {
   return (
     <div className="min-h-screen bg-[#0f1117] text-white">
       <QuoteBar />
-      {/* Page header */}
-      <div className="border-b border-slate-800 px-6 py-6">
+      {/* Promo banner — shown when promo is active or always as a toggle */}
+      <div className={`border-b px-6 py-3 transition-colors ${
+        promoOnly ? 'bg-amber-500/10 border-amber-500/30' : 'border-slate-800'
+      }`}>
+        <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => { setPromoOnly(p => !p); setPage(1) }}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold border transition-all ${
+                promoOnly
+                  ? 'bg-amber-500 border-amber-400 text-slate-900 shadow-lg shadow-amber-500/20'
+                  : 'bg-slate-800 border-slate-600 text-slate-300 hover:border-amber-500/50 hover:text-amber-400'
+              }`}
+            >
+              🔥 Promo Slabs
+              {promoOnly && <span className="text-slate-900 text-xs">✓ ON</span>}
+            </button>
+            {promoOnly && (
+              <span className="text-amber-400 text-sm">Showing special pricing slabs only — <button onClick={() => { setPromoOnly(false); setPage(1) }} className="underline hover:text-white">show all</button></span>
+            )}
+          </div>
+          {!promoOnly && (
+            <div>
+              <h1 className="text-lg font-bold text-white">Browse Stones</h1>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Page header — only when not in promo mode */}
+      {!promoOnly && (
+      <div className="border-b border-slate-800 px-6 py-4">
         <div className="max-w-[1400px] mx-auto">
-          <h1 className="text-3xl font-bold text-white mb-1">Browse Stones</h1>
           <p className="text-slate-400 text-sm">Premium natural and engineered stone surfaces</p>
         </div>
       </div>
+      )}
 
       {/* Mobile filter button */}
       <div className="md:hidden px-4 py-3 border-b border-slate-800 flex items-center justify-between">
@@ -711,6 +747,11 @@ function StoneCard({ stone }: { stone: Stone }) {
           {stone.finish && stone.finish.length > 0 && (
             <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-400">
               {stone.finish[0]}
+            </span>
+          )}
+          {stone.is_promo && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold">
+              🔥 Promo
             </span>
           )}
           {stone.in_stock && (
