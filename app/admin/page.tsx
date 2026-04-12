@@ -739,7 +739,6 @@ function CustomerQuoteRequests() {
   const [uploading, setUploading] = useState<number | null>(null)
   const [uploadError, setUploadError] = useState('')
   const [activeThread, setActiveThread] = useState<{ id: number; name: string } | null>(null)
-  const [activeThread, setActiveThread] = useState<{ id: number; name: string } | null>(null)
 
   const load = useCallback(() => {
     fetch('/api/quote-requests')

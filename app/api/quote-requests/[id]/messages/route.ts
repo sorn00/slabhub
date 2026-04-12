@@ -2,15 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { query, run } from '@/lib/db'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function checkAdmin(session: any) {
+  return session?.user?.email === process.env.ADMIN_EMAIL ||
+    session?.user?.role === 'admin'
+}
+
 // GET — fetch all messages for a quote request
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const quoteId = parseInt(params.id)
-
-  // Verify this quote belongs to this user (or admin check via email)
-  const isAdmin = session.user.email === process.env.ADMIN_EMAIL || session.user.role === 'admin'
+  const isAdmin = checkAdmin(session)
 
   if (!isAdmin) {
     const owner = await query(
@@ -26,7 +30,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     [quoteId]
   )
 
-  // Mark user messages as read if admin is viewing, and vice versa
+  // Mark opposite side messages as read
   const markSender = isAdmin ? 'user' : 'admin'
   await run(
     `UPDATE quote_messages SET read_at = NOW()
@@ -46,7 +50,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { body } = await req.json()
   if (!body?.trim()) return NextResponse.json({ error: 'Message required' }, { status: 400 })
 
-  const isAdmin = session.user.email === process.env.ADMIN_EMAIL || session.user.role === 'admin'
+  const isAdmin = checkAdmin(session)
   const sender = isAdmin ? 'admin' : 'user'
 
   if (!isAdmin) {
@@ -62,7 +66,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     [quoteId, sender, body.trim()]
   )
 
-  // Update quote status to 'in_review' if it was pending and admin replied
   if (isAdmin) {
     await run(
       `UPDATE quote_requests SET status = 'in_review' WHERE id = $1 AND status = 'pending'`,
