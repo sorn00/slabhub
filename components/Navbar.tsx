@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useSession } from 'next-auth/react'
+import { useSession, signIn } from 'next-auth/react'
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -32,6 +32,21 @@ export default function Navbar() {
             <Link href="/crm" className="text-slate-300 hover:text-amber-400 transition-colors font-medium">
               CRM
             </Link>
+          )}
+          {session ? (
+            <Link href="/dashboard" className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors">
+              <span className="w-7 h-7 rounded-full bg-amber-500 text-slate-900 flex items-center justify-center text-xs font-bold">
+                {(session.user?.name || session.user?.email || 'U')[0].toUpperCase()}
+              </span>
+              <span className="text-sm">My Account</span>
+            </Link>
+          ) : (
+            <button
+              onClick={() => signIn()}
+              className="text-slate-300 hover:text-white transition-colors text-sm font-medium"
+            >
+              Sign In
+            </button>
           )}
           <Link href="/quote" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-4 py-2 rounded-lg transition-colors">
             Get Quotes
@@ -73,6 +88,21 @@ export default function Navbar() {
             <Link href="/crm" className="text-amber-400 hover:text-amber-300 font-medium transition-colors text-center" onClick={() => setMenuOpen(false)}>
               CRM Dashboard
             </Link>
+          )}
+          {session ? (
+            <Link href="/dashboard" className="flex items-center justify-center gap-2 text-slate-300 hover:text-white transition-colors" onClick={() => setMenuOpen(false)}>
+              <span className="w-7 h-7 rounded-full bg-amber-500 text-slate-900 flex items-center justify-center text-xs font-bold">
+                {(session.user?.name || session.user?.email || 'U')[0].toUpperCase()}
+              </span>
+              My Account
+            </Link>
+          ) : (
+            <button
+              onClick={() => { setMenuOpen(false); signIn() }}
+              className="text-slate-300 hover:text-white transition-colors text-sm font-medium text-center"
+            >
+              Sign In
+            </button>
           )}
         </div>
       )}
