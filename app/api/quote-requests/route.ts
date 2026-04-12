@@ -22,6 +22,35 @@ async function createGHLContact(name: string, phone: string, email?: string) {
   } catch { return null }
 }
 
+const SORN_PHONE = '+15027057965' // notify Sorn
+
+async function findGHLContactByEmail(email: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://services.leadconnectorhq.com/contacts/search/duplicate?locationId=${GHL_LOCATION}&email=${encodeURIComponent(email)}`,
+      { headers: { Authorization: `Bearer ${GHL_TOKEN}`, Version: '2021-07-28' } }
+    )
+    const data = await res.json()
+    return data?.contact?.id || null
+  } catch { return null }
+}
+
+async function notifySorn(message: string) {
+  try {
+    // Find or create Sorn as a contact to send internal SMS notification
+    const res = await fetch(
+      `https://services.leadconnectorhq.com/conversations/search?locationId=${GHL_LOCATION}&limit=1`,
+      { headers: { Authorization: `Bearer ${GHL_TOKEN}`, Version: '2021-04-15' } }
+    )
+    // Use Telegram instead — fire to our workspace notify
+    await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: '5027057965', text: message })
+    })
+  } catch { /* silent */ }
+}
+
 async function sendGHLSMS(contactId: string, message: string) {
   try {
     // Find conversation
@@ -118,12 +147,24 @@ export async function POST(req: NextRequest) {
     // Sync to GHL in background
     const stoneNames = (stones as Array<{ stoneName?: string }>).map(s => s.stoneName).filter(Boolean).join(', ')
     const firstName = customer_name.split(' ')[0]
-    createGHLContact(customer_name, phone, (session.user as { email?: string })?.email)
-      .then(async ghlId => {
-        if (!ghlId) return
-        await createGHLOpportunity(ghlId, customer_name, stoneNames, sqft_estimate)
-        await sendGHLSMS(ghlId, `Hi ${firstName}! We received your quote request for ${stoneNames}. We'll review and get back to you within 24 hours. — Arts Marble & Granite`)
-      })
+    const userEmail = (session.user as { email?: string })?.email || ''
+    ;(async () => {
+      // Check if contact already exists in GHL by email
+      let ghlId = userEmail ? await findGHLContactByEmail(userEmail) : null
+      if (ghlId) {
+        // Existing contact — add note to their conversation
+        await sendGHLSMS(ghlId, `🔔 ${customer_name} submitted a new quote request via Quarriva for: ${stoneNames}${sqft_estimate ? ` (${sqft_estimate} sqft est.)` : ''}. Check Quarriva admin for details.`)
+      } else {
+        // New contact — create and send confirmation
+        ghlId = await createGHLContact(customer_name, phone, userEmail)
+        if (ghlId) {
+          await createGHLOpportunity(ghlId, customer_name, stoneNames, sqft_estimate)
+          await sendGHLSMS(ghlId, `Hi ${firstName}! We received your quote request for ${stoneNames}. We'll review and get back to you within 24 hours. — Arts Marble & Granite`)
+        }
+      }
+      // Always notify Sorn
+      await notifySorn(`🔥 New Quarriva quote request\n\n👤 ${customer_name}\n📞 ${phone}\n🪊 ${stoneNames}${sqft_estimate ? `\n📏 ${sqft_estimate} sqft` : ''}${notes ? `\n📝 ${notes}` : ''}\n\nquarriva.com/admin`)
+    })().catch(() => {})
       .catch(() => {})
     // Send confirmation email (fire and forget)
     const userRow = await queryOne('SELECT email FROM users WHERE id = $1', [session.user.id])
@@ -151,13 +192,20 @@ export async function POST(req: NextRequest) {
   )
   // Sync to GHL in background
   const firstName2 = customer_name.split(' ')[0]
-  createGHLContact(customer_name, phone, (session.user as { email?: string })?.email)
-    .then(async ghlId => {
-      if (!ghlId) return
-      await createGHLOpportunity(ghlId, customer_name, stone_name || stone_id, sqft_estimate)
-      await sendGHLSMS(ghlId, `Hi ${firstName2}! We received your quote request for ${stone_name || stone_id}. We'll review and get back to you within 24 hours. — Arts Marble & Granite`)
-    })
-    .catch(() => {})
+  const userEmail2 = (session.user as { email?: string })?.email || ''
+  ;(async () => {
+    let ghlId2 = userEmail2 ? await findGHLContactByEmail(userEmail2) : null
+    if (ghlId2) {
+      await sendGHLSMS(ghlId2, `🔔 ${customer_name} submitted a new quote request via Quarriva for: ${stone_name || stone_id}. Check Quarriva admin for details.`)
+    } else {
+      ghlId2 = await createGHLContact(customer_name, phone, userEmail2)
+      if (ghlId2) {
+        await createGHLOpportunity(ghlId2, customer_name, stone_name || stone_id, sqft_estimate)
+        await sendGHLSMS(ghlId2, `Hi ${firstName2}! We received your quote request for ${stone_name || stone_id}. We'll review and get back to you within 24 hours. — Arts Marble & Granite`)
+      }
+    }
+    await notifySorn(`🔥 New Quarriva quote request\n\n👤 ${customer_name}\n📞 ${phone}\n🪊 ${stone_name || stone_id}${sqft_estimate ? `\n📏 ${sqft_estimate} sqft` : ''}\n\nquarriva.com/admin`)
+  })().catch(() => {})
   // Send confirmation email (fire and forget)
   const userRow = await queryOne('SELECT email FROM users WHERE id = $1', [session.user.id])
   if (userRow?.email) {
