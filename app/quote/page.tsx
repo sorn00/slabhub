@@ -15,6 +15,7 @@ function QuoteForm() {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<{ name: string; email: string; phone?: string } | null>(null)
+  const [phone, setPhone] = useState('')
   const [authChecked, setAuthChecked] = useState(false)
 
   const [selectedStones, setSelectedStones] = useState<Array<{ stone_id: string; stone_name: string; image_url?: string | null }>>([])
@@ -110,8 +111,8 @@ function QuoteForm() {
         body: JSON.stringify({
           stone_id: primary?.stone_id || '',
           stone_name: primary?.stone_name || '',
-          customer_name: user?.name || '',
-          phone: user?.phone || '',
+          customer_name: user?.name || user?.email || '',
+          phone: phone || user?.phone || '',
           sqft_estimate: null,
           notes: [notes, roomSummary ? `Rooms: ${roomSummary}` : ''].filter(Boolean).join('\n') || null,
           room_type: rooms.filter(r => r.roomType).map(r => r.roomType).join(', ') || null,
@@ -172,7 +173,7 @@ function QuoteForm() {
   const progress = ((step + 1) / STEPS.length) * 100
   const canNext0 = selectedStones.length > 0
   const canNext1 = rooms.some(r => !!r.roomType)
-  const canSubmit = selectedStones.length > 0 && rooms.some(r => !!r.roomType)
+  const canSubmit = selectedStones.length > 0 && rooms.some(r => !!r.roomType) && phone.trim().length >= 7
 
   return (
     <div className="max-w-xl mx-auto px-4 py-12">
@@ -389,8 +390,20 @@ function QuoteForm() {
               )}
               <div className="border-t border-slate-700 pt-3 flex justify-between">
                 <span className="text-slate-400">Submitting as</span>
-                <span className="text-white">{user?.name} ({user?.email})</span>
+                <span className="text-white">{user?.name || user?.email}</span>
               </div>
+            </div>
+
+            <div className="mb-5">
+              <label className="text-slate-300 text-sm font-medium mb-2 block">Your phone number <span className="text-red-400">*</span></label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                placeholder="(555) 555-5555"
+                className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+              />
+              <p className="text-slate-500 text-xs mt-1">So we can text you when your quote is ready</p>
             </div>
 
             <div className="flex gap-3">

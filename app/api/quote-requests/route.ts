@@ -132,8 +132,8 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const { stone_id, stone_name, customer_name, phone, sqft_estimate, notes, layout, sink_type, stones } = body
 
-  if (!customer_name || !phone) {
-    return NextResponse.json({ error: 'customer_name and phone are required' }, { status: 400 })
+  if (!customer_name) {
+    return NextResponse.json({ error: 'customer_name is required' }, { status: 400 })
   }
 
   // Multi-stone mode: stones array provided
