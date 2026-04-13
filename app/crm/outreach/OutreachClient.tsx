@@ -59,6 +59,10 @@ function OutreachCard({
   const [aiPrompt, setAiPrompt] = useState('')
   const [showAi, setShowAi] = useState(false)
   const [localStatus, setLocalStatus] = useState(item.status)
+  const [rating, setRating] = useState<'good' | 'bad' | null>(null)
+  const [showFeedback, setShowFeedback] = useState(false)
+  const [feedbackText, setFeedbackText] = useState('')
+  const [feedbackSaved, setFeedbackSaved] = useState(false)
 
   const stageMeta = STAGE_META[item.stage_name] || STAGE_META[item.stage_name?.toLowerCase().replace(/ /g,'_')] || { label: item.stage_name, color: 'bg-slate-500/20 text-slate-400 border-slate-500/30', emoji: '📨' }
   const cardStyle = STATUS_STYLES[localStatus] || STATUS_STYLES.pending
@@ -181,6 +185,31 @@ function OutreachCard({
     finally { setAiLoading(false) }
   }
 
+  async function submitFeedback(r: 'good' | 'bad', text?: string) {
+    setRating(r)
+    if (r === 'bad' && !text) {
+      setShowFeedback(true)
+      return
+    }
+    try {
+      await fetch('/api/message-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message_id: item.id,
+          source: item.source,
+          contact_name: item.contact_name,
+          stage_name: item.stage_name,
+          message: editedMessage,
+          rating: r,
+          feedback_text: text || null,
+        }),
+      })
+      setFeedbackSaved(true)
+      setShowFeedback(false)
+    } catch {}
+  }
+
   function formatTime(ts: string) {
     if (!ts) return ''
     return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
@@ -289,6 +318,57 @@ function OutreachCard({
         </div>
       ) : (
         <div className="bg-slate-900/50 rounded-lg p-3 text-sm text-slate-300">{item.message}</div>
+      )}
+
+      {/* Thumbs rating */}
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-slate-500">Rate this draft:</span>
+        <button
+          onClick={() => submitFeedback('good')}
+          className={`text-lg transition-all hover:scale-110 ${
+            rating === 'good' ? 'opacity-100' : 'opacity-40 hover:opacity-80'
+          }`}
+          title="Good message"
+        >👍</button>
+        <button
+          onClick={() => submitFeedback('bad')}
+          className={`text-lg transition-all hover:scale-110 ${
+            rating === 'bad' ? 'opacity-100' : 'opacity-40 hover:opacity-80'
+          }`}
+          title="Bad message"
+        >👎</button>
+        {feedbackSaved && (
+          <span className="text-xs text-green-400">✓ Feedback saved</span>
+        )}
+      </div>
+
+      {/* Bad feedback form */}
+      {showFeedback && (
+        <div className="space-y-2 bg-red-500/5 border border-red-500/20 rounded-lg p-3">
+          <label className="block text-xs text-red-400 font-medium">What was wrong with this message?</label>
+          <textarea
+            value={feedbackText}
+            onChange={e => setFeedbackText(e.target.value)}
+            rows={2}
+            placeholder="e.g. Too generic, wrong tone, missing context, wrong stage..."
+            className="w-full bg-slate-900 border border-red-500/30 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-red-400 resize-none"
+            autoFocus
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => submitFeedback('bad', feedbackText)}
+              className="bg-red-600/40 hover:bg-red-600/60 text-red-300 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Submit Feedback
+            </button>
+            <button
+              onClick={() => { setShowFeedback(false); setRating(null) }}
+              className="text-slate-500 text-xs hover:text-slate-300 px-2"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
       )}
 
       {/* AI Rewrite */}

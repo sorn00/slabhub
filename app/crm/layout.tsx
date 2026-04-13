@@ -19,6 +19,7 @@ const NAV_ITEMS = [
 
 const ADMIN_NAV_ITEMS = [
   { emoji: '📣', label: 'Ads', href: '/crm/ads' },
+  { emoji: '🧠', label: 'AI Feedback', href: '/crm/feedback' },
 ]
 
 function SidebarContent({ onNav }: { onNav?: () => void }) {
