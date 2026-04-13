@@ -18,13 +18,25 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const item = await queryOne(`SELECT * FROM outreach_queue WHERE id = $1`, [parseInt(id)])
   if (!item) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  // Look up GHL contact by phone
-  const contactRes = await fetch(
-    `https://services.leadconnectorhq.com/contacts/?locationId=${GHL_LOCATION_ID}&limit=1&phone=${encodeURIComponent(item.phone)}`,
-    { headers: GHL_HEADERS }
-  )
-  const contactData = await contactRes.json()
-  const contactId = contactData?.contacts?.[0]?.id
+  // Allow edited message from client
+  let body: { message?: string } = {}
+  try { body = await req.json() } catch {}
+  const messageToSend = body.message || item.message
+
+  // Use cached contactId or look up by phone
+  let contactId = item.ghl_contact_id
+  if (!contactId) {
+    const contactRes = await fetch(
+      `https://services.leadconnectorhq.com/contacts/?locationId=${GHL_LOCATION_ID}&limit=1&phone=${encodeURIComponent(item.phone)}`,
+      { headers: GHL_HEADERS }
+    )
+    const contactData = await contactRes.json()
+    contactId = contactData?.contacts?.[0]?.id
+    if (contactId) {
+      // Cache it for next time
+      await query(`UPDATE outreach_queue SET ghl_contact_id = $1 WHERE id = $2`, [contactId, parseInt(id)])
+    }
+  }
 
   if (!contactId) {
     return NextResponse.json({ error: `GHL contact not found for ${item.phone}` }, { status: 404 })
@@ -34,15 +46,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const msgRes = await fetch('https://services.leadconnectorhq.com/conversations/messages', {
     method: 'POST',
     headers: GHL_HEADERS,
-    body: JSON.stringify({ type: 'SMS', message: item.message, contactId }),
+    body: JSON.stringify({ type: 'SMS', message: messageToSend, contactId }),
   })
 
   if (msgRes.ok) {
     await query(
-      `UPDATE outreach_queue SET status = 'sent', sent_at = NOW() WHERE id = $1`,
-      [parseInt(id)]
+      `UPDATE outreach_queue SET status = 'sent', sent_at = NOW(), message = $1 WHERE id = $2`,
+      [messageToSend, parseInt(id)]
     )
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, contactId })
   } else {
     const errBody = await msgRes.text()
     return NextResponse.json({ error: 'GHL send failed', status: msgRes.status, body: errBody }, { status: 400 })
