@@ -162,7 +162,7 @@ function OutreachCard({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contactName: item.contact_name,
-          stage: item.stage,
+          stage: item.stage_name,
           currentMessage: editedMessage,
           thread,
           instruction: aiPrompt,
