@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth'
 import { query, run, queryOne } from '@/lib/db'
 import { randomUUID } from 'crypto'
 
-const GHL_TOKEN = process.env.GHL_API_TOKEN || 'pit-73ab457e-2144-4120-9d2e-b9e408ecbea4'
+const GHL_TOKEN = process.env.GHL_TOKEN || process.env.GHL_API_TOKEN || ''
 
 async function isContactDnd(contactId: string): Promise<boolean> {
   try {

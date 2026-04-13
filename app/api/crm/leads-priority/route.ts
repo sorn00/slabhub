@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 
 const GHL_API_BASE = 'https://services.leadconnectorhq.com'
-const GHL_TOKEN = 'pit-73ab457e-2144-4120-9d2e-b9e408ecbea4'
+const GHL_TOKEN = process.env.GHL_TOKEN || ''
 const GHL_LOCATION_ID = 'qhOziWzmOO7mYbl3U7tm'
 const GHL_PIPELINE_ID = '7CiRMsaloPKQHYt2EF4r'
 const GHL_VERSION = '2021-07-28'

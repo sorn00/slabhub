@@ -27,9 +27,9 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
   }
 
-  // Only admins can approve
-  if (status === 'approved' && userRole !== 'admin') {
-    return NextResponse.json({ error: 'Only admins can approve messages' }, { status: 403 })
+  // Admins and VAs can approve
+  if (status === 'approved' && !['admin', 'va'].includes(userRole)) {
+    return NextResponse.json({ error: 'Only admins or VAs can approve messages' }, { status: 403 })
   }
 
   const staged = await queryOne('SELECT * FROM staged_messages WHERE id = $1', [params.id]) as {

@@ -3,7 +3,7 @@ import { run } from '@/lib/db'
 import { randomUUID } from 'crypto'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const GHL_TOKEN = 'pit-73ab457e-2144-4120-9d2e-b9e408ecbea4'
+const GHL_TOKEN = process.env.GHL_TOKEN || ''
 const GHL_LOC = 'qhOziWzmOO7mYbl3U7tm'
 const TELEGRAM_TOKEN = '8505355085:AAHvIPt6KPoRosDoYavhObjhsylK_qp96Q4'
 const TELEGRAM_CHAT = '5027057965'

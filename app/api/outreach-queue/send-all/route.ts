@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { query } from '@/lib/db'
 import { auth } from '@/lib/auth'
 
-const GHL_TOKEN = process.env.GHL_TOKEN || 'pit-73ab457e-2144-4120-9d2e-b9e408ecbea4'
+const GHL_TOKEN = process.env.GHL_TOKEN || ''
 const GHL_LOCATION_ID = process.env.GHL_LOCATION_ID || 'qhOziWzmOO7mYbl3U7tm'
 const GHL_HEADERS = {
   Authorization: `Bearer ${GHL_TOKEN}`,

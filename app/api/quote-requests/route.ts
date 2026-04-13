@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth'
 import { query, run, queryOne } from '@/lib/db'
 import { sendLeadConfirmationEmail } from '@/lib/email'
 
-const GHL_TOKEN = 'pit-73ab457e-2144-4120-9d2e-b9e408ecbea4'
+const GHL_TOKEN = process.env.GHL_TOKEN || ''
 const GHL_LOCATION = 'qhOziWzmOO7mYbl3U7tm'
 const GHL_PIPELINE = '7CiRMsaloPKQHYt2EF4r'
 const GHL_STAGE_QUALIFIED = '232e769f-28d9-43a6-b921-ea28467a0835' // Qualified stage

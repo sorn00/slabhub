@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const GHL_TOKEN = process.env.GHL_API_TOKEN || 'pit-73ab457e-2144-4120-9d2e-b9e408ecbea4'
+const GHL_TOKEN = process.env.GHL_TOKEN || process.env.GHL_API_TOKEN || ''
 const LOCATION_ID = process.env.GHL_LOCATION_ID || 'qhOziWzmOO7mYbl3U7tm'
 
 async function findOrCreateContact(phone: string, name: string, email: string) {

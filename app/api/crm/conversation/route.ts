@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { run } from '@/lib/db'
 
-const GHL_TOKEN = 'pit-73ab457e-2144-4120-9d2e-b9e408ecbea4'
+const GHL_TOKEN = process.env.GHL_TOKEN || ''
 const LOC_ID = 'qhOziWzmOO7mYbl3U7tm'
 
 function ghlHeaders() {
