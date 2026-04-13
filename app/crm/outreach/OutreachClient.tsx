@@ -354,12 +354,50 @@ function OutreachCard({
             className="w-full bg-slate-900 border border-red-500/30 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-red-400 resize-none"
             autoFocus
           />
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => submitFeedback('bad', feedbackText)}
               className="bg-red-600/40 hover:bg-red-600/60 text-red-300 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
             >
               Submit Feedback
+            </button>
+            <button
+              onClick={async () => {
+                await submitFeedback('bad', feedbackText)
+                // Regenerate using feedback as instruction
+                if (!feedbackText.trim()) return
+                setAiLoading(true)
+                try {
+                  const thread = (liveMessages || []).slice(-6).map(m =>
+                    `${m.direction === 'inbound' ? 'Lead' : 'Us'}: ${m.body}`
+                  ).join('\n')
+                  const r = await fetch('/api/crm/ai-rewrite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      contactName: item.contact_name,
+                      stage: item.stage_name,
+                      currentMessage: editedMessage,
+                      thread,
+                      instruction: `The previous message was bad. Reason: ${feedbackText}. Please rewrite it fixing these issues.`,
+                    }),
+                  })
+                  const d = await r.json()
+                  if (d.message) {
+                    setEditedMessage(d.message)
+                    setFeedbackText('')
+                    setShowFeedback(false)
+                    setRating(null)
+                  } else {
+                    setError(d.error || 'Regeneration failed')
+                  }
+                } catch { setError('AI error') }
+                finally { setAiLoading(false) }
+              }}
+              disabled={!feedbackText.trim() || aiLoading}
+              className="bg-purple-600/40 hover:bg-purple-600/60 disabled:opacity-50 text-purple-300 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+            >
+              {aiLoading ? '⟳ Regenerating...' : '✨ Regenerate'}
             </button>
             <button
               onClick={() => { setShowFeedback(false); setRating(null) }}
