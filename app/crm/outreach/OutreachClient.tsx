@@ -64,8 +64,10 @@ function OutreachCard({
   const cardStyle = STATUS_STYLES[localStatus] || STATUS_STYLES.pending
   const isDone = localStatus === 'sent' || localStatus === 'skipped'
 
+  // For staged_messages: use contactId (preferred) or conversationId — both are stored in DB
+  // For outreach_queue: use our dedicated proxy that does phone→contactId lookup server-side
   const conversationUrl = item.source === 'staged_messages'
-    ? `/api/crm/conversation?${item.contact_id ? `contactId=${item.contact_id}` : item.conversation_id ? `conversationId=${item.conversation_id}` : `phone=${encodeURIComponent(item.phone)}`}`
+    ? `/api/crm/conversation?${item.contact_id ? `contactId=${encodeURIComponent(item.contact_id)}` : `conversationId=${encodeURIComponent(item.conversation_id ?? '')}`}`
     : `/api/outreach-queue/${item.id}/conversation`
 
   const fetchThread = useCallback(async () => {
@@ -85,7 +87,8 @@ function OutreachCard({
   const refreshThread = useCallback(async () => {
     setRefreshing(true)
     try {
-      const r = await fetch(conversationUrl + (conversationUrl.includes('?') ? '&' : '?') + 'refresh=true')
+      const refreshUrl = conversationUrl + (conversationUrl.includes('?') ? '&' : '?') + 'refresh=true'
+      const r = await fetch(refreshUrl)
       const d = await r.json()
       setLiveMessages(d.messages || [])
       setNewMsgCount(d.newCount || 0)
