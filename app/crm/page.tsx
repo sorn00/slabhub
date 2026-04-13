@@ -61,6 +61,16 @@ export default async function CrmDashboardPage() {
     // Table might not exist
   }
 
+  let pendingOutreach = 0
+  try {
+    const outreachRow = await queryOne(
+      "SELECT COUNT(*) as count FROM outreach_queue WHERE status = 'pending'"
+    )
+    pendingOutreach = parseInt(outreachRow?.count ?? '0', 10)
+  } catch {
+    // ignore
+  }
+
   // GHL stats
   const { openPipeline } = await getGhlStats()
 
@@ -158,6 +168,14 @@ export default async function CrmDashboardPage() {
           >
             💬 Review Messages
           </Link>
+          {pendingOutreach > 0 && (
+            <Link
+              href="/crm/outreach"
+              className="flex items-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            >
+              📤 Outreach Queue ({pendingOutreach})
+            </Link>
+          )}
           {userRole === 'admin' && (
             <>
               <Link
