@@ -4,14 +4,18 @@ import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
 type OutreachItem = {
-  id: number
+  id: string
   contact_name: string
   phone: string
-  stage: string
+  stage_name: string   // normalized: both tables use stage_name now
   value: number
   message: string
   status: string
   created_at: string
+  contact_id?: string
+  conversation_id?: string
+  context?: string
+  source: 'outreach_queue' | 'staged_messages'
 }
 
 type ContextMessage = {
@@ -56,21 +60,19 @@ function OutreachCard({
   const [showAi, setShowAi] = useState(false)
   const [localStatus, setLocalStatus] = useState(item.status)
 
-  const stageMeta = STAGE_META[item.stage] || { label: item.stage, color: 'bg-slate-500/20 text-slate-400 border-slate-500/30', emoji: '📨' }
+  const stageMeta = STAGE_META[item.stage_name] || STAGE_META[item.stage_name?.toLowerCase().replace(/ /g,'_')] || { label: item.stage_name, color: 'bg-slate-500/20 text-slate-400 border-slate-500/30', emoji: '📨' }
   const cardStyle = STATUS_STYLES[localStatus] || STATUS_STYLES.pending
   const isDone = localStatus === 'sent' || localStatus === 'skipped'
+
+  const conversationUrl = item.source === 'staged_messages'
+    ? `/api/crm/conversation?${item.contact_id ? `contactId=${item.contact_id}` : item.conversation_id ? `conversationId=${item.conversation_id}` : `phone=${encodeURIComponent(item.phone)}`}`
+    : `/api/outreach-queue/${item.id}/conversation`
 
   const fetchThread = useCallback(async () => {
     if (liveMessages !== null) return
     setLoadingThread(true)
     try {
-      // Look up GHL contact by phone, then fetch conversation
-      const contactRes = await fetch(
-        `https://services.leadconnectorhq.com/contacts/?locationId=qhOziWzmOO7mYbl3U7tm&limit=1&phone=${encodeURIComponent(item.phone)}`,
-        // Note: this goes through a proxy to avoid CORS — use our API instead
-      )
-      // Use our server-side API which handles GHL auth
-      const r = await fetch(`/api/outreach-queue/${item.id}/conversation`)
+      const r = await fetch(conversationUrl)
       const d = await r.json()
       setLiveMessages(d.messages || [])
     } catch {
@@ -78,18 +80,18 @@ function OutreachCard({
     } finally {
       setLoadingThread(false)
     }
-  }, [item.id, liveMessages])
+  }, [conversationUrl, liveMessages])
 
   const refreshThread = useCallback(async () => {
     setRefreshing(true)
     try {
-      const r = await fetch(`/api/outreach-queue/${item.id}/conversation?refresh=true`)
+      const r = await fetch(conversationUrl + (conversationUrl.includes('?') ? '&' : '?') + 'refresh=true')
       const d = await r.json()
       setLiveMessages(d.messages || [])
       setNewMsgCount(d.newCount || 0)
     } catch {}
     finally { setRefreshing(false) }
-  }, [item.id])
+  }, [conversationUrl])
 
   function toggleExpand() {
     if (!expanded) fetchThread()
@@ -100,13 +102,23 @@ function OutreachCard({
     setLoading('sending')
     setError('')
     try {
-      const r = await fetch(`/api/outreach-queue/${item.id}/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: editedMessage }),
-      })
+      let r: Response
+      if (item.source === 'staged_messages') {
+        // Use existing staged_messages approve flow
+        r = await fetch(`/api/crm/staged/${item.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'approved', message: editedMessage }),
+        })
+      } else {
+        r = await fetch(`/api/outreach-queue/${item.id}/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: editedMessage }),
+        })
+      }
       const d = await r.json()
-      if (d.success) {
+      if (d.success || d.id || r.ok) {
         setLocalStatus('sent')
         onUpdated()
       } else {
@@ -119,7 +131,15 @@ function OutreachCard({
   async function handleSkip() {
     setLoading('skipping')
     try {
-      await fetch(`/api/outreach-queue/${item.id}/skip`, { method: 'POST' })
+      if (item.source === 'staged_messages') {
+        await fetch(`/api/crm/staged/${item.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'rejected' }),
+        })
+      } else {
+        await fetch(`/api/outreach-queue/${item.id}/skip`, { method: 'POST' })
+      }
       setLocalStatus('skipped')
       onUpdated()
     } catch { setError('Network error') }
@@ -145,6 +165,7 @@ function OutreachCard({
           instruction: aiPrompt,
         }),
       })
+
       const d = await r.json()
       if (d.message) {
         setEditedMessage(d.message)
