@@ -23,8 +23,9 @@ export async function POST() {
   for (const item of pending) {
     try {
       // Look up GHL contact
+      const digits = item.phone.replace(/[^0-9]/g, '')
       const contactRes = await fetch(
-        `https://services.leadconnectorhq.com/contacts/?locationId=${GHL_LOCATION_ID}&limit=1&phone=${encodeURIComponent(item.phone)}`,
+        `https://services.leadconnectorhq.com/contacts/?locationId=${GHL_LOCATION_ID}&limit=1&query=${digits}`,
         { headers: GHL_HEADERS }
       )
       const contactData = await contactRes.json()

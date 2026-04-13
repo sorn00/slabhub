@@ -23,11 +23,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try { body = await req.json() } catch {}
   const messageToSend = body.message || item.message
 
-  // Use cached contactId or look up by phone
+  // Use cached contactId or look up by phone (GHL uses query= not phone=)
   let contactId = item.ghl_contact_id
   if (!contactId) {
+    const digits = item.phone.replace(/[^0-9]/g, '')
     const contactRes = await fetch(
-      `https://services.leadconnectorhq.com/contacts/?locationId=${GHL_LOCATION_ID}&limit=1&phone=${encodeURIComponent(item.phone)}`,
+      `https://services.leadconnectorhq.com/contacts/?locationId=${GHL_LOCATION_ID}&limit=1&query=${digits}`,
       { headers: GHL_HEADERS }
     )
     const contactData = await contactRes.json()

@@ -20,8 +20,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   // Get or resolve contactId
   let contactId = item.ghl_contact_id
   if (!contactId) {
+    // GHL requires query= for phone lookup (phone= param doesn't work reliably)
+    const digits = item.phone.replace(/[^0-9]/g, '')
     const contactRes = await fetch(
-      `https://services.leadconnectorhq.com/contacts/?locationId=${GHL_LOCATION_ID}&limit=1&phone=${encodeURIComponent(item.phone)}`,
+      `https://services.leadconnectorhq.com/contacts/?locationId=${GHL_LOCATION_ID}&limit=1&query=${digits}`,
       { headers: GHL_HEADERS }
     )
     const contactData = await contactRes.json()
