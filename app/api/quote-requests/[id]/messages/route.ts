@@ -9,11 +9,12 @@ function checkAdmin(session: any) {
 }
 
 // GET — fetch all messages for a quote request
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const quoteId = parseInt(params.id)
+  const { id: paramId } = await params
+  const quoteId = parseInt(paramId)
   const isAdmin = checkAdmin(session)
 
   if (!isAdmin) {
@@ -42,11 +43,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // POST — send a message
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const quoteId = parseInt(params.id)
+  const { id: paramId2 } = await params
+  const quoteId = parseInt(paramId2)
   const { body } = await req.json()
   if (!body?.trim()) return NextResponse.json({ error: 'Message required' }, { status: 400 })
 

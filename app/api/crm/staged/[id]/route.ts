@@ -5,7 +5,7 @@ import { sendGhlMessage, getOrCreateConversation } from '@/lib/ghl-api'
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
   if (!session) {
@@ -32,7 +32,9 @@ export async function PATCH(
     return NextResponse.json({ error: 'Only admins or VAs can approve messages' }, { status: 403 })
   }
 
-  const staged = await queryOne('SELECT * FROM staged_messages WHERE id = $1', [params.id]) as {
+  const { id: paramId } = await params
+
+  const staged = await queryOne('SELECT * FROM staged_messages WHERE id = $1', [paramId]) as {
     id: string
     contact_id: string
     conversation_id: string | null
@@ -87,7 +89,7 @@ export async function PATCH(
           sent_at = NOW(),
           notes = $4
       WHERE id = $5
-    `, [messageToSend, conversationId, userName, notes || null, params.id])
+    `, [messageToSend, conversationId, userName, notes || null, paramId])
   } else {
     await run(`
       UPDATE staged_messages
@@ -97,9 +99,9 @@ export async function PATCH(
           reviewed_by = $3,
           notes = $4
       WHERE id = $5
-    `, [status, message || null, userName, notes || null, params.id])
+    `, [status, message || null, userName, notes || null, paramId])
   }
 
-  const updated = await queryOne('SELECT * FROM staged_messages WHERE id = $1', [params.id])
+  const updated = await queryOne('SELECT * FROM staged_messages WHERE id = $1', [paramId])
   return NextResponse.json(updated)
 }

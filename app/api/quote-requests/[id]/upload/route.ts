@@ -6,7 +6,7 @@ import fs from 'fs'
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // Admin-only: must have valid admin_session cookie
   const adminSession = req.cookies.get('admin_session')
@@ -14,7 +14,8 @@ export async function POST(
     return NextResponse.json({ error: 'Admin only' }, { status: 403 })
   }
 
-  const quoteId = parseInt(params.id)
+  const { id: paramId } = await params
+  const quoteId = parseInt(paramId)
   if (isNaN(quoteId)) {
     return NextResponse.json({ error: 'Invalid ID' }, { status: 400 })
   }
