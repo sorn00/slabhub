@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import ROICalculator from '@/components/ROICalculator'
 
 export default function FabricatorsPage() {
   return (
@@ -9,24 +10,20 @@ export default function FabricatorsPage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(245,158,11,0.1),_transparent_60%)]" />
         <div className="relative max-w-6xl mx-auto px-4 py-24 md:py-32 text-center">
           <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-full px-4 py-1.5 text-amber-400 text-sm font-medium mb-6">
-            <span>◆</span> For Stone Fabricators &amp; Installers
+            <span>◆</span> CT Beta Launch — Limited Spots
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-            Own your market.<br />
-            <span className="text-amber-400">Get exclusive leads.</span>
+            Apply to become our exclusive fabricator partner in your market.
           </h1>
-          <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-4">
-            Quarriva connects homeowners who already have measurements and a material in mind with the best local fabricator in their area — <strong className="text-white">you</strong>.
-          </p>
-          <p className="text-amber-400/80 text-base mb-10 font-medium">
-            One fabricator per market. First to claim it, owns it.
+          <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-10">
+            We&apos;re selecting one fabricator per city across Connecticut. One slot. Full market exclusivity. Founding partner rate.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/fabricators/register" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-8 py-4 rounded-lg transition-colors text-lg inline-block">
-              Claim Your Market →
+              Apply for Your Market →
             </Link>
-            <a href="#pricing" className="border border-slate-600 hover:border-amber-500/50 text-slate-300 hover:text-white font-semibold px-8 py-4 rounded-lg transition-colors text-lg inline-block">
-              See Pricing
+            <a href="#how-it-works" className="border border-slate-600 hover:border-amber-500/50 text-slate-300 hover:text-white font-semibold px-8 py-4 rounded-lg transition-colors text-lg inline-block">
+              See how it works
             </a>
           </div>
         </div>
@@ -90,12 +87,12 @@ export default function FabricatorsPage() {
       </section>
 
       {/* How it works */}
-      <section className="bg-slate-800/30 border-y border-slate-700/50 py-20">
+      <section id="how-it-works" className="bg-slate-800/30 border-y border-slate-700/50 py-20">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-white text-center mb-12">Up and running in 48 hours</h2>
           <div className="grid md:grid-cols-4 gap-6">
             {[
-              { step: '01', title: 'Claim your city', desc: 'Pick your market. Pay $300/mo. It\'s locked — no competitor gets in.' },
+              { step: '01', title: 'Apply for your city', desc: 'Submit your application. We review and confirm your market is available.' },
               { step: '02', title: 'We verify your shop', desc: 'Quick onboarding call, confirm your materials and service area.' },
               { step: '03', title: 'Leads start flowing', desc: 'Homeowners with measurements browse the catalog, match your territory, and land in your inbox.' },
               { step: '04', title: 'You close the job', desc: 'Quote fast, win the job. Pay $150 per booked sketch/measure appointment on top of the monthly.' },
@@ -125,6 +122,9 @@ export default function FabricatorsPage() {
         </div>
       </section>
 
+      {/* ROI Calculator */}
+      <ROICalculator />
+
       {/* Pricing */}
       <section id="pricing" className="bg-slate-800/30 border-y border-slate-700/50 py-20">
         <div className="max-w-6xl mx-auto px-4 text-center">
@@ -145,7 +145,7 @@ export default function FabricatorsPage() {
                 <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Cancel anytime</li>
               </ul>
               <Link href="/fabricators/register" className="block bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-3 rounded-lg transition-colors text-center">
-                Claim Your Market
+                Apply for Your Market →
               </Link>
             </div>
             {/* Per lead */}
@@ -172,21 +172,22 @@ export default function FabricatorsPage() {
       {/* Territory availability */}
       <section className="max-w-6xl mx-auto px-4 py-20">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-white mb-4">Markets now open in Connecticut</h2>
-          <p className="text-slate-400">Claim your city before a competitor does.</p>
+          <h2 className="text-3xl font-bold text-white mb-4">CT beta markets — 1 slot per city</h2>
+          <p className="text-slate-400">Submit your application before a competitor does.</p>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto mb-6">
           {['Bridgeport', 'Stamford', 'Hartford', 'New Haven', 'Waterbury', 'Norwalk', 'Danbury', 'Greenwich'].map(city => (
             <div key={city} className="bg-slate-800/50 border border-green-500/30 rounded-lg px-4 py-3 text-center">
               <div className="w-2 h-2 bg-green-400 rounded-full mx-auto mb-1 animate-pulse" />
               <div className="text-white text-sm font-medium">{city}</div>
-              <div className="text-green-400 text-xs">Available</div>
+              <div className="text-green-400 text-xs">1 Slot Open</div>
             </div>
           ))}
         </div>
+        <p className="text-slate-500 text-sm text-center mb-10">Once a partner claims a market, it&apos;s closed. We don&apos;t double-book.</p>
         <div className="text-center">
           <Link href="/fabricators/register" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-10 py-4 rounded-lg transition-colors text-lg inline-block">
-            Claim Your City Now →
+            Apply for Your Market →
           </Link>
         </div>
       </section>
@@ -226,9 +227,9 @@ export default function FabricatorsPage() {
       {/* Final CTA */}
       <section className="max-w-6xl mx-auto px-4 py-24 text-center">
         <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to own your market?</h2>
-        <p className="text-slate-400 mb-8 max-w-lg mx-auto">CT markets are filling up. Claim your city before a competitor does.</p>
+        <p className="text-slate-400 mb-8 max-w-lg mx-auto">CT markets are filling up. Apply before a competitor locks your city.</p>
         <Link href="/fabricators/register" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-10 py-4 rounded-lg transition-colors text-lg inline-block">
-          Claim Your Market — $300/mo →
+          Apply for Your Market →
         </Link>
         <p className="text-slate-500 text-sm mt-4">Questions? Text Sorn directly: (your number)</p>
       </section>

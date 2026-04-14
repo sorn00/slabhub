@@ -16,7 +16,7 @@ const US_STATES = [
   'Wisconsin','Wyoming'
 ]
 
-const STEPS = ['Business Info', 'Territory', 'Specialties', 'Payment', 'Confirmation']
+const STEPS = ['Business Info', 'Territory', 'Your Business', 'Specialties', 'Payment', 'Confirmation']
 
 export default function FabricatorRegisterPage() {
   const [step, setStep] = useState(0)
@@ -32,6 +32,14 @@ export default function FabricatorRegisterPage() {
     state: '',
     zip: '',
     radius: '50mi',
+    // Your Business step
+    monthlyJobs: '',
+    avgJobValue: '',
+    stoneSuppliers: '',
+    hasShowroom: '',
+    leadTime: '',
+    whyLooking: '',
+    // Specialties
     specialties: [] as string[],
   })
 
@@ -68,13 +76,14 @@ export default function FabricatorRegisterPage() {
   }
 
   const progress = ((step + 1) / STEPS.length) * 100
-  const inputClass = "w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+  const inputClass = "w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+  const selectClass = "w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500"
 
   return (
     <div className="max-w-xl mx-auto px-4 py-12">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Start receiving leads</h1>
-        <p className="text-slate-400">Join Quarriva's fabricator network. Setup takes under 5 minutes.</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Apply to join Quarriva</h1>
+        <p className="text-slate-400">One slot per city. Takes under 5 minutes.</p>
       </div>
 
       <div className="mb-6">
@@ -122,7 +131,7 @@ export default function FabricatorRegisterPage() {
             <div className="flex flex-col gap-4">
               <div>
                 <label className="text-sm text-slate-400 mb-2 block">State *</label>
-                <select value={data.state} onChange={e => update('state', e.target.value)} className={inputClass}>
+                <select value={data.state} onChange={e => update('state', e.target.value)} className={selectClass}>
                   <option value="">Select your state</option>
                   {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -152,8 +161,98 @@ export default function FabricatorRegisterPage() {
           </div>
         )}
 
-        {/* Step 2: Specialties */}
+        {/* Step 2: Your Business */}
         {step === 2 && (
+          <div>
+            <h2 className="text-xl font-bold text-white mb-2">Tell us about your operation</h2>
+            <p className="text-slate-400 text-sm mb-6">This helps us match you to the right leads. Takes 60 seconds.</p>
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="text-sm text-slate-400 mb-2 block">Jobs completed per month</label>
+                <select value={data.monthlyJobs} onChange={e => update('monthlyJobs', e.target.value)} className={selectClass}>
+                  <option value="">Select range</option>
+                  <option value="<5">&lt;5</option>
+                  <option value="5-10">5–10</option>
+                  <option value="10-20">10–20</option>
+                  <option value="20+">20+</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm text-slate-400 mb-2 block">Average job value</label>
+                <select value={data.avgJobValue} onChange={e => update('avgJobValue', e.target.value)} className={selectClass}>
+                  <option value="">Select range</option>
+                  <option value="under-2k">Under $2,000</option>
+                  <option value="2k-4k">$2,000–$4,000</option>
+                  <option value="4k-7k">$4,000–$7,000</option>
+                  <option value="7k+">$7,000+</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm text-slate-400 mb-2 block">Stone suppliers you work with</label>
+                <input
+                  type="text"
+                  placeholder="e.g. MSI, Bedrosians, Arizona Tile, local distributors"
+                  value={data.stoneSuppliers}
+                  onChange={e => update('stoneSuppliers', e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className="text-sm text-slate-400 mb-2 block">Do you have a showroom?</label>
+                <div className="flex flex-col gap-2">
+                  {[
+                    { value: 'showroom', label: 'Yes — we have a showroom' },
+                    { value: 'shop-only', label: 'Shop only' },
+                    { value: 'mobile', label: 'Mobile' },
+                    { value: 'online-quotes', label: 'Online quotes only' },
+                  ].map(opt => (
+                    <label key={opt.value} className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-slate-700 hover:border-slate-600 transition-colors">
+                      <input
+                        type="radio"
+                        name="hasShowroom"
+                        value={opt.value}
+                        checked={data.hasShowroom === opt.value}
+                        onChange={() => update('hasShowroom', opt.value)}
+                        className="accent-amber-500"
+                      />
+                      <span className="text-white text-sm">{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-sm text-slate-400 mb-2 block">Typical lead time from order to install</label>
+                <select value={data.leadTime} onChange={e => update('leadTime', e.target.value)} className={selectClass}>
+                  <option value="">Select range</option>
+                  <option value="same-week">Same week</option>
+                  <option value="1-2-weeks">1–2 weeks</option>
+                  <option value="2-4-weeks">2–4 weeks</option>
+                  <option value="4-plus-weeks">4+ weeks</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm text-slate-400 mb-2 block">What&apos;s prompting you to look for new leads?</label>
+                <textarea
+                  placeholder="What's prompting you to look for new leads right now?"
+                  value={data.whyLooking}
+                  onChange={e => update('whyLooking', e.target.value)}
+                  rows={3}
+                  className={inputClass + ' resize-none'}
+                />
+              </div>
+              <button
+                onClick={next}
+                disabled={!data.monthlyJobs || !data.avgJobValue || !data.hasShowroom || !data.leadTime}
+                className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 font-bold py-3 rounded-lg transition-colors mt-2"
+              >
+                Continue →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Specialties */}
+        {step === 3 && (
           <div>
             <h2 className="text-xl font-bold text-white mb-2">Material Specialties</h2>
             <p className="text-slate-400 text-sm mb-6">Select all materials your shop works with.</p>
@@ -180,8 +279,8 @@ export default function FabricatorRegisterPage() {
           </div>
         )}
 
-        {/* Step 3: Payment */}
-        {step === 3 && (
+        {/* Step 4: Payment */}
+        {step === 4 && (
           <div>
             <h2 className="text-xl font-bold text-white mb-2">Payment Setup</h2>
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 mb-6">
@@ -199,13 +298,13 @@ export default function FabricatorRegisterPage() {
           </div>
         )}
 
-        {/* Step 4: Confirmation */}
-        {step === 4 && (
+        {/* Step 5: Confirmation */}
+        {step === 5 && (
           <div className="text-center py-4">
             <div className="text-5xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-white mb-3">You're registered!</h2>
+            <h2 className="text-2xl font-bold text-white mb-3">Application received!</h2>
             <p className="text-slate-400 mb-6">
-              We'll notify you when leads are available in your area. Your first lead could arrive within hours.
+              We&apos;ll review your application and be in touch within 24 hours. Your market slot is held pending confirmation.
             </p>
             <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 text-left text-sm text-slate-400 space-y-2">
               <p><span className="text-amber-400 font-medium">Business:</span> {data.businessName}</p>
@@ -218,7 +317,7 @@ export default function FabricatorRegisterPage() {
         )}
 
         {/* Back button */}
-        {step > 0 && step < 4 && step !== 3 && (
+        {step > 0 && step < STEPS.length - 1 && step !== 4 && (
           <button onClick={back} className="mt-4 text-slate-500 hover:text-slate-300 text-sm transition-colors">
             ← Back
           </button>
