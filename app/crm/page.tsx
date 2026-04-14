@@ -176,6 +176,12 @@ export default async function CrmDashboardPage() {
               📤 Outreach Queue ({pendingOutreach})
             </Link>
           )}
+          <Link
+            href="/crm/sketch"
+            className="flex items-center gap-2 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 text-teal-400 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            📐 Generate Sketch
+          </Link>
           {userRole === 'admin' && (
             <>
               <Link
