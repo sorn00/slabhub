@@ -1,7 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { queryOne, run } from '@/lib/db'
-import { sendGhlMessage, getOrCreateConversation } from '@/lib/ghl-api'
+
+const GHL_BASE = 'https://services.leadconnectorhq.com'
+const GHL_VERSION = '2021-07-28'
+
+function ghlHeaders() {
+  return {
+    Authorization: `Bearer ${process.env.GHL_TOKEN || ''}`,
+    Version: GHL_VERSION,
+    'Content-Type': 'application/json',
+  }
+}
+
+async function sendSMS(conversationId: string, contactId: string, message: string, type = 'SMS') {
+  const res = await fetch(`${GHL_BASE}/conversations/messages`, {
+    method: 'POST',
+    headers: ghlHeaders(),
+    body: JSON.stringify({ type, conversationId, contactId, message }),
+  })
+  const data = await res.json()
+  if (!res.ok) return { success: false, error: `GHL ${res.status}: ${JSON.stringify(data)}` }
+  return { success: true, messageId: data.messageId || data.id }
+}
+
+async function getOrCreateConversation(contactId: string): Promise<string | null> {
+  const locationId = process.env.GHL_LOCATION_ID || 'qhOziWzmOO7mYbl3U7tm'
+  const search = await fetch(
+    `${GHL_BASE}/conversations/search?contactId=${contactId}&locationId=${locationId}`,
+    { headers: ghlHeaders() }
+  )
+  if (search.ok) {
+    const data = await search.json()
+    if (data?.conversations?.length) return data.conversations[0].id
+  }
+
+  const create = await fetch(`${GHL_BASE}/conversations/`, {
+    method: 'POST',
+    headers: ghlHeaders(),
+    body: JSON.stringify({ locationId, contactId }),
+  })
+  if (create.ok) {
+    const data = await create.json()
+    return data?.conversation?.id || data?.id || null
+  }
+  return null
+}
 
 export async function PATCH(
   req: NextRequest,
@@ -27,7 +71,6 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
   }
 
-  // Admins and VAs can approve
   if (status === 'approved' && !['admin', 'va'].includes(userRole)) {
     return NextResponse.json({ error: 'Only admins or VAs can approve messages' }, { status: 403 })
   }
@@ -40,13 +83,13 @@ export async function PATCH(
     conversation_id: string | null
     message: string
     status: string
+    channel?: string
   } | null
 
   if (!staged) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  // If approving, send via GHL immediately
   if (status === 'approved') {
     const messageToSend = message || staged.message
     let conversationId = staged.conversation_id
@@ -59,21 +102,10 @@ export async function PATCH(
       return NextResponse.json({ error: 'Could not find or create GHL conversation' }, { status: 500 })
     }
 
-    // Route by channel
-    const typeMap: Record<string, string> = {
-      SMS: 'SMS',
-      Email: 'Email',
-      Facebook: 'FB',
-    }
-    const stagedChannel = (staged as unknown as Record<string, unknown>).channel as string | undefined
-    const ghlType = typeMap[stagedChannel || 'SMS'] || 'SMS'
+    const typeMap: Record<string, string> = { SMS: 'SMS', Email: 'Email', Facebook: 'FB' }
+    const ghlType = typeMap[staged.channel || 'SMS'] || 'SMS'
 
-    const result = await sendGhlMessage({
-      conversationId,
-      contactId: staged.contact_id,
-      message: messageToSend,
-      type: ghlType,
-    })
+    const result = await sendSMS(conversationId, staged.contact_id, messageToSend, ghlType)
 
     if (!result.success) {
       return NextResponse.json({ error: result.error || 'Failed to send message' }, { status: 500 })
@@ -90,6 +122,7 @@ export async function PATCH(
           notes = $4
       WHERE id = $5
     `, [messageToSend, conversationId, userName, notes || null, paramId])
+
   } else {
     await run(`
       UPDATE staged_messages
