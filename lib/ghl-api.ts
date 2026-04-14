@@ -1,22 +1,14 @@
 import https from 'https'
-import fs from 'fs'
-import path from 'path'
 
-const GHL_CONFIG_PATH = '/Users/sorn/.openclaw/workspace/agents/ghl/config.json'
-
-interface GhlConfig {
-  ghl: {
-    apiToken: string
-    locationId: string
-    apiBase: string
-    apiVersion: string
+function getConfig() {
+  const apiToken = process.env.GHL_TOKEN || ''
+  const locationId = process.env.GHL_LOCATION_ID || 'qhOziWzmOO7mYbl3U7tm'
+  return {
+    apiToken,
+    locationId,
+    apiBase: 'https://services.leadconnectorhq.com',
+    apiVersion: '2021-07-28',
   }
-}
-
-function getConfig(): GhlConfig['ghl'] {
-  const raw = fs.readFileSync(GHL_CONFIG_PATH, 'utf-8')
-  const config: GhlConfig = JSON.parse(raw)
-  return config.ghl
 }
 
 function httpsRequest(
