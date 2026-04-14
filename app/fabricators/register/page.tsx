@@ -187,8 +187,8 @@ export default function FabricatorRegisterPage() {
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 mb-6">
               <p className="text-amber-400 text-sm font-medium">💳 How billing works</p>
               <p className="text-slate-400 text-sm mt-1">
-                Your card will be charged <strong className="text-white">$200</strong> each time we deliver a qualified lead to you.
-                <br /><strong className="text-amber-400">No charge today</strong> — only when leads are delivered.
+                <strong className="text-white">$300/month</strong> for exclusive market access + <strong className="text-white">$150</strong> per booked sketch/measure appointment.
+                <br /><strong className="text-amber-400">One fabricator per city</strong> — first to register owns the territory.
               </p>
             </div>
             <StripePaymentStep
@@ -212,7 +212,7 @@ export default function FabricatorRegisterPage() {
               <p><span className="text-amber-400 font-medium">Address:</span> {data.address}, {data.city}, {data.state} {data.zip}</p>
               <p><span className="text-amber-400 font-medium">Territory:</span> {data.state} · {data.radius}</p>
               <p><span className="text-amber-400 font-medium">Specialties:</span> {data.specialties.join(', ')}</p>
-              <p><span className="text-amber-400 font-medium">Lead price:</span> $200 per delivery</p>
+              <p><span className="text-amber-400 font-medium">Plan:</span> $300/mo exclusivity + $150/appointment</p>
             </div>
           </div>
         )}
