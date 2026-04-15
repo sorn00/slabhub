@@ -250,7 +250,7 @@ export default function StoneDetailClient({ stone, related }: StoneDetailClientP
                 {related.map(rel => (
                   <Link
                     key={rel.id}
-                    href={`/stones/${rel.id}`}
+                    href={`/stones/detail/${rel.id}`}
                     className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 hover:border-amber-400 transition-colors group"
                   >
                     <div className="aspect-square bg-slate-700 relative">

@@ -161,7 +161,7 @@ export default function TownPage({
           {featuredStones.map((stone, i) => (
             <a
               key={i}
-              href={`/stones/${stone.id}`}
+              href={`/stones/detail/${stone.id}`}
               style={{ textDecoration: 'none', color: 'inherit' }}
             >
               <div

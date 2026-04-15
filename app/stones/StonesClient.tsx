@@ -701,7 +701,7 @@ function StoneCard({ stone }: { stone: Stone }) {
   return (
     <div className="bg-[#1a1a2e] rounded-xl overflow-hidden border border-slate-700/50 hover:border-[#d4a847]/50 transition-all group flex flex-col">
       {/* Image */}
-      <Link href={`/stones/${stone.stone_id}`} className="block relative aspect-[4/3] bg-slate-800 overflow-hidden">
+      <Link href={`/stones/detail/${stone.stone_id}`} className="block relative aspect-[4/3] bg-slate-800 overflow-hidden">
         {stone.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -728,7 +728,7 @@ function StoneCard({ stone }: { stone: Stone }) {
 
       {/* Details */}
       <div className="p-4 flex flex-col flex-1">
-        <Link href={`/stones/${stone.stone_id}`} className="block">
+        <Link href={`/stones/detail/${stone.stone_id}`} className="block">
           <h3 className="text-white font-semibold text-sm leading-tight mb-2 group-hover:text-[#d4a847] transition-colors line-clamp-2">
             {stone.stone_name}
           </h3>
@@ -775,7 +775,7 @@ function StoneCard({ stone }: { stone: Stone }) {
 
           <div className="flex gap-2">
             <Link
-              href={`/stones/${stone.stone_id}`}
+              href={`/stones/detail/${stone.stone_id}`}
               className="flex-1 text-center bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium py-2 rounded-lg transition-colors"
             >
               View Details
