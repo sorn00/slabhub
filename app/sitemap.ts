@@ -85,7 +85,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const cityPages: MetadataRoute.Sitemap = seoCities
     .filter(c => stateCodeToSlug[c.state_code])
     .map(c => ({
-      url: `${baseUrl}/stones/${stateCodeToSlug[c.state_code]}/${cityToSlug(c.city)}`,
+      url: `${baseUrl}/stones/location/${stateCodeToSlug[c.state_code]}/${cityToSlug(c.city)}`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.75,
