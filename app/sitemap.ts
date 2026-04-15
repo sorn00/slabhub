@@ -24,14 +24,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Fetch DB-driven routes safely
   let seoCities: { city: string; state: string; state_code: string }[] = []
   let publishedSlugs: { slug: string }[] = []
+  let directorySlugs: { slug: string }[] = []
   try {
     const pool = getPool()
-    const [citiesRes, slugsRes] = await Promise.all([
+    const [citiesRes, slugsRes, dirRes] = await Promise.all([
       pool.query('SELECT city, state, state_code FROM seo_cities ORDER BY state, city'),
       pool.query("SELECT slug FROM seo_articles WHERE status='published'"),
+      pool.query("SELECT slug FROM directory_fabricators WHERE status='active'"),
     ])
     seoCities = citiesRes.rows
     publishedSlugs = slugsRes.rows
+    directorySlugs = dirRes.rows
   } catch {
     // Non-fatal — sitemap still works with static routes
   }
@@ -104,5 +107,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ]
 
-  return [...staticPages, ...statePages, ...cityPages, ...blogPages, ...townPages]
+  // /directory — fabricator directory
+  const directoryPage: MetadataRoute.Sitemap = [
+    { url: `${baseUrl}/directory`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+  ]
+
+  // /directory/[slug] — individual fabricator profiles
+  const directoryProfilePages: MetadataRoute.Sitemap = directorySlugs.map(({ slug }) => ({
+    url: `${baseUrl}/directory/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.75,
+  }))
+
+  return [...staticPages, ...statePages, ...cityPages, ...blogPages, ...townPages, ...directoryPage, ...directoryProfilePages]
 }

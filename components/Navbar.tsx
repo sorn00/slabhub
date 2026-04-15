@@ -28,6 +28,9 @@ export default function Navbar() {
           <Link href="/cabinets" className="text-slate-300 hover:text-white transition-colors">
             Cabinets
           </Link>
+          <Link href="/directory" className="text-slate-300 hover:text-white transition-colors">
+            Directory
+          </Link>
           <Link href="/fabricators" className="text-slate-300 hover:text-white transition-colors">
             For Fabricators
           </Link>
@@ -92,6 +95,9 @@ export default function Navbar() {
           </Link>
           <Link href="/quote" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-4 py-2 rounded-lg text-center transition-colors" onClick={() => setMenuOpen(false)}>
             Get Quotes
+          </Link>
+          <Link href="/directory" className="text-slate-300 hover:text-white transition-colors text-center" onClick={() => setMenuOpen(false)}>
+            Directory
           </Link>
           <Link href="/fabricators" className="text-slate-300 hover:text-white transition-colors text-center" onClick={() => setMenuOpen(false)}>
             For Fabricators
