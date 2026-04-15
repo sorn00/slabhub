@@ -4,7 +4,12 @@ import { randomUUID } from 'crypto'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const GHL_TOKEN = process.env.GHL_TOKEN || ''
-const GHL_LOC = 'qhOziWzmOO7mYbl3U7tm'
+const KNOWN_LOCATIONS: Record<string, string> = {
+  'qhOziWzmOO7mYbl3U7tm': 'Granite (Arts Marble)',
+  '1nGjTykP9alepVDmBnTF': 'Kitchen Deals MA',
+  '23ohRt2gswZG2F0UPuBn': 'Cleaning Deals Worcester',
+}
+const GHL_LOC = 'qhOziWzmOO7mYbl3U7tm' // primary granite location
 const TELEGRAM_TOKEN = '8505355085:AAHvIPt6KPoRosDoYavhObjhsylK_qp96Q4'
 const TELEGRAM_CHAT = '5027057965'
 
@@ -136,8 +141,10 @@ export async function POST(req: NextRequest) {
 
   const { type, locationId } = body as { type?: string; locationId?: string }
 
-  // Only process our location
-  if (locationId && locationId !== GHL_LOC) {
+  // Accept events from all known locations
+  const locationName = locationId ? (KNOWN_LOCATIONS[locationId] || 'Unknown Location') : 'Unknown'
+  if (locationId && !KNOWN_LOCATIONS[locationId]) {
+    console.log(`[GHL webhook] Unknown location ${locationId} — ignoring`)
     return NextResponse.json({ ok: true })
   }
 
@@ -151,7 +158,11 @@ export async function POST(req: NextRequest) {
          VALUES ($1, $2, $3, NOW())`,
         [type, body.id, JSON.stringify(body)]
       )
-      // Log only — no draft, no Telegram
+      // Telegram alert for new lead
+      const newName = `${body.firstName || ''} ${body.lastName || ''}`.trim() || (body.phone as string) || 'Unknown'
+      const newPhone = (body.phone as string) || 'no phone'
+      const newSource = (body.source as string) || 'unknown source'
+      await sendTelegram(`🔔 New lead [${locationName}]: ${newName} | ${newPhone} | via ${newSource}\nquarriva.com/crm/messages`)
       return NextResponse.json({ ok: true })
     }
 
@@ -323,7 +334,7 @@ export async function POST(req: NextRequest) {
 
       // 5. Telegram
       await sendTelegram(
-        `🆕 New opportunity: ${name} (${phone || 'no phone'}) — intro drafted\nquarriva.com/crm/messages`
+        `🆕 New lead [${locationName}]: ${name} (${phone || 'no phone'}) — intro drafted\nquarriva.com/crm/messages`
       )
 
       return NextResponse.json({ ok: true })
