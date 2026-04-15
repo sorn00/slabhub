@@ -29,11 +29,11 @@ interface Stone {
 const catalog = catalogData as Stone[]
 
 interface PageProps {
-  params: { id: string }
+  params: { slug: string }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const stone = catalog.find(s => s.id === params.id)
+  const stone = catalog.find(s => s.id === params.slug)
   if (!stone) {
     return {
       title: 'Stone Not Found | Quarriva',
@@ -63,7 +63,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export async function generateStaticParams() {
-  return catalog.map(stone => ({ id: stone.id }))
+  return catalog.map(stone => ({ slug: stone.id }))
 }
 
 function getRelatedStones(stone: Stone, allStones: Stone[]): Stone[] {
@@ -86,7 +86,7 @@ function getRelatedStones(stone: Stone, allStones: Stone[]): Stone[] {
 }
 
 export default async function StoneDetailPage({ params }: PageProps) {
-  const stone = catalog.find(s => s.id === params.id)
+  const stone = catalog.find(s => s.id === params.slug)
   if (!stone) {
     notFound()
   }
