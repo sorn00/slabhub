@@ -225,6 +225,44 @@ export default function DesignPage() {
         </div>
       </section>
 
+      {/* ── Complete Your Kitchen ──────────────────────────── */}
+      <section className="border-t border-slate-800 bg-slate-900/30">
+        <div className="max-w-5xl mx-auto px-4 py-20">
+          <h2 className="text-3xl font-bold text-center text-white mb-3">Complete Your Kitchen</h2>
+          <p className="text-slate-400 text-center mb-10 max-w-lg mx-auto">
+            Great kitchens start with two things: the right stone and the right cabinets. We do both.
+          </p>
+          <div className="grid md:grid-cols-2 gap-6">
+            <Link
+              href="/stones"
+              className="group bg-slate-800/50 border border-slate-700 hover:border-amber-500/40 rounded-2xl p-8 text-center transition-all"
+            >
+              <div className="text-5xl mb-4">🪨</div>
+              <h3 className="text-xl font-bold text-white mb-2">Stone Countertops</h3>
+              <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                Browse 200+ quartz, granite, marble, and quartzite surfaces. Get quotes from local fabricators.
+              </p>
+              <span className="text-amber-400 font-semibold group-hover:text-amber-300 transition-colors">
+                Browse Stones →
+              </span>
+            </Link>
+            <Link
+              href="/cabinets"
+              className="group bg-slate-800/50 border border-slate-700 hover:border-amber-500/40 rounded-2xl p-8 text-center transition-all"
+            >
+              <div className="text-5xl mb-4">🚪</div>
+              <h3 className="text-xl font-bold text-white mb-2">Kitchen Cabinets</h3>
+              <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                16 door styles across 4 quality tiers. Build your cabinet list and request a custom quote.
+              </p>
+              <span className="text-amber-400 font-semibold group-hover:text-amber-300 transition-colors">
+                Configure Cabinets →
+              </span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ── Final CTA ────────────────────────────────────────── */}
       <section className="max-w-4xl mx-auto px-4 py-20 text-center">
         <div className="bg-gradient-to-r from-amber-500/10 via-slate-800/60 to-amber-500/10 border border-amber-500/25 rounded-3xl p-12">
