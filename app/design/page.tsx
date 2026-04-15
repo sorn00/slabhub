@@ -10,7 +10,6 @@ export const metadata: Metadata = {
     'custom kitchen design',
     'cabinet layout',
     'countertop pairing',
-    'J&K cabinets',
     'New England kitchen design',
   ],
   openGraph: {
@@ -40,7 +39,7 @@ const faqs = [
   },
   {
     q: 'What cabinet brands do you carry?',
-    a: 'We partner with J&K Cabinets — one of the largest cabinet manufacturers in the U.S. — offering hundreds of styles, finishes, and configurations at wholesale pricing.',
+    a: 'We work with top-tier cabinet manufacturers offering hundreds of styles, finishes, and configurations at competitive pricing. Our team will match you to the right line for your budget and aesthetic.',
   },
 ]
 
@@ -143,7 +142,7 @@ export default function DesignPage() {
               </p>
               <ul className="space-y-4">
                 {[
-                  { icon: '🗂️', text: 'Custom cabinet layout (J&K Cabinets)' },
+                  { icon: '🗂️', text: 'Custom cabinet layout from premium collections' },
                   { icon: '🪨', text: 'Countertop material recommendation' },
                   { icon: '🎨', text: 'Stone + cabinet pairing visualization' },
                   { icon: '📋', text: 'Full itemized quote' },
@@ -183,8 +182,8 @@ export default function DesignPage() {
           {[
             {
               icon: '🏭',
-              title: "Powered by J&K Cabinets",
-              desc: "One of America's largest cabinet manufacturers — wholesale pricing, hundreds of styles.",
+              title: 'Premium Cabinet Collections',
+              desc: 'Hundreds of styles, finishes, and configurations sourced from top-tier manufacturers — at competitive pricing only available through Quarriva.',
             },
             {
               icon: '🪨',
