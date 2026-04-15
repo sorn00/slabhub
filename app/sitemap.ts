@@ -75,9 +75,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // /[state] — 6 NE state pages
+  // /location/[state] — 6 NE state pages
   const statePages: MetadataRoute.Sitemap = NE_STATES.map(state => ({
-    url: `${baseUrl}/${state}`,
+    url: `${baseUrl}/location/${state}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.85,
