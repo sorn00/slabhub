@@ -1,114 +1,108 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import catalogData from '@/public/data/msi-catalog.json'
 import StoneDetailClient from './StoneDetailClient'
 import { query } from '@/lib/db'
-
-interface Stone {
-  id: string
-  name: string
-  material: string
-  primaryColor?: string
-  accentColor?: string
-  style?: string
-  priceRange: number
-  finish?: string[]
-  description?: string
-  imageUrl?: string
-  imageLargeUrl?: string
-  thumbnailUrl?: string
-  closeupUrl?: string
-  slabUrl?: string
-  thickness?: string[]
-  tags?: string[]
-  seoTitle?: string
-  seoMetaDescription?: string
-  seoKeywords?: string[]
-}
-
-const catalog = catalogData as Stone[]
 
 interface PageProps {
   params: { slug: string }
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const stone = catalog.find(s => s.id === params.slug)
-  if (!stone) {
-    return {
-      title: 'Stone Not Found | Quarriva',
-    }
+async function getStone(slug: string) {
+  try {
+    const rows = await query(`
+      SELECT
+        id AS stone_id,
+        id,
+        slug,
+        name,
+        name AS stone_name,
+        brand,
+        material,
+        primary_color AS "primaryColor",
+        style,
+        price_per_sf AS "priceRange",
+        finish_options AS finish,
+        description,
+        image_url AS "imageUrl",
+        closeup_url AS "closeupUrl",
+        slab_url AS "slabUrl",
+        thickness,
+        tags,
+        seo_title AS "seoTitle",
+        seo_meta AS "seoMetaDescription",
+        seo_keywords AS "seoKeywords",
+        in_stock AS "inStock",
+        stock_sqft AS "stockSqft",
+        stock_slabs AS "stockSlabs",
+        availability,
+        is_promo AS "isPromo",
+        promo_price_per_sf,
+        promo_label AS "promoLabel",
+        promo_expires AS "promoExpires",
+        series
+      FROM stones
+      WHERE slug = $1
+      LIMIT 1
+    `, [slug])
+    return rows[0] || null
+  } catch {
+    return null
   }
+}
 
-  const title = stone.seoTitle || `${stone.name} Countertops | Arts Marble & Granite`
-  const description = stone.seoMetaDescription || stone.description || `Explore ${stone.name} ${stone.material} countertops from Arts Marble & Granite.`
+async function getRelatedStones(stone: Record<string, unknown>) {
+  try {
+    const rows = await query(`
+      SELECT
+        id, slug, name, brand, material,
+        primary_color AS "primaryColor",
+        price_per_sf AS "priceRange",
+        image_url AS "imageUrl",
+        style, tags
+      FROM stones
+      WHERE slug != $1
+        AND (primary_color = $2 OR material = $3)
+        AND image_url IS NOT NULL
+      ORDER BY RANDOM()
+      LIMIT 4
+    `, [stone.slug, stone.primaryColor, stone.material])
+    return rows
+  } catch {
+    return []
+  }
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const stone = await getStone(params.slug)
+  if (!stone) return { title: 'Stone Not Found | Quarriva' }
+
+  const title = stone.seoTitle || `${stone.name} Countertops | Quarriva`
+  const description = stone.seoMetaDescription || stone.description || `Explore ${stone.name} ${stone.material} countertops on Quarriva.`
 
   return {
     title,
     description,
-    keywords: stone.seoKeywords?.join(', '),
+    keywords: Array.isArray(stone.seoKeywords) ? stone.seoKeywords.join(', ') : stone.seoKeywords,
     openGraph: {
-      title: stone.seoTitle || title,
-      description: stone.seoMetaDescription || description,
-      images: stone.imageUrl ? [{ url: stone.imageUrl, alt: stone.name }] : [],
+      title: String(stone.seoTitle || title),
+      description: String(stone.seoMetaDescription || description),
+      images: stone.imageUrl ? [{ url: String(stone.imageUrl), alt: String(stone.name) }] : [],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title,
-      description,
-      images: stone.imageUrl ? [stone.imageUrl] : [],
+      title: String(title),
+      description: String(description),
+      images: stone.imageUrl ? [String(stone.imageUrl)] : [],
     },
   }
 }
 
-export async function generateStaticParams() {
-  return catalog.map(stone => ({ slug: stone.id }))
-}
-
-function getRelatedStones(stone: Stone, allStones: Stone[]): Stone[] {
-  const others = allStones.filter(s => s.id !== stone.id)
-
-  // Primary: same color family
-  const sameColor = others.filter(s => s.primaryColor === stone.primaryColor)
-  if (sameColor.length >= 4) {
-    return sameColor.slice(0, 4)
-  }
-
-  // Fallback: same material
-  const sameMaterial = others.filter(s => s.material === stone.material)
-  const seen = new Set<string>()
-  const combined: Stone[] = []
-  for (const s of [...sameColor, ...sameMaterial]) {
-    if (!seen.has(s.id)) { seen.add(s.id); combined.push(s) }
-  }
-  return combined.slice(0, 4)
-}
-
 export default async function StoneDetailPage({ params }: PageProps) {
-  const stone = catalog.find(s => s.id === params.slug)
-  if (!stone) {
-    notFound()
-  }
+  const stone = await getStone(params.slug)
+  if (!stone) notFound()
 
-  // Fetch live stock data from DB
-  let inStock = false
-  let stockSqft = 0
-  let stockSlabs = 0
-  try {
-    const rows = await query(
-      `SELECT in_stock, stock_sqft, stock_slabs FROM stone_prices WHERE stone_id = $1 LIMIT 1`,
-      [stone!.id]
-    )
-    if (rows.length > 0) {
-      inStock = rows[0].in_stock || false
-      stockSqft = rows[0].stock_sqft || 0
-      stockSlabs = rows[0].stock_slabs || 0
-    }
-  } catch { /* ignore */ }
+  const related = await getRelatedStones(stone)
 
-  const related = getRelatedStones(stone!, catalog)
-  const stoneWithStock = { ...stone!, inStock, stockSqft, stockSlabs }
-
-  return <StoneDetailClient stone={stoneWithStock} related={related} />
+  return <StoneDetailClient stone={stone} related={related} />
 }
