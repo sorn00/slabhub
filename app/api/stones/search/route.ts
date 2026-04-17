@@ -46,12 +46,12 @@ export async function GET(req: NextRequest) {
 
   if (priceMin !== null) {
     params.push(priceMin)
-    conditions.push(`retail_sqft >= $${params.length}`)
+    conditions.push(`price_per_sf >= $${params.length}`)
   }
 
   if (priceMax !== null) {
     params.push(priceMax)
-    conditions.push(`retail_sqft <= $${params.length}`)
+    conditions.push(`price_per_sf <= $${params.length}`)
   }
 
   if (inStock) {
@@ -64,36 +64,38 @@ export async function GET(req: NextRequest) {
 
   if (q) {
     params.push(q)
-    conditions.push(`stone_name ILIKE '%' || $${params.length} || '%'`)
+    conditions.push(`name ILIKE '%' || $${params.length} || '%'`)
   }
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
   // Build ORDER BY
-  let orderBy = 'stone_name ASC'
+  let orderBy = 'name ASC'
   if (sort === 'price-asc') {
-    orderBy = 'retail_sqft ASC NULLS LAST, stone_name ASC'
+    orderBy = 'price_per_sf ASC NULLS LAST, name ASC'
   } else if (sort === 'price-desc') {
-    orderBy = 'retail_sqft DESC NULLS LAST, stone_name ASC'
+    orderBy = 'price_per_sf DESC NULLS LAST, name ASC'
   } else if (sort === 'newest') {
     orderBy = 'id DESC'
   }
 
   const countParams = [...params]
-  const countQuery = `SELECT COUNT(*) FROM stone_prices ${whereClause}`
+  const countQuery = `SELECT COUNT(*) FROM stones ${whereClause}`
 
   const dataParams = [...params, pageSize, offset]
   const dataQuery = `
     SELECT 
       id,
-      stone_id,
-      stone_name,
+      id AS stone_id,
+      name AS stone_name,
       material,
-      retail_sqft,
+      brand,
+      slug,
+      price_per_sf AS retail_sqft,
       dealer_cost_sqft,
       primary_color,
       style,
-      finish,
+      finish_options AS finish,
       tags,
       image_url,
       closeup_url,
@@ -101,12 +103,15 @@ export async function GET(req: NextRequest) {
       description,
       thickness,
       in_stock,
+      availability,
       stock_sqft,
       stock_slabs,
       is_promo,
-      promo_price_per_slab,
-      promo_qty
-    FROM stone_prices
+      promo_slab_price AS promo_price_per_slab,
+      promo_qty,
+      promo_label,
+      promo_expires
+    FROM stones
     ${whereClause}
     ORDER BY ${orderBy}
     LIMIT $${dataParams.length - 1} OFFSET $${dataParams.length}
