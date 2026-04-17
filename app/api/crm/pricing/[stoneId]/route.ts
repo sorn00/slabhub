@@ -64,6 +64,14 @@ export async function PATCH(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  const updated = await queryOne('SELECT * FROM stones WHERE id = $1', [stoneId])
+  const updated = await queryOne(`
+    SELECT id AS stone_id, name AS stone_name, material, brand, series,
+      price_per_sf AS retail_sqft, dealer_cost_sqft, slab_price,
+      slab_width_inches, slab_height_inches, image_url, description, thickness,
+      style, primary_color, finish_options AS finish, tags, in_stock, availability,
+      stock_sqft, stock_slabs, is_promo, promo_slab_price AS promo_price_per_slab,
+      promo_qty, notes, updated_by, slug
+    FROM stones WHERE id = $1
+  `, [stoneId])
   return NextResponse.json(updated)
 }

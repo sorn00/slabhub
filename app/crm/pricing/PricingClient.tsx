@@ -137,7 +137,7 @@ export default function PricingClient({ userName }: { userName: string }) {
     if (materialFilter !== 'all' && s.material !== materialFilter) return false
     if (search) {
       const q = search.toLowerCase()
-      if (!s.stone_name.toLowerCase().includes(q) && !s.stone_id.toLowerCase().includes(q)) return false
+      if (!(s.stone_name ?? '').toLowerCase().includes(q) && !(s.stone_id ?? '').toLowerCase().includes(q)) return false
     }
     return true
   })
