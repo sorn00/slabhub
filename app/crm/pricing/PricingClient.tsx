@@ -328,7 +328,7 @@ export default function PricingClient({ userName }: { userName: string }) {
                             />
                           ) : (
                             <span className={s.dealer_cost_sqft != null ? 'text-slate-300' : 'text-slate-600'}>
-                              {s.dealer_cost_sqft != null ? `$${s.dealer_cost_sqft.toFixed(2)}` : '—'}
+                              {s.dealer_cost_sqft != null ? `$${parseFloat(String(s.dealer_cost_sqft)).toFixed(2)}` : '—'}
                             </span>
                           )}
                         </td>
@@ -346,7 +346,7 @@ export default function PricingClient({ userName }: { userName: string }) {
                             />
                           ) : (
                             <span className={s.retail_sqft != null ? 'text-amber-300 font-medium' : 'text-slate-600'}>
-                              {s.retail_sqft != null ? `$${s.retail_sqft.toFixed(2)}` : '—'}
+                              {s.retail_sqft != null ? `$${parseFloat(String(s.retail_sqft)).toFixed(2)}` : '—'}
                             </span>
                           )}
                         </td>
