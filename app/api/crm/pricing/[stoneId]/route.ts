@@ -13,7 +13,15 @@ export async function GET(
   if (roleGet !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { stoneId } = await params
-  const row = await queryOne('SELECT * FROM stone_prices WHERE stone_id = $1', [stoneId])
+  const row = await queryOne(`
+    SELECT id AS stone_id, name AS stone_name, material, brand, series,
+      price_per_sf AS retail_sqft, dealer_cost_sqft, slab_price,
+      slab_width_inches, slab_height_inches, image_url, description, thickness,
+      style, primary_color, finish_options AS finish, tags, in_stock, availability,
+      stock_sqft, stock_slabs, is_promo, promo_slab_price AS promo_price_per_slab,
+      promo_qty, notes, updated_by, slug
+    FROM stones WHERE id = $1
+  `, [stoneId])
   if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json(row)
 }
@@ -34,15 +42,14 @@ export async function PATCH(
   const userName = session.user?.name || session.user?.email || 'admin'
 
   const result = await run(`
-    UPDATE stone_prices SET
+    UPDATE stones SET
       dealer_cost_sqft = COALESCE($1, dealer_cost_sqft),
-      retail_sqft = COALESCE($2, retail_sqft),
+      price_per_sf = COALESCE($2, price_per_sf),
       slab_width_inches = COALESCE($3, slab_width_inches),
       slab_height_inches = COALESCE($4, slab_height_inches),
       notes = COALESCE($5, notes),
-      updated_at = NOW(),
       updated_by = $6
-    WHERE stone_id = $7
+    WHERE id = $7
   `, [
     body.dealer_cost_sqft ?? null,
     body.retail_sqft ?? null,
@@ -57,6 +64,6 @@ export async function PATCH(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  const updated = await queryOne('SELECT * FROM stone_prices WHERE stone_id = $1', [stoneId])
+  const updated = await queryOne('SELECT * FROM stones WHERE id = $1', [stoneId])
   return NextResponse.json(updated)
 }

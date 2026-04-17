@@ -11,7 +11,16 @@ export async function GET() {
   const role = (session.user as { role?: string })?.role
   if (!['admin','va'].includes(role || '')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const rows = await query('SELECT * FROM stone_prices ORDER BY stone_name ASC')
+  const rows = await query(`
+    SELECT id AS stone_id, name AS stone_name, material, brand, series,
+      price_per_sf AS retail_sqft, dealer_cost_sqft, slab_price,
+      slab_width_inches, slab_height_inches, image_url, closeup_url, slab_url,
+      description, thickness, style, primary_color, finish_options AS finish,
+      tags, in_stock, availability, stock_sqft, stock_slabs,
+      is_promo, promo_slab_price AS promo_price_per_slab, promo_qty, promo_expires, promo_label,
+      notes, updated_by, slug
+    FROM stones ORDER BY name ASC
+  `)
   return NextResponse.json(rows)
 }
 
