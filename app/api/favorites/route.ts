@@ -9,7 +9,11 @@ export async function GET() {
   }
 
   const favorites = await query(
-    'SELECT * FROM favorites WHERE user_id = $1 ORDER BY created_at DESC',
+    `SELECT f.*, COALESCE(s.slug, f.stone_id) AS stone_slug
+     FROM favorites f
+     LEFT JOIN stones s ON s.id::text = f.stone_id OR s.slug = f.stone_id
+     WHERE f.user_id = $1
+     ORDER BY f.created_at DESC`,
     [session.user.id]
   )
 

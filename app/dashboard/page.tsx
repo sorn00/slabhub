@@ -8,6 +8,7 @@ import Link from 'next/link'
 interface Favorite {
   id: number
   stone_id: string
+  stone_slug?: string
   stone_name: string
   stone_image: string
   stone_material: string
@@ -552,7 +553,7 @@ export default function DashboardPage() {
                         }`}
                       >
                         <div className="aspect-square relative bg-slate-700">
-                          <Link href={`/stones/detail/${fav.stone_id}`} className="block w-full h-full">
+                          <Link href={`/stones/detail/${fav.stone_slug || fav.stone_id}`} className="block w-full h-full">
                           {fav.stone_image ? (
                             <img
                               src={fav.stone_image}
@@ -586,7 +587,7 @@ export default function DashboardPage() {
                           </button>
                         </div>
                         <div className="p-3">
-                          <Link href={`/stones/detail/${fav.stone_id}`} className="block font-semibold text-sm leading-tight mb-1 hover:text-amber-400 transition-colors">{fav.stone_name}</Link>
+                          <Link href={`/stones/detail/${fav.stone_slug || fav.stone_id}`} className="block font-semibold text-sm leading-tight mb-1 hover:text-amber-400 transition-colors">{fav.stone_name}</Link>
                           <p className="text-slate-400 text-xs capitalize mb-2">{fav.stone_material}</p>
                           <div className="flex gap-1">
                           <button
@@ -595,7 +596,7 @@ export default function DashboardPage() {
                           >
                             Quote
                           </button>
-                          <Link href={`/stones/detail/${fav.stone_id}`} className="flex-1 text-center bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold py-1.5 rounded transition-colors text-center">
+                          <Link href={`/stones/detail/${fav.stone_slug || fav.stone_id}`} className="flex-1 text-center bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-bold py-1.5 rounded transition-colors text-center">
                             View
                           </Link>
                           </div>
