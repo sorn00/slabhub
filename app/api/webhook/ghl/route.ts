@@ -158,11 +158,28 @@ export async function POST(req: NextRequest) {
          VALUES ($1, $2, $3, NOW())`,
         [type, body.id, JSON.stringify(body)]
       )
-      // Telegram alert for new lead
+      // Auto-stage first touch message for new lead
       const newName = `${body.firstName || ''} ${body.lastName || ''}`.trim() || (body.phone as string) || 'Unknown'
       const newPhone = (body.phone as string) || 'no phone'
       const newSource = (body.source as string) || 'unknown source'
-      await sendTelegram(`🔔 New lead [${locationName}]: ${newName} | ${newPhone} | via ${newSource}\nquarriva.com/crm/messages`)
+      const firstName = (body.firstName as string) || ''
+      const contactId = (body.id as string) || ''
+
+      if (contactId && newPhone) {
+        const firstTouch = `Hey ${firstName || 'there'}! Thanks for reaching out about countertops 👋 We'd love to help with your project. What material are you considering — granite, quartz, or something else? And which room(s) — kitchen, bath, or both?`
+        await saveStaged({
+          contactId,
+          contactName: newName,
+          phone: newPhone,
+          conversationId: null,
+          message: firstTouch,
+          channel: 'SMS',
+          stageName: 'new_lead',
+        })
+      }
+
+      // Telegram alert for new lead
+      await sendTelegram(`🔔 New lead [${locationName}]: ${newName} | ${newPhone} | via ${newSource}\nquarriva.com/crm/outreach`)
       return NextResponse.json({ ok: true })
     }
 
