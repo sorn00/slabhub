@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { getPool } from '@/lib/db'
 import QuoteRequestForm from '@/components/directory/QuoteRequestForm'
 import ReviewSection from '@/components/directory/ReviewSection'
+import GoogleReviews from '@/components/directory/GoogleReviews'
 
 interface Fabricator {
   id: number
@@ -27,6 +28,9 @@ interface Fabricator {
   years_in_business: number | null
   rating: number | null
   review_count: number
+  google_rating: number | null
+  google_review_count: number
+  google_reviews: Array<{ author: string; rating: number; text: string; time: string }> | null
 }
 
 interface Review {
@@ -249,6 +253,15 @@ export default async function FabricatorProfilePage({
                 )}
               </div>
             </section>
+
+            {/* Google Reviews */}
+            <GoogleReviews
+              claimed={fab.claimed}
+              googleRating={fab.google_rating ? Number(fab.google_rating) : null}
+              googleReviewCount={fab.google_review_count || 0}
+              googleReviews={fab.google_reviews || []}
+              claimSlug={fab.slug}
+            />
 
             {/* Reviews */}
             <ReviewSection fabricatorId={fab.id} fabricatorSlug={fab.slug} reviews={reviews} rating={fab.rating ? Number(fab.rating) : null} reviewCount={fab.review_count} />
