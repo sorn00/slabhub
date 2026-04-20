@@ -52,7 +52,7 @@ export default function GoogleReviews({ claimed, googleRating, googleReviewCount
       </div>
 
       {/* Reviews — blurred if not claimed */}
-      <div className={`space-y-4 ${!claimed ? 'blur-sm select-none pointer-events-none' : ''}`}>
+      <div className={`space-y-4 ${!claimed ? 'opacity-30 select-none pointer-events-none' : ''}`}>
         {googleReviews.length > 0 ? googleReviews.map((r, i) => (
           <div key={i} className="border-t border-slate-700/50 pt-4 first:border-0 first:pt-0">
             <div className="flex items-center justify-between mb-1">
