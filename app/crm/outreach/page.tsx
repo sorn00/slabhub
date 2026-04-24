@@ -28,7 +28,7 @@ export default async function OutreachPage() {
     ORDER BY
       CASE status WHEN 'pending' THEN 0 ELSE 1 END,
       value DESC,
-      created_at ASC
+      created_at DESC
   `)
 
   // Pull staged_messages (AI-generated follow-up queue)
@@ -49,7 +49,7 @@ export default async function OutreachPage() {
     FROM staged_messages
     ORDER BY
       CASE status WHEN 'pending' THEN 0 WHEN 'edited' THEN 1 ELSE 2 END,
-      created_at ASC
+      created_at DESC
   `)
 
   // Merge — outreach_queue first (priority), then staged_messages
