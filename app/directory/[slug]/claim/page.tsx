@@ -91,7 +91,7 @@ export default async function ClaimPage({ params }: { params: { slug: string } }
             <h3 className="text-white text-sm font-semibold mb-2">What happens after you claim:</h3>
             <ul className="text-slate-400 text-sm flex flex-col gap-1.5">
               <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> We verify you are authorized to manage this listing</li>
-              <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> Update your business info, photos, and description</li>
+              <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> Verify your business info and service area</li>
               <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> Set up a card for accepted lead claims, with no monthly retainer</li>
               <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> Get text offers for $200 projects with measurements ready for quote and $125 standard appointment leads</li>
             </ul>
