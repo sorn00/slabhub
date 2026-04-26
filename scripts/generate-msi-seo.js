@@ -30,14 +30,14 @@ async function generateSEOBatch(stones) {
     `${i + 1}. ID: ${s.id} | Name: ${s.name} | Material: ${s.material} | Colors: ${s.primaryColor}${s.accentColor && s.accentColor !== s.primaryColor ? '/' + s.accentColor : ''} | Style: ${s.style || 'N/A'} | Existing desc: ${s.description ? s.description.substring(0, 100) : 'none'}`
   ).join('\n');
 
-  const prompt = `You are a luxury stone countertop copywriter for Arts Marble & Granite, a countertop fabricator in Framingham, Massachusetts.
+  const prompt = `You are a luxury stone countertop copywriter for Quarriva, a countertop marketplace.
 
 For each stone below, generate SEO content. Return a JSON array with one object per stone in the EXACT same order.
 
 Each object must have:
 - "id": the stone ID (copy exactly as given)
 - "description": 2-3 sentences, warm designer voice, describe the look/appearance and best use cases (kitchens, bathrooms, etc). Do NOT start with the stone name. Be vivid and specific.
-- "seo_title": max 60 chars, format: "{Stone Name} Countertops | Arts Marble & Granite"
+- "seo_title": max 60 chars, format: "{Stone Name} Countertops | Quarriva"
 - "seo_meta": max 155 chars, mention stone name + key visual features + Massachusetts + "Get a free quote" CTA
 - "seo_keywords": array of 6-8 strings: stone name variations, color, material type, "massachusetts countertops", "framingham countertops", "kitchen countertops", "bathroom countertops", plus 1-2 specific to this stone
 

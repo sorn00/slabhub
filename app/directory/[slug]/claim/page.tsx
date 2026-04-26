@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   if (!fab) return { title: 'Claim Listing | Quarriva' }
   return {
     title: `Claim ${fab.company_name} on Quarriva`,
-    description: `Claim your free business listing for ${fab.company_name} in ${fab.city}, ${fab.state} on Quarriva to start receiving leads.`,
+    description: `Claim your Quarriva listing for ${fab.company_name} in ${fab.city}, ${fab.state} to verify the business and receive homeowner lead offers by text.`,
   }
 }
 
@@ -81,20 +81,26 @@ export default async function ClaimPage({ params }: { params: { slug: string } }
         <div className="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-8">
           <div className="text-center mb-8">
             <div className="text-3xl mb-3">🏭</div>
-            <h1 className="text-white text-2xl font-bold mb-2">Claim Your Listing</h1>
+            <h1 className="text-white text-2xl font-bold mb-2">Claim Your Quarriva Listing</h1>
             <p className="text-slate-400 text-sm">
               <span className="text-amber-400 font-medium">{fab.company_name}</span> in {fab.city}, {fab.state}
             </p>
           </div>
 
           <div className="bg-slate-700/30 rounded-xl p-4 mb-6">
-            <h3 className="text-white text-sm font-semibold mb-2">What you get when you claim:</h3>
+            <h3 className="text-white text-sm font-semibold mb-2">What happens after you claim:</h3>
             <ul className="text-slate-400 text-sm flex flex-col gap-1.5">
-              <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> Receive quote requests directly</li>
+              <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> We verify you are authorized to manage this listing</li>
               <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> Update your business info, photos, and description</li>
-              <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> Respond to customer reviews</li>
-              <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> Upgrade to Featured for more visibility</li>
+              <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> Set up a card for accepted lead claims, with no monthly retainer</li>
+              <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> Get text offers for $200 projects with measurements ready for quote and $125 standard appointment leads</li>
             </ul>
+          </div>
+
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6">
+            <p className="text-amber-100 text-sm leading-relaxed">
+              Claiming your listing is free. Card setup happens after this claim step and is only used when you accept a future lead offer.
+            </p>
           </div>
 
           {fab.phone && (

@@ -16,11 +16,11 @@ export default function FabricatorsPage() {
             Apply to become our exclusive fabricator partner in your market.
           </h1>
           <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-10">
-            We&apos;re selecting one fabricator per city across Connecticut. One slot. Full market exclusivity. Founding partner rate.
+            Claim your Quarriva listing, save a card on file, and get first access to homeowner leads in your city.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/fabricators/register" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-8 py-4 rounded-lg transition-colors text-lg inline-block">
-              Apply for Your Market →
+            <Link href="/directory" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-8 py-4 rounded-lg transition-colors text-lg inline-block">
+              Claim Your Listing →
             </Link>
             <a href="#how-it-works" className="border border-slate-600 hover:border-amber-500/50 text-slate-300 hover:text-white font-semibold px-8 py-4 rounded-lg transition-colors text-lg inline-block">
               See how it works
@@ -36,8 +36,8 @@ export default function FabricatorsPage() {
             {[
               { stat: 'MSI Catalog', label: 'Pre-loaded — 391 stones' },
               { stat: '1 Partner', label: 'Per city — exclusive' },
-              { stat: '$0', label: 'Setup fee' },
-              { stat: '48hr', label: 'Avg. time to first lead' },
+              { stat: '$0', label: 'Monthly retainer' },
+              { stat: 'YES', label: 'Claim by text' },
             ].map(item => (
               <div key={item.stat}>
                 <div className="text-2xl font-bold text-amber-400">{item.stat}</div>
@@ -61,8 +61,8 @@ export default function FabricatorsPage() {
             },
             {
               icon: '🗺️',
-              title: 'Exclusive territory — no bidding wars',
-              desc: 'One fabricator per city. When you claim your market, no competing shop on Quarriva gets those leads. First-mover advantage is real.',
+              title: 'Claim your public listing first',
+              desc: 'Your Quarriva profile is the starting point. Claim it, verify the business, and unlock lead delivery for your city.',
             },
             {
               icon: '🪨',
@@ -71,8 +71,8 @@ export default function FabricatorsPage() {
             },
             {
               icon: '⚡',
-              title: 'Real-time lead delivery',
-              desc: 'When a homeowner in your territory picks a stone and submits their project, you\'re notified instantly. Speed wins jobs.',
+              title: 'Text-first lead delivery',
+              desc: 'When a homeowner lead is a fit, we text you the lead type. Reply YES, we charge the saved card, then send the project details.',
             },
           ].map(item => (
             <div key={item.title} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 hover:border-amber-500/30 transition-colors flex gap-4">
@@ -89,13 +89,13 @@ export default function FabricatorsPage() {
       {/* How it works */}
       <section id="how-it-works" className="bg-slate-800/30 border-y border-slate-700/50 py-20">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">Up and running in 48 hours</h2>
+          <h2 className="text-3xl font-bold text-white text-center mb-12">From listing claim to paid leads</h2>
           <div className="grid md:grid-cols-4 gap-6">
             {[
-              { step: '01', title: 'Apply for your city', desc: 'Submit your application. We review and confirm your market is available.' },
-              { step: '02', title: 'We verify your shop', desc: 'Quick onboarding call, confirm your materials and service area.' },
-              { step: '03', title: 'Leads start flowing', desc: 'Homeowners with measurements browse the catalog, match your territory, and land in your inbox.' },
-              { step: '04', title: 'You close the job', desc: 'Quote fast, win the job. Pay $150 per booked sketch/measure appointment on top of the monthly.' },
+              { step: '01', title: 'Find your listing', desc: 'Search Quarriva for your shop and submit the owner claim form.' },
+              { step: '02', title: 'We verify and onboard', desc: 'We confirm the business, service area, materials, and lead preferences.' },
+              { step: '03', title: 'Save a card on file', desc: 'No monthly retainer. The card is used only when you accept a lead.' },
+              { step: '04', title: 'Reply YES to claim', desc: 'Projects with measurements ready for quote are $200. Standard appointment leads are $125. You see the lead type before accepting.' },
             ].map(item => (
               <div key={item.step} className="text-center">
                 <div className="w-12 h-12 bg-amber-500/20 border border-amber-500/40 rounded-full flex items-center justify-center text-amber-400 font-bold mx-auto mb-4">
@@ -117,7 +117,7 @@ export default function FabricatorsPage() {
             &ldquo;The leads come in with measurements already done. We quote same day and close faster than anything else we&apos;ve tried.&rdquo;
           </blockquote>
           <cite className="text-slate-400 not-italic">
-            — <strong className="text-amber-400">Arts Marble &amp; Granite</strong>, Massachusetts
+            — <strong className="text-amber-400">Quarriva partner fabricator</strong>, Massachusetts
           </cite>
         </div>
       </section>
@@ -129,43 +129,43 @@ export default function FabricatorsPage() {
       <section id="pricing" className="bg-slate-800/30 border-y border-slate-700/50 py-20">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Simple pricing. No surprises.</h2>
-          <p className="text-slate-400 mb-12">Lock in your market. Pay only for results beyond the monthly.</p>
+          <p className="text-slate-400 mb-12">Lock in your market. Pay only when we deliver a matching homeowner lead.</p>
           <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            {/* Monthly */}
+            {/* Project with measurements */}
             <div className="bg-slate-800 border border-amber-500/40 rounded-2xl p-8 relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-900 text-xs font-bold px-3 py-1 rounded-full">MOST POPULAR</div>
-              <div className="text-amber-400 font-bold text-sm mb-2">MARKET EXCLUSIVITY</div>
-              <div className="text-5xl font-bold text-white mb-1">$300<span className="text-2xl text-slate-400">/mo</span></div>
-              <div className="text-slate-400 text-sm mb-6">+ $150 per booked appointment</div>
+              <div className="text-amber-400 font-bold text-sm mb-2">PROJECT WITH MEASUREMENTS</div>
+              <div className="text-5xl font-bold text-white mb-1">$200<span className="text-2xl text-slate-400">/lead</span></div>
+              <div className="text-slate-400 text-sm mb-6">ready for quote with measurements or plan details</div>
               <ul className="text-slate-300 text-sm space-y-3 text-left mb-8">
                 <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Exclusive territory — 1 fabricator per city</li>
-                <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> All leads in your market go to you only</li>
-                <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Full MSI catalog pre-loaded</li>
+                <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Project measurements included</li>
+                <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Material direction already chosen</li>
                 <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Real-time lead notifications</li>
-                <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Cancel anytime</li>
+                <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> No setup fee or monthly retainer</li>
               </ul>
               <Link href="/fabricators/register" className="block bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-3 rounded-lg transition-colors text-center">
-                Apply for Your Market →
+                Save Card for Lead Claims →
               </Link>
             </div>
-            {/* Per lead */}
+            {/* Standard appointment lead */}
             <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8">
-              <div className="text-slate-400 font-bold text-sm mb-2">PAY PER APPOINTMENT</div>
-              <div className="text-5xl font-bold text-white mb-1">$150<span className="text-2xl text-slate-400">/appt</span></div>
-              <div className="text-slate-400 text-sm mb-6">per booked sketch / measure visit</div>
+              <div className="text-slate-400 font-bold text-sm mb-2">STANDARD APPOINTMENT LEAD</div>
+              <div className="text-5xl font-bold text-white mb-1">$125<span className="text-2xl text-slate-400">/lead</span></div>
+              <div className="text-slate-400 text-sm mb-6">qualified homeowner appointment without measurements yet</div>
               <ul className="text-slate-300 text-sm space-y-3 text-left mb-8">
-                <li className="flex items-start gap-2"><span className="text-green-400 mt-0.5">✓</span> Only pay when we book the appointment</li>
-                <li className="flex items-start gap-2"><span className="text-green-400 mt-0.5">✓</span> Homeowner has submitted measurements</li>
-                <li className="flex items-start gap-2"><span className="text-green-400 mt-0.5">✓</span> Material direction already chosen</li>
+                <li className="flex items-start gap-2"><span className="text-green-400 mt-0.5">✓</span> Homeowner has requested contact</li>
+                <li className="flex items-start gap-2"><span className="text-green-400 mt-0.5">✓</span> Contact info and project intent included</li>
+                <li className="flex items-start gap-2"><span className="text-green-400 mt-0.5">✓</span> Good fit for quick callback workflows</li>
                 <li className="flex items-start gap-2"><span className="text-green-400 mt-0.5">✓</span> Average job value $3,000–$8,000</li>
-                <li className="flex items-start gap-2"><span className="text-green-400 mt-0.5">✓</span> Included with monthly plan</li>
+                <li className="flex items-start gap-2"><span className="text-green-400 mt-0.5">✓</span> No setup fee or monthly retainer</li>
               </ul>
               <Link href="/fabricators/register" className="block border border-slate-600 hover:border-amber-500/50 text-slate-300 hover:text-white font-bold py-3 rounded-lg transition-colors text-center">
-                Learn More
+                Save Card for Lead Claims
               </Link>
             </div>
           </div>
-          <p className="text-slate-500 text-sm mt-8">No setup fee. No contracts. Cancel anytime. Stripe-secured payments.</p>
+          <p className="text-slate-500 text-sm mt-8">No setup fee. No contracts. No monthly retainer. Stripe-secured payments.</p>
         </div>
       </section>
 
@@ -186,8 +186,8 @@ export default function FabricatorsPage() {
         </div>
         <p className="text-slate-500 text-sm text-center mb-10">Once a partner claims a market, it&apos;s closed. We don&apos;t double-book.</p>
         <div className="text-center">
-          <Link href="/fabricators/register" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-10 py-4 rounded-lg transition-colors text-lg inline-block">
-            Apply for Your Market →
+          <Link href="/directory" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-10 py-4 rounded-lg transition-colors text-lg inline-block">
+            Find and Claim Your Listing →
           </Link>
         </div>
       </section>
@@ -200,7 +200,7 @@ export default function FabricatorsPage() {
             {[
               {
                 q: 'What does "exclusive market" mean exactly?',
-                a: 'It means you\'re the only fabricator on Quarriva who receives leads from your city. When a homeowner in Bridgeport submits a project, it comes to you — not to 10 other shops.',
+                a: 'It means you\'re the only claimed Quarriva fabricator we offer that city\'s matching leads to first. We are starting with one partner per city so homeowners get fast follow-up.',
               },
               {
                 q: 'Do I need to carry MSI to join?',
@@ -208,11 +208,11 @@ export default function FabricatorsPage() {
               },
               {
                 q: 'What happens if a lead doesn\'t close?',
-                a: 'You pay $150 per booked appointment, not per closed job. If a homeowner no-shows or changes their mind, contact us and we\'ll review credits case by case.',
+                a: 'You only pay after you accept the lead by text. Projects with measurements ready for quote are $200. Standard appointment leads are $125. If a homeowner no-shows or the lead is invalid, contact us and we\'ll review credits case by case.',
               },
               {
                 q: 'How long is the contract?',
-                a: 'Month-to-month. Cancel anytime with 30 days notice. No lock-in.',
+                a: 'No monthly contract. You keep your exclusive market while you remain an active partner and lead quality is working for both sides.',
               },
             ].map(item => (
               <div key={item.q} className="border border-slate-700 rounded-xl p-6">
@@ -227,9 +227,9 @@ export default function FabricatorsPage() {
       {/* Final CTA */}
       <section className="max-w-6xl mx-auto px-4 py-24 text-center">
         <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to own your market?</h2>
-        <p className="text-slate-400 mb-8 max-w-lg mx-auto">CT markets are filling up. Apply before a competitor locks your city.</p>
-        <Link href="/fabricators/register" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-10 py-4 rounded-lg transition-colors text-lg inline-block">
-          Apply for Your Market →
+        <p className="text-slate-400 mb-8 max-w-lg mx-auto">Start by claiming your Quarriva listing. Once verified, we can send lead offers by text.</p>
+        <Link href="/directory" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-10 py-4 rounded-lg transition-colors text-lg inline-block">
+          Claim Your Listing →
         </Link>
         <p className="text-slate-500 text-sm mt-4">Questions? Text Sorn directly: (your number)</p>
       </section>

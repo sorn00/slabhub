@@ -9,11 +9,13 @@ function fmt(n: number) {
 export default function ROICalculator() {
   const [avgJobValue, setAvgJobValue] = useState(5000)
   const [closeRate, setCloseRate] = useState(55)
-  const [appointments, setAppointments] = useState(4)
+  const [sketchLeads, setSketchLeads] = useState(3)
+  const [rawLeads, setRawLeads] = useState(2)
 
-  const jobsClosed = appointments * (closeRate / 100)
+  const totalLeads = sketchLeads + rawLeads
+  const jobsClosed = totalLeads * (closeRate / 100)
   const revenue = jobsClosed * avgJobValue
-  const cost = 300 + appointments * 150
+  const cost = sketchLeads * 200 + rawLeads * 125
   const netGain = revenue - cost
   const roi = (netGain / cost) * 100
 
@@ -52,7 +54,7 @@ export default function ROICalculator() {
             {/* Slider 2 */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="text-slate-300 font-medium">Your close rate on appointments</label>
+                <label className="text-slate-300 font-medium">Your close rate on Quarriva leads</label>
                 <span className="text-amber-400 font-bold text-lg">{closeRate}%</span>
               </div>
               <input
@@ -73,20 +75,41 @@ export default function ROICalculator() {
             {/* Slider 3 */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="text-slate-300 font-medium">Appointments from Quarriva per month</label>
-                <span className="text-amber-400 font-bold text-lg">{appointments}</span>
+                <label className="text-slate-300 font-medium">Projects with measurements per month</label>
+                <span className="text-amber-400 font-bold text-lg">{sketchLeads}</span>
               </div>
               <input
                 type="range"
-                min={1}
+                min={0}
                 max={12}
                 step={1}
-                value={appointments}
-                onChange={e => setAppointments(Number(e.target.value))}
+                value={sketchLeads}
+                onChange={e => setSketchLeads(Number(e.target.value))}
                 className="w-full accent-amber-500 cursor-pointer"
               />
               <div className="flex justify-between text-xs text-slate-500 mt-1">
                 <span>1</span>
+                <span>12</span>
+              </div>
+            </div>
+
+            {/* Slider 4 */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-slate-300 font-medium">Standard appointment leads per month</label>
+                <span className="text-amber-400 font-bold text-lg">{rawLeads}</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={12}
+                step={1}
+                value={rawLeads}
+                onChange={e => setRawLeads(Number(e.target.value))}
+                className="w-full accent-amber-500 cursor-pointer"
+              />
+              <div className="flex justify-between text-xs text-slate-500 mt-1">
+                <span>0</span>
                 <span>12</span>
               </div>
             </div>
@@ -106,8 +129,8 @@ export default function ROICalculator() {
               <span className="text-white font-semibold">{fmt(revenue)}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-400">Quarriva cost</span>
-              <span className="text-white font-semibold">{fmt(cost)}/mo</span>
+              <span className="text-slate-400">Quarriva lead cost</span>
+              <span className="text-white font-semibold">{fmt(cost)} estimated</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-slate-400">Net gain</span>
@@ -120,7 +143,7 @@ export default function ROICalculator() {
           </div>
 
           <p className="text-slate-400 text-sm text-center italic">
-            "You pay $150 per appointment — only when we deliver. One closed job covers your Quarriva costs for months."
+            "You pay $200 for projects with measurements ready for quote and $125 for standard appointment leads. No monthly retainer."
           </p>
         </div>
       </div>

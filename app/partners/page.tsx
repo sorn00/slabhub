@@ -96,7 +96,7 @@ export default async function PartnersPage() {
             {[
               { num: '1', title: 'Claim Your City', desc: 'Lock in exclusive lead rights for your market. One fabricator per city, forever.' },
               { num: '2', title: 'We Deliver Leads', desc: 'We send qualified homeowners actively looking for countertop installation.' },
-              { num: '3', title: 'Pay Per Lead', desc: 'Only $200 per qualified lead. Zero upfront cost. No monthly fees.' },
+              { num: '3', title: 'Pay Per Lead', desc: '$200 for projects with measurements ready for quote. $125 for standard appointment leads. Zero upfront cost. No monthly fees.' },
               { num: '4', title: 'No Contracts', desc: 'Cancel anytime. Keep your territory as long as you\'re our partner.' },
             ].map(step => (
               <div key={step.num} style={{ textAlign: 'center' }}>

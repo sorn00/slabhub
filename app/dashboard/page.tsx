@@ -809,7 +809,7 @@ function UserMessageThread({ quoteId, onClose }: { quoteId: number; onClose: () 
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700">
           <div>
             <div className="text-white font-bold">Messages</div>
-            <div className="text-slate-400 text-xs">Quote #{quoteId} · Arts Marble & Granite</div>
+            <div className="text-slate-400 text-xs">Quote #{quoteId} · Quarriva</div>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-white text-xl">✕</button>
         </div>
@@ -826,7 +826,7 @@ function UserMessageThread({ quoteId, onClose }: { quoteId: number; onClose: () 
                     ? 'bg-amber-500 text-slate-900 rounded-br-sm'
                     : 'bg-slate-800 text-white border border-slate-700 rounded-bl-sm'
                 }`}>
-                  <p className={m.sender === 'admin' ? 'text-xs text-amber-400 font-medium mb-1' : 'hidden'}>Arts Marble & Granite</p>
+                  <p className={m.sender === 'admin' ? 'text-xs text-amber-400 font-medium mb-1' : 'hidden'}>Quarriva</p>
                   <p>{m.body}</p>
                   <p className={`text-xs mt-1 ${m.sender === 'user' ? 'text-amber-900' : 'text-slate-500'}`}>
                     {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

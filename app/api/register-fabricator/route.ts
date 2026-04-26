@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs'
+import { getPool } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
+    if (!body.businessName || !body.email) {
+      return NextResponse.json({ success: false, error: 'Business name and email are required' }, { status: 400 })
+    }
+
     const stripeKey = process.env.STRIPE_SECRET_KEY || ''
+    const isStripeConfigured = stripeKey && stripeKey !== 'sk_test_placeholder'
 
     let customerId = body.customerId || ''
 
     // Create Stripe customer if real key
-    if (stripeKey && stripeKey !== 'sk_test_placeholder' && !customerId) {
+    if (isStripeConfigured && !customerId) {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const StripeLib = (await import('stripe')).default as any
@@ -31,37 +36,55 @@ export async function POST(req: NextRequest) {
         customerId = customer.id
       } catch (stripeErr) {
         console.error('Stripe customer creation failed:', stripeErr)
-        customerId = 'cus_mock'
+        return NextResponse.json({ success: false, error: 'Payment customer creation failed' }, { status: 502 })
       }
     } else if (!customerId) {
       customerId = 'cus_mock'
     }
 
-    const entry = {
-      ...body,
+    const status = body.step === 'payment-complete' ? 'payment_method_saved' : 'pending_payment'
+    const pool = getPool()
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS fabricator_registrations (
+        id SERIAL PRIMARY KEY,
+        business_name TEXT NOT NULL,
+        owner_name TEXT,
+        phone TEXT,
+        email TEXT NOT NULL,
+        city TEXT,
+        state TEXT,
+        zip TEXT,
+        radius TEXT,
+        customer_id TEXT,
+        status TEXT NOT NULL DEFAULT 'pending_payment',
+        payload JSONB NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `)
+
+    const result = await pool.query(`
+      INSERT INTO fabricator_registrations (
+        business_name, owner_name, phone, email, city, state, zip, radius, customer_id, status, payload
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING id
+    `, [
+      body.businessName,
+      body.ownerName || null,
+      body.phone || null,
+      body.email,
+      body.city || null,
+      body.state || null,
+      body.zip || null,
+      body.radius || null,
       customerId,
-      id: `fab_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      status: 'active',
-    }
+      status,
+      JSON.stringify({ ...body, customerId, status }),
+    ])
 
-    const filePath = '/tmp/fabricator-registrations.json'
-    let existing: unknown[] = []
-
-    if (fs.existsSync(filePath)) {
-      try {
-        const raw = fs.readFileSync(filePath, 'utf-8')
-        existing = JSON.parse(raw)
-        if (!Array.isArray(existing)) existing = []
-      } catch {
-        existing = []
-      }
-    }
-
-    existing.push(entry)
-    fs.writeFileSync(filePath, JSON.stringify(existing, null, 2))
-
-    return NextResponse.json({ success: true, id: entry.id, customerId })
+    return NextResponse.json({ success: true, id: result.rows[0].id, customerId })
   } catch (err) {
     console.error('register-fabricator error:', err)
     return NextResponse.json({ success: false, error: 'Registration failed' }, { status: 500 })

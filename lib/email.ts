@@ -22,10 +22,7 @@ function baseTemplate(content: string) {
       </div>
       <div style="background: #1a1a2e; padding: 16px; text-align: center;">
         <p style="color: #555; font-size: 12px; margin: 0;">
-          Arts Marble &amp; Granite · 765 Waverly St, Framingham MA 01702 · (508) 309-3735
-        </p>
-        <p style="color: #444; font-size: 11px; margin: 4px 0 0;">
-          Powered by <a href="https://quarriva.com" style="color: #d4a847; text-decoration: none;">Quarriva</a>
+          <a href="https://quarriva.com" style="color: #d4a847; text-decoration: none;">Quarriva</a> · Premium Stone Countertops
         </p>
       </div>
     </div>
@@ -63,12 +60,12 @@ export async function sendQuoteEmail({
     </p>
     <p style="color: #444; margin-top: 24px;">
       Best regards,<br>
-      <strong>Arts Marble &amp; Granite Team</strong>
+      <strong>The Quarriva Team</strong>
     </p>
   `
 
   await transporter.sendMail({
-    from: `"Arts Marble & Granite" <${process.env.GMAIL_FROM || 'quotes@quarriva.com'}>`,
+    from: `"Quarriva" <${process.env.GMAIL_FROM || 'quotes@quarriva.com'}>`,
     to,
     subject: `Your Countertop Quote — ${stoneNames}`,
     html: baseTemplate(content),
@@ -102,16 +99,16 @@ export async function sendLeadConfirmationEmail({
       </ul>
     </div>
     <p style="color: #444; line-height: 1.6;">
-      Questions in the meantime? Call us at <strong>(508) 309-3735</strong> or just reply to this email.
+      Questions in the meantime? Just reply to this email and we'll help.
     </p>
     <p style="color: #444; margin-top: 24px;">
       Best regards,<br>
-      <strong>Arts Marble &amp; Granite Team</strong>
+      <strong>The Quarriva Team</strong>
     </p>
   `
 
   await transporter.sendMail({
-    from: `"Arts Marble & Granite" <${process.env.GMAIL_FROM || 'quotes@quarriva.com'}>`,
+    from: `"Quarriva" <${process.env.GMAIL_FROM || 'quotes@quarriva.com'}>`,
     to,
     subject: `We received your quote request — ${stoneNames}`,
     html: baseTemplate(content),

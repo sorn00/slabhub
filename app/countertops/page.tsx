@@ -19,7 +19,7 @@ const states = [
     name: 'Massachusetts',
     abbr: 'MA',
     description: 'Serving Greater Boston, MetroWest, South Shore, Cape Cod, and all of Massachusetts.',
-    highlight: 'Arts Marble & Granite — Framingham, MA',
+    highlight: 'Quarriva Partner Network',
     towns: towns.massachusetts,
   },
   {

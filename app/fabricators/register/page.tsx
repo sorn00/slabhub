@@ -21,6 +21,7 @@ const STEPS = ['Business Info', 'Territory', 'Your Business', 'Specialties', 'Pa
 export default function FabricatorRegisterPage() {
   const [step, setStep] = useState(0)
   const [stripeCustomerId, setStripeCustomerId] = useState('')
+  const [registrationError, setRegistrationError] = useState('')
   const [data, setData] = useState({
     businessName: '',
     ownerName: '',
@@ -62,17 +63,43 @@ export default function FabricatorRegisterPage() {
   const saveAndContinue = async () => {
     // Create Stripe customer when moving to payment step
     try {
+      setRegistrationError('')
       const res = await fetch('/api/register-fabricator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...data, step: 'pre-payment' }),
       })
       const json = await res.json()
+      if (!res.ok) {
+        setRegistrationError(json.error || 'Registration failed')
+        return
+      }
       if (json.customerId) setStripeCustomerId(json.customerId)
+      next()
     } catch (e) {
       console.error(e)
+      setRegistrationError('Registration failed')
     }
-    next()
+  }
+
+  const completeRegistration = async () => {
+    try {
+      setRegistrationError('')
+      const res = await fetch('/api/register-fabricator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, customerId: stripeCustomerId, step: 'payment-complete' }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        setRegistrationError(json.error || 'Registration failed')
+        return
+      }
+      next()
+    } catch (e) {
+      console.error(e)
+      setRegistrationError('Registration failed')
+    }
   }
 
   const progress = ((step + 1) / STEPS.length) * 100
@@ -276,6 +303,7 @@ export default function FabricatorRegisterPage() {
             >
               Continue to Payment →
             </button>
+            {registrationError && <p className="text-red-400 text-sm mt-3">{registrationError}</p>}
           </div>
         )}
 
@@ -286,15 +314,16 @@ export default function FabricatorRegisterPage() {
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 mb-6">
               <p className="text-amber-400 text-sm font-medium">💳 How billing works</p>
               <p className="text-slate-400 text-sm mt-1">
-                <strong className="text-white">$300/month</strong> for exclusive market access + <strong className="text-white">$150</strong> per booked sketch/measure appointment.
+                <strong className="text-white">$200</strong> per project with measurements ready for quote + <strong className="text-white">$125</strong> per standard appointment lead.
                 <br /><strong className="text-amber-400">One fabricator per city</strong> — first to register owns the territory.
               </p>
             </div>
             <StripePaymentStep
               email={data.email}
               customerId={stripeCustomerId}
-              onSuccess={() => next()}
+              onSuccess={completeRegistration}
             />
+            {registrationError && <p className="text-red-400 text-sm mt-3">{registrationError}</p>}
           </div>
         )}
 
@@ -311,7 +340,7 @@ export default function FabricatorRegisterPage() {
               <p><span className="text-amber-400 font-medium">Address:</span> {data.address}, {data.city}, {data.state} {data.zip}</p>
               <p><span className="text-amber-400 font-medium">Territory:</span> {data.state} · {data.radius}</p>
               <p><span className="text-amber-400 font-medium">Specialties:</span> {data.specialties.join(', ')}</p>
-              <p><span className="text-amber-400 font-medium">Plan:</span> $300/mo exclusivity + $150/appointment</p>
+              <p><span className="text-amber-400 font-medium">Plan:</span> $200 projects with measurements + $125 standard appointment leads</p>
             </div>
           </div>
         )}

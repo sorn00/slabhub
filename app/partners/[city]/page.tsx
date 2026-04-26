@@ -125,8 +125,8 @@ export default function CityClaimPage() {
               <div style={{ fontSize: 13, color: '#888' }}>Leads last 30 days</div>
             </div>
             <div>
-              <div style={{ fontSize: 28, fontWeight: 800, color: '#d4a847' }}>$200</div>
-              <div style={{ fontSize: 13, color: '#888' }}>Per qualified lead</div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: '#d4a847' }}>$200 / $125</div>
+              <div style={{ fontSize: 13, color: '#888' }}>Sketch / raw lead</div>
             </div>
             <div>
               <div style={{ fontSize: 28, fontWeight: 800, color: '#d4a847' }}>1</div>

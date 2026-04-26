@@ -91,7 +91,7 @@ export default function GoogleReviews({ claimed, googleRating, googleReviewCount
             </p>
             <p className="text-slate-400 text-sm mb-4">Claim your listing to display your reviews and start receiving leads</p>
             <a
-              href={`/claim/${claimSlug}`}
+              href={`/directory/${claimSlug}/claim`}
               className="inline-block bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
             >
               Claim Your Free Listing →

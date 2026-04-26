@@ -7,6 +7,7 @@ const GHL_TOKEN = process.env.GHL_TOKEN || ''
 const GHL_LOCATION = 'qhOziWzmOO7mYbl3U7tm'
 const GHL_PIPELINE = '7CiRMsaloPKQHYt2EF4r'
 const GHL_STAGE_QUALIFIED = '232e769f-28d9-43a6-b921-ea28467a0835' // Qualified stage
+const TELEGRAM_CHAT = process.env.TELEGRAM_CHAT_ID || ''
 
 async function createGHLContact(name: string, phone: string, email?: string) {
   try {
@@ -22,8 +23,6 @@ async function createGHLContact(name: string, phone: string, email?: string) {
   } catch { return null }
 }
 
-const SORN_PHONE = '+15027057965' // notify Sorn
-
 async function findGHLContactByEmail(email: string): Promise<string | null> {
   try {
     const res = await fetch(
@@ -36,6 +35,8 @@ async function findGHLContactByEmail(email: string): Promise<string | null> {
 }
 
 async function notifySorn(message: string) {
+  if (!process.env.TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT) return
+
   try {
     // Find or create Sorn as a contact to send internal SMS notification
     const res = await fetch(
@@ -46,7 +47,7 @@ async function notifySorn(message: string) {
     await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: '5027057965', text: message })
+      body: JSON.stringify({ chat_id: TELEGRAM_CHAT, text: message })
     })
   } catch { /* silent */ }
 }
@@ -159,7 +160,7 @@ export async function POST(req: NextRequest) {
         ghlId = await createGHLContact(customer_name, phone, userEmail)
         if (ghlId) {
           await createGHLOpportunity(ghlId, customer_name, stoneNames, sqft_estimate)
-          await sendGHLSMS(ghlId, `Hi ${firstName}! We received your quote request for ${stoneNames}. We'll review and get back to you within 24 hours. — Arts Marble & Granite`)
+          await sendGHLSMS(ghlId, `Hi ${firstName}! We received your quote request for ${stoneNames}. We'll review and get back to you within 24 hours. — Quarriva`)
         }
       }
       // Always notify Sorn
@@ -201,7 +202,7 @@ export async function POST(req: NextRequest) {
       ghlId2 = await createGHLContact(customer_name, phone, userEmail2)
       if (ghlId2) {
         await createGHLOpportunity(ghlId2, customer_name, stone_name || stone_id, sqft_estimate)
-        await sendGHLSMS(ghlId2, `Hi ${firstName2}! We received your quote request for ${stone_name || stone_id}. We'll review and get back to you within 24 hours. — Arts Marble & Granite`)
+        await sendGHLSMS(ghlId2, `Hi ${firstName2}! We received your quote request for ${stone_name || stone_id}. We'll review and get back to you within 24 hours. — Quarriva`)
       }
     }
     await notifySorn(`🔥 New Quarriva quote request\n\n👤 ${customer_name}\n📞 ${phone}\n🪊 ${stone_name || stone_id}${sqft_estimate ? `\n📏 ${sqft_estimate} sqft` : ''}\n\nquarriva.com/admin`)

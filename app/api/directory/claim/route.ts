@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPool } from '@/lib/db'
 
-const TELEGRAM_TOKEN = '8505355085:AAHvIPt6KPoRosDoYavhObjhsylK_qp96Q4'
-const TELEGRAM_CHAT = '5027057965'
+const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN || ''
+const TELEGRAM_CHAT = process.env.TELEGRAM_CHAT_ID || ''
 
 async function sendTelegram(text: string) {
+  if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT) return
+
   try {
     await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
       method: 'POST',

@@ -202,13 +202,13 @@ export default async function FabricatorProfilePage({
         <div className="bg-slate-800/60 border-b border-slate-700/50">
           <div className="max-w-5xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <p className="text-slate-400 text-sm">
-              <span className="text-amber-400 font-medium">Is this your business?</span> Claim this listing to update your info and receive leads directly.
+              <span className="text-amber-400 font-medium">Is this your business?</span> Claim your Quarriva listing to verify your shop and receive lead offers by text.
             </p>
             <Link
               href={`/directory/${fab.slug}/claim`}
               className="shrink-0 text-sm bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/40 px-3 py-1.5 rounded-lg transition-colors font-medium"
             >
-              Claim Listing →
+              Claim Your Listing →
             </Link>
           </div>
         </div>

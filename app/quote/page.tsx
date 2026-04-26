@@ -426,7 +426,7 @@ export default function QuotePage() {
       <div className="border-b border-slate-800 py-6 px-4">
         <div className="max-w-xl mx-auto">
           <h1 className="text-xl font-bold text-white">Request a Quote</h1>
-          <p className="text-slate-400 text-sm">Get pricing from Arts Marble & Granite</p>
+          <p className="text-slate-400 text-sm">Get pricing from a local Quarriva fabricator</p>
         </div>
       </div>
       <Suspense fallback={<div className="text-center py-20 text-slate-400">Loading...</div>}>

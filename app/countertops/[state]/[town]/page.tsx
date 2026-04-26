@@ -70,7 +70,7 @@ export default function TownPage({
 
   const serviceArea =
     state === 'massachusetts'
-      ? 'Arts Marble & Granite — Framingham, MA'
+      ? 'Quarriva Partner Network'
       : 'Quarriva Partner Network'
 
   return (

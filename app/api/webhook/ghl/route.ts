@@ -5,16 +5,18 @@ import { randomUUID } from 'crypto'
 // ── Constants ─────────────────────────────────────────────────────────────────
 const GHL_TOKEN = process.env.GHL_TOKEN || ''
 const KNOWN_LOCATIONS: Record<string, string> = {
-  'qhOziWzmOO7mYbl3U7tm': 'Granite (Arts Marble)',
+  'qhOziWzmOO7mYbl3U7tm': 'Quarriva Countertops',
   '1nGjTykP9alepVDmBnTF': 'Kitchen Deals MA',
   '23ohRt2gswZG2F0UPuBn': 'Cleaning Deals Worcester',
 }
 const GHL_LOC = 'qhOziWzmOO7mYbl3U7tm' // primary granite location
-const TELEGRAM_TOKEN = '8505355085:AAHvIPt6KPoRosDoYavhObjhsylK_qp96Q4'
-const TELEGRAM_CHAT = '5027057965'
+const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN || ''
+const TELEGRAM_CHAT = process.env.TELEGRAM_CHAT_ID || ''
 
 // ── Telegram ──────────────────────────────────────────────────────────────────
 async function sendTelegram(msg: string) {
+  if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT) return
+
   try {
     await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
       method: 'POST',
@@ -246,7 +248,7 @@ export async function POST(req: NextRequest) {
         })
       } else if (channel === 'SMS+Email') {
         // Email draft — handoff note
-        const emailDraft = `Hi ${firstName || name}! Thanks for reaching out about your countertop project. I'd love to help — I'll send you a quick text now so we can keep things moving easily! Best, Arts Marble & Granite`
+        const emailDraft = `Hi ${firstName || name}! Thanks for reaching out about your countertop project. I'd love to help — I'll send you a quick text now so we can keep things moving easily! Best, Quarriva`
         await saveStaged({
           contactId,
           contactName: name,
@@ -336,7 +338,7 @@ export async function POST(req: NextRequest) {
       const name = `${firstName} ${lastName}`.trim() || phone || 'Unknown'
 
       // 3. Draft intro SMS
-      const introDraft = `Hi ${firstName || name}! Thanks for your interest in Arts Marble & Granite 😊 What area are you looking to update, and do you have a material in mind?`
+      const introDraft = `Hi ${firstName || name}! Thanks for your interest in Quarriva. What area are you looking to update, and do you have a material in mind?`
 
       // 4. Save to staged_messages
       await saveStaged({

@@ -117,7 +117,7 @@ async function main() {
     await client.query(`
       UPDATE partner_markets
       SET status = 'claimed',
-          partner_name = 'Arts Marble & Granite',
+          partner_name = 'Founding Partner',
           claimed_at = NOW() - INTERVAL '12 days'
       WHERE city_slug = 'framingham-ma'
     `)

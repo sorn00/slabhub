@@ -164,13 +164,13 @@ export default async function DirectoryPage({
               <div className="text-amber-400 text-2xl mb-3">🏭</div>
               <h3 className="text-white font-semibold text-lg mb-2">Are you a fabricator?</h3>
               <p className="text-slate-400 text-sm mb-4">
-                Claim your free listing to receive leads directly, update your business info, and grow your online presence.
+                Search for your shop, open the profile, and claim your Quarriva listing to verify your business and receive lead offers by text.
               </p>
               <Link
                 href="/fabricators/register"
                 className="block w-full bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-4 py-3 rounded-lg text-center transition-colors text-sm"
               >
-                Claim Your Free Listing →
+                Continue to Card Setup →
               </Link>
               <div className="mt-4 pt-4 border-t border-slate-700">
                 <p className="text-slate-500 text-xs text-center">

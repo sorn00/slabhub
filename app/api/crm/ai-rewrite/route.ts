@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   }
   const stageContext = stageLabels[stage] || stage
 
-  const systemPrompt = `You are a helpful SMS assistant for Arts Marble & Granite, a countertop fabrication company.
+  const systemPrompt = `You are a helpful SMS assistant for Quarriva, a countertop marketplace.
 You help rewrite outreach SMS messages to leads based on their instructions.
 Keep messages:
 - Conversational and warm, not salesy

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 // GET — all users with saved stone selections + their quote requests
 export async function GET() {
   const rows = await query(`

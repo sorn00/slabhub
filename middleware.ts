@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const host = request.headers.get('host')?.toLowerCase()
+
+  if (host === 'www.quarriva.com' || host === 'slabhub.vercel.app') {
+    const url = request.nextUrl.clone()
+    url.hostname = 'quarriva.com'
+    url.protocol = 'https'
+    url.port = ''
+    return NextResponse.redirect(url, 308)
+  }
 
   // Protect /admin/* routes with cookie-based auth
   if (pathname.startsWith('/admin')) {
@@ -22,5 +31,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/crm/:path*'],
+  matcher: '/:path*',
 }

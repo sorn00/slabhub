@@ -5,8 +5,12 @@ import Link from 'next/link'
 import SessionProvider from '@/components/SessionProvider'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://quarriva.com'),
   title: 'Quarriva — Find Your Perfect Stone',
   description: 'Browse premium quartz, granite and marble countertops. Get instant quotes from local fabricators.',
+  alternates: {
+    canonical: '/',
+  },
 }
 
 export default function RootLayout({

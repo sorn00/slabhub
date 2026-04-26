@@ -33,6 +33,6 @@ export async function POST(req: NextRequest) {
     })
   } catch (err) {
     console.error('create-setup-intent error:', err)
-    return NextResponse.json({ clientSecret: 'mock_secret', customerId: 'cus_mock' }, { status: 200 })
+    return NextResponse.json({ error: 'Payment setup failed' }, { status: 502 })
   }
 }
