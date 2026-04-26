@@ -115,7 +115,7 @@ function FabricatorCardSetupContent() {
               <div className="space-y-3 text-sm text-slate-400">
                 <p><span className="text-amber-400 font-medium">1.</span> Claim your Quarriva listing for free.</p>
                 <p><span className="text-amber-400 font-medium">2.</span> Save a card so accepted leads can be billed.</p>
-                <p><span className="text-amber-400 font-medium">3.</span> Receive lead offers by text and reply YES or PASS.</p>
+                <p><span className="text-amber-400 font-medium">3.</span> Receive exclusive lead offers by text and reply YES or PASS.</p>
               </div>
             </div>
             <Link
@@ -177,7 +177,7 @@ function FabricatorCardSetupContent() {
                 </div>
                 <div className="rounded-2xl rounded-tl-md bg-slate-800 border border-slate-700 p-4">
                   <p className="text-slate-200 text-sm leading-relaxed">
-                    Quarriva lead for {data.businessName}: Bridgeport homeowner needs quartz countertops. Project with measurements ready for quote, $200 if accepted. Reply YES to claim or PASS to skip.
+                    Exclusive Quarriva lead for {data.businessName}: Bridgeport homeowner needs quartz countertops. Project with measurements ready for quote, $200 if accepted. Reply YES to claim exclusively or PASS to skip.
                   </p>
                 </div>
               </div>
@@ -205,7 +205,7 @@ function FabricatorCardSetupContent() {
               <div>
                 <h2 className="text-xl font-bold text-white mb-2">Save card for lead claims</h2>
                 <p className="text-slate-400 text-sm">
-                  Stripe securely stores the payment method. Quarriva charges only when you accept a specific lead.
+                  Stripe securely stores the payment method. Quarriva charges only when you accept a specific exclusive lead.
                 </p>
               </div>
               <div className="shrink-0 rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-slate-300 text-xs font-semibold">
@@ -221,7 +221,7 @@ function FabricatorCardSetupContent() {
               <p className="text-white text-sm font-semibold mb-3">Example lead text</p>
               <div className="rounded-2xl rounded-tl-md bg-slate-800 border border-slate-700 p-4">
                 <p className="text-slate-200 text-sm leading-relaxed">
-                  Quarriva lead for {data.businessName}: Bridgeport homeowner needs quartz countertops. Project with measurements ready for quote, $200 if accepted. Reply YES to claim or PASS to skip.
+                  Exclusive Quarriva lead for {data.businessName}: Bridgeport homeowner needs quartz countertops. Project with measurements ready for quote, $200 if accepted. Reply YES to claim exclusively or PASS to skip.
                 </p>
               </div>
             </div>
@@ -243,7 +243,7 @@ function FabricatorCardSetupContent() {
             </div>
             <h2 className="text-2xl font-bold text-white mb-3">Card setup complete</h2>
             <p className="text-slate-400 mb-6">
-              Your listing is ready for verification. Once approved, Quarriva can text you lead offers to accept or pass on.
+              Your listing is ready for verification. Once approved, Quarriva can text you exclusive lead offers to accept or pass on.
             </p>
             <div className="bg-slate-900/60 border border-slate-700 rounded-xl p-4 text-left text-sm text-slate-400 space-y-2 mb-6">
               <p><span className="text-amber-400 font-medium">Business:</span> {data.businessName}</p>

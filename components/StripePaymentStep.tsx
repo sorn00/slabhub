@@ -147,7 +147,7 @@ function PaymentForm({
 
       <div className="rounded-xl border border-blue-500/25 bg-blue-500/10 p-4">
         <p className="text-blue-100 text-sm leading-relaxed">
-          By saving this card, you authorize Quarriva to charge it only after you accept a specific lead offer by text.
+          By saving this card, you authorize Quarriva to charge it only after you accept a specific exclusive lead offer by text.
           Projects with measurements ready for quote are $200 and standard appointment leads are $125.
         </p>
       </div>

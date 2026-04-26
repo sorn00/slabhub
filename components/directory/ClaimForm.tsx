@@ -82,7 +82,7 @@ export default function ClaimForm({ fabricatorId, fabricatorSlug, fabricatorName
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-300 text-sm font-bold">3</span>
               <div>
                 <p className="text-white text-sm font-medium">Lead offers arrive by text</p>
-                <p className="text-slate-400 text-xs leading-relaxed">Reply YES to accept. Projects with measurements ready for quote are $200 and standard appointment leads are $125.</p>
+                <p className="text-slate-400 text-xs leading-relaxed">Reply YES to accept the lead exclusively. Projects with measurements ready for quote are $200 and standard appointment leads are $125.</p>
               </div>
             </div>
           </div>
@@ -101,11 +101,11 @@ export default function ClaimForm({ fabricatorId, fabricatorSlug, fabricatorName
           </div>
           <div className="rounded-2xl rounded-tl-md bg-slate-800 border border-slate-700 p-4">
             <p className="text-slate-200 text-sm leading-relaxed">
-              Quarriva lead for {fabricatorName}: Bridgeport homeowner needs quartz countertops. Project with measurements ready for quote, $200 if accepted. Reply YES to claim or PASS to skip.
+              Exclusive Quarriva lead for {fabricatorName}: Bridgeport homeowner needs quartz countertops. Project with measurements ready for quote, $200 if accepted. Reply YES to claim exclusively or PASS to skip.
             </p>
           </div>
           <p className="text-slate-500 text-xs mt-3 leading-relaxed">
-            Lead details are sent after you accept, so homeowners are only shared with shops that want the project.
+            Lead details are sent after you accept, and accepted leads are sent exclusively to your shop.
           </p>
         </div>
 

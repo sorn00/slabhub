@@ -72,7 +72,7 @@ export default function FabricatorsPage() {
             {
               icon: '⚡',
               title: 'Text-first lead delivery',
-              desc: 'When a homeowner lead is a fit, we text you the lead type. Reply YES, we charge the saved card, then send the project details.',
+              desc: 'When a homeowner lead is a fit, we text you the lead type. Reply YES, we charge the saved card, then send the project details exclusively to your shop.',
             },
           ].map(item => (
             <div key={item.title} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 hover:border-amber-500/30 transition-colors flex gap-4">
@@ -95,7 +95,7 @@ export default function FabricatorsPage() {
               { step: '01', title: 'Find your listing', desc: 'Search Quarriva for your shop and submit the owner claim form.' },
               { step: '02', title: 'We verify and onboard', desc: 'We confirm the business, service area, materials, and lead preferences.' },
               { step: '03', title: 'Save a card on file', desc: 'No monthly retainer. The card is used only when you accept a lead.' },
-              { step: '04', title: 'Reply YES to claim', desc: 'Projects with measurements ready for quote are $200. Standard appointment leads are $125. You see the lead type before accepting.' },
+              { step: '04', title: 'Reply YES to claim', desc: 'Projects with measurements ready for quote are $200. Standard appointment leads are $125. Once accepted, the lead is yours exclusively.' },
             ].map(item => (
               <div key={item.step} className="text-center">
                 <div className="w-12 h-12 bg-amber-500/20 border border-amber-500/40 rounded-full flex items-center justify-center text-amber-400 font-bold mx-auto mb-4">
