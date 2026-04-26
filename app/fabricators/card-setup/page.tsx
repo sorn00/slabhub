@@ -21,6 +21,7 @@ function FabricatorCardSetupContent() {
     email: searchParams.get('email') || '',
     listingSlug: searchParams.get('listingSlug') || '',
   }))
+  const hasClaimContext = Boolean(searchParams.get('listingSlug') && searchParams.get('businessName'))
 
   const listingUrl = useMemo(() => {
     return data.listingSlug ? `/directory/${data.listingSlug}` : '/directory'
@@ -103,7 +104,30 @@ function FabricatorCardSetupContent() {
       </div>
 
       <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 md:p-8">
-        {state === 'details' && (
+        {!hasClaimContext && (
+          <div>
+            <h2 className="text-xl font-bold text-white mb-2">Start by claiming your listing</h2>
+            <p className="text-slate-400 text-sm mb-6">
+              Card setup is part of the listing claim flow. Find your shop in the Quarriva directory, submit the claim request, then continue here with the listing attached.
+            </p>
+            <div className="bg-slate-900/70 border border-slate-700 rounded-xl p-4 mb-6">
+              <h3 className="text-white text-sm font-semibold mb-3">How the flow works</h3>
+              <div className="space-y-3 text-sm text-slate-400">
+                <p><span className="text-amber-400 font-medium">1.</span> Claim your Quarriva listing for free.</p>
+                <p><span className="text-amber-400 font-medium">2.</span> Save a card so accepted leads can be billed.</p>
+                <p><span className="text-amber-400 font-medium">3.</span> Receive lead offers by text and reply YES or PASS.</p>
+              </div>
+            </div>
+            <Link
+              href="/directory"
+              className="block w-full bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-3 rounded-lg transition-colors text-center"
+            >
+              Find and Claim Your Listing
+            </Link>
+          </div>
+        )}
+
+        {hasClaimContext && state === 'details' && (
           <div>
             <h2 className="text-xl font-bold text-white mb-2">Confirm your billing contact</h2>
             <p className="text-slate-400 text-sm mb-6">
@@ -146,6 +170,18 @@ function FabricatorCardSetupContent() {
                 </p>
               </div>
 
+              <div className="bg-slate-950 border border-slate-700 rounded-xl p-4 text-left">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <p className="text-white text-sm font-semibold">Example lead text</p>
+                  <span className="text-slate-500 text-xs">Sample</span>
+                </div>
+                <div className="rounded-2xl rounded-tl-md bg-slate-800 border border-slate-700 p-4">
+                  <p className="text-slate-200 text-sm leading-relaxed">
+                    Quarriva lead for {data.businessName}: Bridgeport homeowner needs quartz countertops. Project with measurements ready for quote, $200 if accepted. Reply YES to claim or PASS to skip.
+                  </p>
+                </div>
+              </div>
+
               {registrationError && <p className="text-red-400 text-sm">{registrationError}</p>}
 
               <button
@@ -163,7 +199,7 @@ function FabricatorCardSetupContent() {
           </div>
         )}
 
-        {state === 'card' && (
+        {hasClaimContext && state === 'card' && (
           <div>
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
@@ -181,6 +217,14 @@ function FabricatorCardSetupContent() {
               <p><span className="text-slate-300 font-medium">Billing email:</span> {data.email}</p>
               <p><span className="text-slate-300 font-medium">Today:</span> $0 due</p>
             </div>
+            <div className="bg-slate-950 border border-slate-700 rounded-xl p-4 mb-5 text-left">
+              <p className="text-white text-sm font-semibold mb-3">Example lead text</p>
+              <div className="rounded-2xl rounded-tl-md bg-slate-800 border border-slate-700 p-4">
+                <p className="text-slate-200 text-sm leading-relaxed">
+                  Quarriva lead for {data.businessName}: Bridgeport homeowner needs quartz countertops. Project with measurements ready for quote, $200 if accepted. Reply YES to claim or PASS to skip.
+                </p>
+              </div>
+            </div>
             <StripePaymentStep
               email={data.email}
               customerId={customerId}
@@ -192,7 +236,7 @@ function FabricatorCardSetupContent() {
           </div>
         )}
 
-        {state === 'done' && (
+        {hasClaimContext && state === 'done' && (
           <div className="text-center py-4">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-500/15 text-green-300 text-3xl">
               ✓
