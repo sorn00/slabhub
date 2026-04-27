@@ -13,10 +13,10 @@ export default function FabricatorsPage() {
             <span>◆</span> CT Beta Launch — Limited Spots
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-            Apply to become our exclusive fabricator partner in your market.
+            Claim homeowner leads exclusively after you approve them.
           </h1>
           <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-10">
-            Claim your Quarriva listing, save a card on file, and get first access to homeowner leads in your city.
+            Claim your Quarriva listing, save a card on file, and receive qualified lead offers by text before any details are released.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/directory" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-8 py-4 rounded-lg transition-colors text-lg inline-block">
@@ -35,7 +35,7 @@ export default function FabricatorsPage() {
           <div className="flex flex-wrap justify-center gap-8 text-center">
             {[
               { stat: 'MSI Catalog', label: 'Pre-loaded — 391 stones' },
-              { stat: '1 Partner', label: 'Per city — exclusive' },
+              { stat: 'Exclusive', label: 'Accepted leads' },
               { stat: '$0', label: 'Monthly retainer' },
               { stat: 'YES', label: 'Claim by text' },
             ].map(item => (
@@ -62,7 +62,7 @@ export default function FabricatorsPage() {
             {
               icon: '🗺️',
               title: 'Claim your public listing first',
-              desc: 'Your Quarriva profile is the starting point. Claim it, verify the business, and unlock lead delivery for your city.',
+              desc: 'Your Quarriva profile is the starting point. Claim it, verify the business, and confirm the service areas where you want leads.',
             },
             {
               icon: '🪨',
@@ -129,7 +129,7 @@ export default function FabricatorsPage() {
       <section id="pricing" className="bg-slate-800/30 border-y border-slate-700/50 py-20">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Simple pricing. No surprises.</h2>
-          <p className="text-slate-400 mb-12">Lock in your market. Pay only when we deliver a matching homeowner lead.</p>
+          <p className="text-slate-400 mb-12">Pay only when you accept a matching homeowner lead by text.</p>
           <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {/* Project with measurements */}
             <div className="bg-slate-800 border border-amber-500/40 rounded-2xl p-8 relative">
@@ -138,7 +138,7 @@ export default function FabricatorsPage() {
               <div className="text-5xl font-bold text-white mb-1">$200<span className="text-2xl text-slate-400">/lead</span></div>
               <div className="text-slate-400 text-sm mb-6">ready for quote with measurements or plan details</div>
               <ul className="text-slate-300 text-sm space-y-3 text-left mb-8">
-                <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Exclusive territory — 1 fabricator per city</li>
+                <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Lead is exclusive after you accept</li>
                 <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Project measurements included</li>
                 <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Material direction already chosen</li>
                 <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Real-time lead notifications</li>
@@ -169,22 +169,22 @@ export default function FabricatorsPage() {
         </div>
       </section>
 
-      {/* Territory availability */}
+      {/* Beta availability */}
       <section className="max-w-6xl mx-auto px-4 py-20">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-white mb-4">CT beta markets — 1 slot per city</h2>
-          <p className="text-slate-400">Submit your application before a competitor does.</p>
+          <h2 className="text-3xl font-bold text-white mb-4">CT beta lead areas</h2>
+          <p className="text-slate-400">We are onboarding a limited group of fabricators and confirming service areas before sending leads.</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto mb-6">
           {['Bridgeport', 'Stamford', 'Hartford', 'New Haven', 'Waterbury', 'Norwalk', 'Danbury', 'Greenwich'].map(city => (
             <div key={city} className="bg-slate-800/50 border border-green-500/30 rounded-lg px-4 py-3 text-center">
               <div className="w-2 h-2 bg-green-400 rounded-full mx-auto mb-1 animate-pulse" />
               <div className="text-white text-sm font-medium">{city}</div>
-              <div className="text-green-400 text-xs">1 Slot Open</div>
+              <div className="text-green-400 text-xs">Beta Open</div>
             </div>
           ))}
         </div>
-        <p className="text-slate-500 text-sm text-center mb-10">Once a partner claims a market, it&apos;s closed. We don&apos;t double-book.</p>
+        <p className="text-slate-500 text-sm text-center mb-10">Each accepted lead is sent exclusively to the fabricator who claims it.</p>
         <div className="text-center">
           <Link href="/directory" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-10 py-4 rounded-lg transition-colors text-lg inline-block">
             Find and Claim Your Listing →
@@ -199,8 +199,8 @@ export default function FabricatorsPage() {
           <div className="space-y-6">
             {[
               {
-                q: 'What does "exclusive market" mean exactly?',
-                a: 'It means you\'re the only claimed Quarriva fabricator we offer that city\'s matching leads to first. We are starting with one partner per city so homeowners get fast follow-up.',
+                q: 'What does "exclusive lead" mean exactly?',
+                a: 'It means once you reply YES and accept a lead, Quarriva sends that homeowner\'s details to your shop only. We confirm your service area during onboarding so the lead offer matches where you work.',
               },
               {
                 q: 'Do I need to carry MSI to join?',
@@ -212,7 +212,7 @@ export default function FabricatorsPage() {
               },
               {
                 q: 'How long is the contract?',
-                a: 'No monthly contract. You keep your exclusive market while you remain an active partner and lead quality is working for both sides.',
+                a: 'No monthly contract. You keep your claimed listing active while lead quality is working for both sides.',
               },
             ].map(item => (
               <div key={item.q} className="border border-slate-700 rounded-xl p-6">
@@ -226,7 +226,7 @@ export default function FabricatorsPage() {
 
       {/* Final CTA */}
       <section className="max-w-6xl mx-auto px-4 py-24 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to own your market?</h2>
+        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to claim better leads?</h2>
         <p className="text-slate-400 mb-8 max-w-lg mx-auto">Start by claiming your Quarriva listing. Once verified, we can send lead offers by text.</p>
         <Link href="/directory" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-10 py-4 rounded-lg transition-colors text-lg inline-block">
           Claim Your Listing →

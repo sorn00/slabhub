@@ -89,7 +89,7 @@ Approve at: https://quarriva.com/crm/partners`
     try {
       await sendEmail({
         to: email,
-        subject: `Application Received — ${market.city_name}, ${market.state} Territory`,
+        subject: `Application Received — ${market.city_name}, ${market.state} Lead Area`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
             <div style="background: #1a1a2e; padding: 24px; text-align: center;">
@@ -99,17 +99,18 @@ Approve at: https://quarriva.com/crm/partners`
             <div style="padding: 32px; background: #ffffff;">
               <h2 style="color: #1a1a2e; margin-top: 0;">Application Received ✅</h2>
               <p>Hi ${contactName},</p>
-              <p>We received your application to become the exclusive Quarriva partner for <strong>${market.city_name}, ${market.state}</strong>.</p>
+              <p>We received your application to receive Quarriva lead offers around <strong>${market.city_name}, ${market.state}</strong>.</p>
               <div style="background: #f8f8f8; border-left: 4px solid #d4a847; padding: 16px; margin: 24px 0; border-radius: 0 8px 8px 0;">
                 <p style="margin: 0; font-weight: 700; color: #1a1a2e;">What happens next:</p>
                 <ul style="margin: 12px 0 0; color: #555;">
                   <li>Our team reviews your application (usually within 24 hours)</li>
-                  <li>We'll call you to confirm details and territory exclusivity</li>
-                  <li>Once approved, you start receiving qualified leads immediately</li>
+                  <li>We'll call you to confirm business details and your service area</li>
+                  <li>Once approved, you can receive qualified lead offers by text</li>
                 </ul>
               </div>
-              <p><strong>Your territory:</strong> ${market.city_name}, ${market.state}<br/>
+              <p><strong>Requested lead area:</strong> ${market.city_name}, ${market.state}<br/>
               <strong>Lead price:</strong> $200 projects with measurements ready for quote · $125 standard appointment leads<br/>
+              <strong>Lead delivery:</strong> Accepted leads are exclusive to your shop<br/>
               <strong>Contract:</strong> None — cancel anytime</p>
               <p style="color: #888; font-size: 13px;">Questions? Reply to this email or call us directly.</p>
             </div>

@@ -110,7 +110,7 @@ export default function FabricatorRegisterPage() {
     <div className="max-w-xl mx-auto px-4 py-12">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">Apply to join Quarriva</h1>
-        <p className="text-slate-400">One slot per city. Takes under 5 minutes.</p>
+        <p className="text-slate-400">Claim your listing and confirm where you want leads. Takes under 5 minutes.</p>
       </div>
 
       <div className="mb-6">
@@ -154,7 +154,7 @@ export default function FabricatorRegisterPage() {
         {step === 1 && (
           <div>
             <h2 className="text-xl font-bold text-white mb-2">Service Territory</h2>
-            <p className="text-slate-400 text-sm mb-6">We'll only send you leads within your coverage area.</p>
+            <p className="text-slate-400 text-sm mb-6">Tell us where you want lead offers. We confirm the final service area during onboarding.</p>
             <div className="flex flex-col gap-4">
               <div>
                 <label className="text-sm text-slate-400 mb-2 block">State *</label>
@@ -315,7 +315,7 @@ export default function FabricatorRegisterPage() {
               <p className="text-amber-400 text-sm font-medium">💳 How billing works</p>
               <p className="text-slate-400 text-sm mt-1">
                 <strong className="text-white">$200</strong> per project with measurements ready for quote + <strong className="text-white">$125</strong> per standard appointment lead.
-                <br /><strong className="text-amber-400">One fabricator per city</strong> — first to register owns the territory.
+                <br /><strong className="text-amber-400">Accepted leads are exclusive</strong> — once you reply YES, the homeowner details go to your shop only.
               </p>
             </div>
             <StripePaymentStep
@@ -333,7 +333,7 @@ export default function FabricatorRegisterPage() {
             <div className="text-5xl mb-4">🎉</div>
             <h2 className="text-2xl font-bold text-white mb-3">Application received!</h2>
             <p className="text-slate-400 mb-6">
-              We&apos;ll review your application and be in touch within 24 hours. Your market slot is held pending confirmation.
+              We&apos;ll review your application and be in touch within 24 hours to confirm your service area and lead preferences.
             </p>
             <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 text-left text-sm text-slate-400 space-y-2">
               <p><span className="text-amber-400 font-medium">Business:</span> {data.businessName}</p>

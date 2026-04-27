@@ -126,11 +126,11 @@ export default function CityClaimPage() {
             </div>
             <div>
               <div style={{ fontSize: 28, fontWeight: 800, color: '#d4a847' }}>$200 / $125</div>
-              <div style={{ fontSize: 13, color: '#888' }}>Sketch / raw lead</div>
+              <div style={{ fontSize: 13, color: '#888' }}>Measured / appointment lead</div>
             </div>
             <div>
-              <div style={{ fontSize: 28, fontWeight: 800, color: '#d4a847' }}>1</div>
-              <div style={{ fontSize: 13, color: '#888' }}>Partner per city</div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: '#d4a847' }}>YES</div>
+              <div style={{ fontSize: 13, color: '#888' }}>Exclusive accepted leads</div>
             </div>
           </div>
         </div>
@@ -144,8 +144,8 @@ export default function CityClaimPage() {
                 This market is taken
               </h2>
               <p style={{ color: '#aaa', maxWidth: 480, margin: '0 auto 24px', lineHeight: 1.6 }}>
-                {market.partner_name} has exclusive lead rights for {market.city_name}. 
-                Join the waitlist and we&apos;ll notify you if this market opens up.
+                {market.partner_name} is already active in {market.city_name}.
+                Join the waitlist and we&apos;ll notify you as beta capacity opens up.
               </p>
               <WaitlistForm citySlug={citySlug} cityName={market.city_name} />
             </div>
@@ -157,7 +157,7 @@ export default function CityClaimPage() {
               Application Submitted!
             </h2>
             <p style={{ color: '#aaa', lineHeight: 1.6 }}>
-              We received your application for {market.city_name}. Our team will review and contact you within 24 hours to confirm your exclusive territory.
+              We received your application for {market.city_name}. Our team will review and contact you within 24 hours to confirm your service area and lead preferences.
             </p>
           </div>
         ) : alreadyTaken ? (
@@ -173,10 +173,10 @@ export default function CityClaimPage() {
         ) : (
           <div style={{ background: '#1a1a2e', border: '1px solid #2a2a4e', borderRadius: 16, padding: '32px', marginBottom: 32 }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>
-              Claim {market.city_name} Exclusively
+              Claim lead offers in {market.city_name}
             </h2>
             <p style={{ color: '#888', marginBottom: 28, fontSize: 14 }}>
-              Secure this territory before someone else does. Fill out the form below and we&apos;ll confirm your exclusive rights.
+              Fill out the form below and we&apos;ll confirm your service area before sending lead offers.
             </p>
 
             <form onSubmit={handleSubmit}>

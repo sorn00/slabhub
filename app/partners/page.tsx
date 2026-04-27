@@ -94,10 +94,10 @@ export default async function PartnersPage() {
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 32 }}>
             {[
-              { num: '1', title: 'Claim Your City', desc: 'Lock in exclusive lead rights for your market. One fabricator per city, forever.' },
+              { num: '1', title: 'Claim Your Listing', desc: 'Verify your business and confirm the service areas where you want lead offers.' },
               { num: '2', title: 'We Deliver Leads', desc: 'We send qualified homeowners actively looking for countertop installation.' },
               { num: '3', title: 'Pay Per Lead', desc: '$200 for projects with measurements ready for quote. $125 for standard appointment leads. Zero upfront cost. No monthly fees.' },
-              { num: '4', title: 'No Contracts', desc: 'Cancel anytime. Keep your territory as long as you\'re our partner.' },
+              { num: '4', title: 'No Contracts', desc: 'Cancel anytime. Accepted leads are exclusive to your shop.' },
             ].map(step => (
               <div key={step.num} style={{ textAlign: 'center' }}>
                 <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#d4a847', color: '#0f1117', fontWeight: 800, fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -113,8 +113,8 @@ export default async function PartnersPage() {
 
       {/* Markets Grid */}
       <section id="markets" style={{ maxWidth: 1100, margin: '0 auto', padding: '60px 24px' }}>
-        <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Available Markets</h2>
-        <p style={{ color: '#888', marginBottom: 40 }}>Claim your exclusive territory before a competitor does.</p>
+        <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Beta Lead Areas</h2>
+        <p style={{ color: '#888', marginBottom: 40 }}>Claim your listing and confirm the areas where you want lead offers.</p>
 
         {/* Massachusetts */}
         <div style={{ marginBottom: 48 }}>
@@ -145,16 +145,16 @@ export default async function PartnersPage() {
       {/* CTA Banner */}
       <section style={{ background: '#d4a847', padding: '48px 24px', textAlign: 'center' }}>
         <h2 style={{ color: '#0f1117', fontSize: 28, fontWeight: 800, marginBottom: 12 }}>
-          Don&apos;t Let a Competitor Claim Your City
+          Start Receiving Exclusive Lead Offers
         </h2>
         <p style={{ color: '#3a2d0a', fontSize: 16, marginBottom: 24 }}>
-          Once a market is claimed, it&apos;s gone. Secure your territory today.
+          Save a card once, then pay only when you accept a specific homeowner lead by text.
         </p>
         <Link
           href="#markets"
           style={{ display: 'inline-block', background: '#0f1117', color: '#d4a847', fontWeight: 700, padding: '14px 36px', borderRadius: 8, textDecoration: 'none', fontSize: 15 }}
         >
-          Claim Your Market Now →
+          Claim Your Listing Now →
         </Link>
       </section>
 
