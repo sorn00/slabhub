@@ -1,13 +1,13 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { auth } from '@/lib/auth'
 import { query } from '@/lib/db'
 import OutreachClient from './OutreachClient'
 
 export default async function OutreachPage() {
   const session = await auth()
-  if (!session) {
-    redirect('/login')
-  }
+  const isAdminCookie = cookies().get('admin_session')?.value === 'valid'
+  if (!session && !isAdminCookie) redirect('/admin/login?redirect=/crm/outreach')
 
   // Pull outreach_queue (manual staged SMS from agents/Vicky)
   const queueItems = await query(`

@@ -52,12 +52,13 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
-  if (!session) {
+  const isAdminCookie = req.cookies.get('admin_session')?.value === 'valid'
+  if (!session && !isAdminCookie) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const userRole = (session.user as { role?: string }).role || 'reviewer'
-  const userName = session.user?.name || session.user?.email || 'Unknown'
+  const userRole = isAdminCookie ? 'admin' : (session?.user as { role?: string } | undefined)?.role || 'reviewer'
+  const userName = isAdminCookie ? 'Admin' : session?.user?.name || session?.user?.email || 'Unknown'
 
   const body = await req.json()
   const { status, message, notes } = body
