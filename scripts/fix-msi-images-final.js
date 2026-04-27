@@ -7,7 +7,8 @@
 const { Pool } = require('pg');
 const https = require('https');
 
-const DATABASE_URL = 'postgresql://neondb_owner:npg_JW5ns7puXzoN@ep-silent-feather-anpv5jzh.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require';
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) throw new Error('DATABASE_URL is required');
 const pool = new Pool({ connectionString: DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 5 });
 
 const CDN = 'https://cdn.msisurfaces.com';

@@ -4,12 +4,14 @@ import { query, run, queryOne } from '@/lib/db'
 import { sendLeadConfirmationEmail } from '@/lib/email'
 
 const GHL_TOKEN = process.env.GHL_TOKEN || ''
-const GHL_LOCATION = 'qhOziWzmOO7mYbl3U7tm'
-const GHL_PIPELINE = '7CiRMsaloPKQHYt2EF4r'
-const GHL_STAGE_QUALIFIED = '232e769f-28d9-43a6-b921-ea28467a0835' // Qualified stage
+const GHL_LOCATION = process.env.GHL_LOCATION_ID || 'qhOziWzmOO7mYbl3U7tm'
+const GHL_PIPELINE = process.env.GHL_PIPELINE_ID || '7CiRMsaloPKQHYt2EF4r'
+const GHL_STAGE_QUALIFIED = process.env.GHL_STAGE_QUALIFIED || '8bc331fb-0887-4d64-80e3-ced5eb95f19e'
 const TELEGRAM_CHAT = process.env.TELEGRAM_CHAT_ID || ''
 
 async function createGHLContact(name: string, phone: string, email?: string) {
+  if (!GHL_TOKEN) return null
+
   try {
     const [firstName, ...rest] = name.trim().split(' ')
     const lastName = rest.join(' ') || ''
@@ -24,6 +26,8 @@ async function createGHLContact(name: string, phone: string, email?: string) {
 }
 
 async function findGHLContactByEmail(email: string): Promise<string | null> {
+  if (!GHL_TOKEN) return null
+
   try {
     const res = await fetch(
       `https://services.leadconnectorhq.com/contacts/search/duplicate?locationId=${GHL_LOCATION}&email=${encodeURIComponent(email)}`,
@@ -38,12 +42,6 @@ async function notifySorn(message: string) {
   if (!process.env.TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT) return
 
   try {
-    // Find or create Sorn as a contact to send internal SMS notification
-    const res = await fetch(
-      `https://services.leadconnectorhq.com/conversations/search?locationId=${GHL_LOCATION}&limit=1`,
-      { headers: { Authorization: `Bearer ${GHL_TOKEN}`, Version: '2021-04-15' } }
-    )
-    // Use Telegram instead — fire to our workspace notify
     await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -53,6 +51,8 @@ async function notifySorn(message: string) {
 }
 
 async function sendGHLSMS(contactId: string, message: string) {
+  if (!GHL_TOKEN) return
+
   try {
     // Find conversation
     const convRes = await fetch(
@@ -84,6 +84,8 @@ async function sendGHLSMS(contactId: string, message: string) {
 }
 
 async function createGHLOpportunity(contactId: string, name: string, stones: string, sqft?: number) {
+  if (!GHL_TOKEN) return null
+
   try {
     const stoneList = stones || 'Quarriva website request'
     const res = await fetch('https://services.leadconnectorhq.com/opportunities/', {

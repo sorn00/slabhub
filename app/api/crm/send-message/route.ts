@@ -4,6 +4,7 @@ import { run } from '@/lib/db'
 
 const GHL_API_BASE = 'https://services.leadconnectorhq.com'
 const GHL_TOKEN = process.env.GHL_TOKEN || ''
+const GHL_LOCATION_ID = process.env.GHL_LOCATION_ID || 'qhOziWzmOO7mYbl3U7tm'
 const GHL_VERSION = '2021-07-28'
 
 export async function POST(req: NextRequest) {
@@ -45,9 +46,13 @@ export async function POST(req: NextRequest) {
     // Look up conversation ID if not provided
     let resolvedConvId = conversationId
     if (!resolvedConvId) {
+      if (!GHL_TOKEN) {
+        return NextResponse.json({ error: 'GHL_TOKEN is not configured' }, { status: 500 })
+      }
+
       try {
         const convSearch = await fetch(
-          `${GHL_API_BASE}/conversations/search?locationId=qhOziWzmOO7mYbl3U7tm&contactId=${contactId}&limit=1`,
+          `${GHL_API_BASE}/conversations/search?locationId=${GHL_LOCATION_ID}&contactId=${contactId}&limit=1`,
           { headers: { Authorization: `Bearer ${GHL_TOKEN}`, Version: '2021-04-15' } }
         )
         const convData = await convSearch.json()

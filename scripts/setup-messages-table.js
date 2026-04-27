@@ -2,15 +2,23 @@
 /**
  * One-time script: create messages table and backfill from GHL
  */
-const { Pool } = require('/Users/sorn/.openclaw/workspace/slabhub/node_modules/pg');
+const { Pool } = require('pg');
+
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is required')
+}
+
+if (!process.env.GHL_TOKEN) {
+  throw new Error('GHL_TOKEN is required')
+}
 
 const pool = new Pool({
-  connectionString: 'postgresql://neondb_owner:npg_JW5ns7puXzoN@ep-silent-feather-anpv5jzh.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require',
+  connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-const GHL_TOKEN = 'pit-73ab457e-2144-4120-9d2e-b9e408ecbea4';
-const LOC_ID = 'qhOziWzmOO7mYbl3U7tm';
+const GHL_TOKEN = process.env.GHL_TOKEN;
+const LOC_ID = process.env.GHL_LOCATION_ID || 'qhOziWzmOO7mYbl3U7tm';
 
 async function ghlFetch(url) {
   const res = await fetch(url, {

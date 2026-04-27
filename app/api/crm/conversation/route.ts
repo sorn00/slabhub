@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth'
 import { run } from '@/lib/db'
 
 const GHL_TOKEN = process.env.GHL_TOKEN || ''
-const LOC_ID = 'qhOziWzmOO7mYbl3U7tm'
+const LOC_ID = process.env.GHL_LOCATION_ID || 'qhOziWzmOO7mYbl3U7tm'
 
 function ghlHeaders() {
   return { Authorization: `Bearer ${GHL_TOKEN}`, Version: '2021-04-15' }
@@ -28,6 +28,8 @@ interface GhlMessage {
 }
 
 async function fetchAllConversationsForContact(contactId: string) {
+  if (!GHL_TOKEN) return []
+
   const searchRes = await fetch(
     `https://services.leadconnectorhq.com/conversations/search?locationId=${LOC_ID}&contactId=${contactId}&limit=20`,
     { headers: ghlHeaders() }

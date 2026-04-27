@@ -4,9 +4,9 @@ import { query } from '@/lib/db'
 import CrmQuotesClient from './CrmQuotesClient'
 
 const GHL_API_BASE = 'https://services.leadconnectorhq.com'
-const GHL_TOKEN = 'pit-73ab457e-2144-4120-9d2e-b9e408ecbea4'
-const GHL_LOCATION_ID = 'qhOziWzmOO7mYbl3U7tm'
-const GHL_PIPELINE_ID = '7CiRMsaloPKQHYt2EF4r'
+const GHL_TOKEN = process.env.GHL_TOKEN || ''
+const GHL_LOCATION_ID = process.env.GHL_LOCATION_ID || 'qhOziWzmOO7mYbl3U7tm'
+const GHL_PIPELINE_ID = process.env.GHL_PIPELINE_ID || '7CiRMsaloPKQHYt2EF4r'
 const GHL_VERSION = '2021-07-28'
 
 const QUOTE_STAGE_IDS = new Set([
@@ -40,6 +40,8 @@ function ghlHeaders() {
 }
 
 async function fetchConversation(contactId: string) {
+  if (!GHL_TOKEN) return null
+
   try {
     const url = `${GHL_API_BASE}/conversations/search?locationId=${GHL_LOCATION_ID}&contactId=${contactId}&limit=1`
     const res = await fetch(url, { headers: ghlHeaders(), next: { revalidate: 120 } })
@@ -100,6 +102,8 @@ export default async function CrmQuotesPage() {
   }> = []
 
   try {
+    if (!GHL_TOKEN) throw new Error('GHL_TOKEN is not configured')
+
     const url = `${GHL_API_BASE}/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${GHL_PIPELINE_ID}&status=open&limit=100`
     const res = await fetch(url, { headers: ghlHeaders(), next: { revalidate: 120 } })
     if (res.ok) {

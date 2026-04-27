@@ -4,8 +4,8 @@ import { query } from '@/lib/db'
 
 const GHL_API_BASE = 'https://services.leadconnectorhq.com'
 const GHL_TOKEN = process.env.GHL_TOKEN || ''
-const GHL_LOCATION_ID = 'qhOziWzmOO7mYbl3U7tm'
-const GHL_PIPELINE_ID = '7CiRMsaloPKQHYt2EF4r'
+const GHL_LOCATION_ID = process.env.GHL_LOCATION_ID || 'qhOziWzmOO7mYbl3U7tm'
+const GHL_PIPELINE_ID = process.env.GHL_PIPELINE_ID || '7CiRMsaloPKQHYt2EF4r'
 const GHL_VERSION = '2021-07-28'
 
 // Stage IDs that need a quote
@@ -40,6 +40,8 @@ function ghlHeaders() {
 }
 
 async function fetchGhlOpportunities() {
+  if (!GHL_TOKEN) return []
+
   const url = `${GHL_API_BASE}/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${GHL_PIPELINE_ID}&status=open&limit=100`
   const res = await fetch(url, { headers: ghlHeaders() })
   if (!res.ok) throw new Error(`GHL Opportunities API ${res.status}`)
@@ -57,6 +59,8 @@ async function fetchGhlOpportunities() {
 }
 
 async function fetchConversation(contactId: string) {
+  if (!GHL_TOKEN) return null
+
   try {
     const url = `${GHL_API_BASE}/conversations/search?locationId=${GHL_LOCATION_ID}&contactId=${contactId}&limit=1`
     const res = await fetch(url, { headers: ghlHeaders() })

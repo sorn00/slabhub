@@ -4,7 +4,7 @@ import { getPool, run } from '@/lib/db'
 import { randomUUID } from 'crypto'
 
 const GHL_TOKEN = process.env.GHL_TOKEN || ''
-const GHL_LOC = 'qhOziWzmOO7mYbl3U7tm'
+const GHL_LOC = process.env.GHL_LOCATION_ID || 'qhOziWzmOO7mYbl3U7tm'
 
 // Area code → state mapping
 const AREA_CODE_STATE: Record<string, string> = {}

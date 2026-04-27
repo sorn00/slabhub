@@ -3,8 +3,8 @@ import { auth } from '@/lib/auth'
 
 const GHL_API_BASE = 'https://services.leadconnectorhq.com'
 const GHL_TOKEN = process.env.GHL_TOKEN || ''
-const GHL_LOCATION_ID = 'qhOziWzmOO7mYbl3U7tm'
-const GHL_PIPELINE_ID = '7CiRMsaloPKQHYt2EF4r'
+const GHL_LOCATION_ID = process.env.GHL_LOCATION_ID || 'qhOziWzmOO7mYbl3U7tm'
+const GHL_PIPELINE_ID = process.env.GHL_PIPELINE_ID || '7CiRMsaloPKQHYt2EF4r'
 const GHL_VERSION = '2021-07-28'
 const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
@@ -74,6 +74,8 @@ function ghlHeaders() {
 }
 
 async function fetchOpportunities(): Promise<GhlOpportunity[]> {
+  if (!GHL_TOKEN) return []
+
   const url = `${GHL_API_BASE}/opportunities/search?location_id=${GHL_LOCATION_ID}&pipeline_id=${GHL_PIPELINE_ID}&limit=100`
   const res = await fetch(url, { headers: ghlHeaders() })
   if (!res.ok) throw new Error(`Opportunities API ${res.status}`)
@@ -82,6 +84,8 @@ async function fetchOpportunities(): Promise<GhlOpportunity[]> {
 }
 
 async function fetchConversation(contactId: string): Promise<GhlConversation | null> {
+  if (!GHL_TOKEN) return null
+
   try {
     const url = `${GHL_API_BASE}/conversations/search?locationId=${GHL_LOCATION_ID}&contactId=${contactId}&limit=1`
     const res = await fetch(url, { headers: ghlHeaders() })
@@ -95,6 +99,8 @@ async function fetchConversation(contactId: string): Promise<GhlConversation | n
 }
 
 async function fetchRecentMessages(conversationId: string): Promise<GhlMessage[]> {
+  if (!GHL_TOKEN) return []
+
   try {
     const url = `${GHL_API_BASE}/conversations/${conversationId}/messages?limit=5`
     const res = await fetch(url, { headers: ghlHeaders() })
