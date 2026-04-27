@@ -47,6 +47,57 @@ async function sendSms(contactId: string, conversationId: string | null, message
   return { ok: true, conversationId: resolvedConversationId }
 }
 
+async function findContactByEmail(email: string): Promise<string | null> {
+  const locationId = process.env.GHL_LOCATION_ID || 'qhOziWzmOO7mYbl3U7tm'
+  const res = await fetch(
+    `${GHL_BASE}/contacts/search/duplicate?locationId=${locationId}&email=${encodeURIComponent(email)}`,
+    { headers: ghlHeaders() }
+  )
+  if (!res.ok) return null
+  const data = await res.json().catch(() => ({}))
+  return data?.contact?.id || null
+}
+
+async function resolveEmailContactId({
+  contactId,
+  email,
+  businessName,
+  phone,
+}: {
+  contactId: string
+  email: string
+  businessName: string
+  phone?: string | null
+}): Promise<string | null> {
+  const existingByEmail = await findContactByEmail(email)
+  if (existingByEmail) return existingByEmail
+
+  const update = await fetch(`${GHL_BASE}/contacts/${contactId}`, {
+    method: 'PUT',
+    headers: ghlHeaders(),
+    body: JSON.stringify({ email }),
+  })
+  if (update.ok) return contactId
+
+  const locationId = process.env.GHL_LOCATION_ID || 'qhOziWzmOO7mYbl3U7tm'
+  const create = await fetch(`${GHL_BASE}/contacts/`, {
+    method: 'POST',
+    headers: ghlHeaders(),
+    body: JSON.stringify({
+      locationId,
+      email,
+      phone: phone || undefined,
+      companyName: businessName,
+      firstName: businessName,
+      source: 'Quarriva fabricator outreach',
+      tags: ['quarriva:fabricator_outreach', 'quarriva:email_outreach'],
+    }),
+  })
+  if (!create.ok) return null
+  const data = await create.json().catch(() => ({}))
+  return data?.contact?.id || null
+}
+
 function textToHtml(message: string, profileUrl?: string) {
   const paragraphs = message
     .split(/\n{2,}/)
@@ -162,8 +213,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: 'Email draft is missing email or profileUrl' }, { status: 400 })
     }
     const result = await sendGhlEmail({
-      contactId: row.contact_id,
-      conversationId: row.conversation_id,
+      contactId: await resolveEmailContactId({
+        contactId: row.contact_id,
+        email: context.email,
+        businessName: context.businessName || row.contact_name,
+        phone: row.phone,
+      }) || row.contact_id,
+      conversationId: null,
       emailTo: context.email,
       subject: `${context.businessName || row.contact_name}, your Quarriva profile is live`,
       message: finalMessage,
