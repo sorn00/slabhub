@@ -128,20 +128,20 @@ export async function sendFabricatorOutreachEmail({
   to,
   businessName,
   city,
-  claimUrl,
+  profileUrl,
   message,
 }: {
   to: string
   businessName: string
   city: string
-  claimUrl: string
+  profileUrl: string
   message?: string
 }) {
   const plainText = message || [
     `Hi ${businessName} team,`,
     '',
     `We just launched ${city} on Quarriva and your profile is already live:`,
-    claimUrl,
+    profileUrl,
     '',
     'We are inviting a small group of stronger-reviewed local shops to claim their profiles and receive exclusive countertop leads by text.',
     '',
@@ -162,8 +162,8 @@ export async function sendFabricatorOutreachEmail({
   const content = `
     ${paragraphs}
     <div style="text-align: center; margin: 28px 0;">
-      <a href="${claimUrl}" style="background: #d4a847; color: #1a1a2e; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">
-        Claim Your Quarriva Profile
+      <a href="${profileUrl}" style="background: #d4a847; color: #1a1a2e; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">
+        View Your Quarriva Profile
       </a>
     </div>
   `

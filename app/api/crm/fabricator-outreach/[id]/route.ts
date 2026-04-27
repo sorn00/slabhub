@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { queryOne, run } from '@/lib/db'
-import { sendFabricatorOutreachEmail } from '@/lib/email'
 
 const GHL_BASE = 'https://services.leadconnectorhq.com'
 const GHL_VERSION = '2021-07-28'
@@ -42,6 +41,65 @@ async function sendSms(contactId: string, conversationId: string | null, message
     method: 'POST',
     headers: ghlHeaders(),
     body: JSON.stringify({ type: 'SMS', conversationId: resolvedConversationId, contactId, message }),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) return { ok: false, error: `GHL ${res.status}: ${JSON.stringify(data)}` }
+  return { ok: true, conversationId: resolvedConversationId }
+}
+
+function textToHtml(message: string, profileUrl?: string) {
+  const paragraphs = message
+    .split(/\n{2,}/)
+    .map(paragraph => paragraph.trim())
+    .filter(Boolean)
+    .map(paragraph => paragraph
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/\n/g, '<br>')
+    )
+    .map(paragraph => `<p>${paragraph}</p>`)
+    .join('')
+
+  const cta = profileUrl
+    ? `<p><a href="${profileUrl}" style="display:inline-block;background:#d4a847;color:#111827;padding:12px 18px;border-radius:6px;text-decoration:none;font-weight:700;">View Your Quarriva Profile</a></p>`
+    : ''
+
+  return `${paragraphs}${cta}`
+}
+
+async function sendGhlEmail({
+  contactId,
+  conversationId,
+  emailTo,
+  subject,
+  message,
+  profileUrl,
+}: {
+  contactId: string
+  conversationId: string | null
+  emailTo: string
+  subject: string
+  message: string
+  profileUrl?: string
+}) {
+  const resolvedConversationId = conversationId || await getOrCreateConversation(contactId)
+  if (!resolvedConversationId) return { ok: false, error: 'Could not find or create GHL conversation' }
+
+  const res = await fetch(`${GHL_BASE}/conversations/messages`, {
+    method: 'POST',
+    headers: ghlHeaders(),
+    body: JSON.stringify({
+      type: 'Email',
+      conversationId: resolvedConversationId,
+      contactId,
+      emailTo,
+      subject,
+      message,
+      html: textToHtml(message, profileUrl),
+    }),
   })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) return { ok: false, error: `GHL ${res.status}: ${JSON.stringify(data)}` }
@@ -93,24 +151,29 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     email?: string
     city?: string
     claimUrl?: string
+    profileUrl?: string
     businessName?: string
   } : {}
   const channel = row.channel || (row.stage_name === 'quarriva_fabricator_email' ? 'Email' : 'SMS')
 
   if (channel === 'Email') {
-    if (!context.email || !context.claimUrl) {
-      return NextResponse.json({ error: 'Email draft is missing email or claimUrl' }, { status: 400 })
+    const profileUrl = context.profileUrl || context.claimUrl?.replace(/\/claim$/, '')
+    if (!context.email || !profileUrl) {
+      return NextResponse.json({ error: 'Email draft is missing email or profileUrl' }, { status: 400 })
     }
-    await sendFabricatorOutreachEmail({
-      to: context.email,
-      businessName: context.businessName || row.contact_name,
-      city: context.city || 'your area',
-      claimUrl: context.claimUrl,
+    const result = await sendGhlEmail({
+      contactId: row.contact_id,
+      conversationId: row.conversation_id,
+      emailTo: context.email,
+      subject: `${context.businessName || row.contact_name}, your Quarriva profile is live`,
       message: finalMessage,
+      profileUrl,
     })
+    if (!result.ok) return NextResponse.json({ error: result.error }, { status: 500 })
+
     await run(
-      `UPDATE staged_messages SET status = 'sent', message = $1, reviewed_at = NOW(), reviewed_by = $2, sent_at = NOW() WHERE id = $3`,
-      [finalMessage, userName, id]
+      `UPDATE staged_messages SET status = 'sent', message = $1, conversation_id = COALESCE($2, conversation_id), reviewed_at = NOW(), reviewed_by = $3, sent_at = NOW() WHERE id = $4`,
+      [finalMessage, result.conversationId || null, userName, id]
     )
     return NextResponse.json({ id, status: 'sent' })
   }

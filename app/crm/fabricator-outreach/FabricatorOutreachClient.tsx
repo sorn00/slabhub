@@ -89,9 +89,9 @@ function ItemCard({ item }: { item: Item }) {
         </div>
       </div>
 
-      {ctx.claimUrl && (
-        <a className="text-xs text-amber-400 hover:text-amber-300 break-all" href={String(ctx.claimUrl)} target="_blank" rel="noreferrer">
-          {String(ctx.claimUrl)}
+      {(ctx.profileUrl || ctx.claimUrl) && (
+        <a className="text-xs text-amber-400 hover:text-amber-300 break-all" href={String(ctx.profileUrl || ctx.claimUrl)} target="_blank" rel="noreferrer">
+          {String(ctx.profileUrl || ctx.claimUrl)}
         </a>
       )}
 
