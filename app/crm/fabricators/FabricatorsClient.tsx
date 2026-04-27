@@ -28,12 +28,26 @@ interface FabData {
   totalFiltered: number
   page: number
   pageSize: number
+  ghlError?: string | null
 }
 
 interface PartnerStats {
   claimed: number
   available: number
   pending: number
+}
+
+const EMPTY_DATA: FabData = {
+  total: 0,
+  sampleSize: 0,
+  stateCounts: { MA: 0, CT: 0, NY: 0, FL: 0, TX: 0, Other: 0 },
+  cityCounts: [],
+  directoryTotal: 0,
+  contacts: [],
+  totalFiltered: 0,
+  page: 1,
+  pageSize: 50,
+  ghlError: null,
 }
 
 // City picker modal for single contact outreach
@@ -333,10 +347,30 @@ export default function FabricatorsClient({ partnerStats }: { partnerStats: Part
 
   const loadData = useCallback(async () => {
     setLoading(true)
-    const res = await fetch(`/api/crm/fabricators?state=${stateFilter}&page=${page}`)
-    const json = await res.json()
-    setData(json)
-    setLoading(false)
+    try {
+      const res = await fetch(`/api/crm/fabricators?state=${stateFilter}&page=${page}`)
+      const json = await res.json()
+
+      if (!res.ok) {
+        setData({ ...EMPTY_DATA, ghlError: json?.error || 'Unable to load fabricators' })
+        showToast('Unable to load fabricators')
+        return
+      }
+
+      setData({
+        ...EMPTY_DATA,
+        ...json,
+        stateCounts: { ...EMPTY_DATA.stateCounts, ...(json.stateCounts || {}) },
+        cityCounts: Array.isArray(json.cityCounts) ? json.cityCounts : [],
+        contacts: Array.isArray(json.contacts) ? json.contacts : [],
+      })
+    } catch (err) {
+      console.warn('fabricator CRM load failed:', err)
+      setData({ ...EMPTY_DATA, ghlError: 'Unable to load fabricators' })
+      showToast('Unable to load fabricators')
+    } finally {
+      setLoading(false)
+    }
   }, [stateFilter, page])
 
   useEffect(() => { loadData() }, [loadData])
@@ -377,6 +411,7 @@ export default function FabricatorsClient({ partnerStats }: { partnerStats: Part
 
   const STATE_TABS = ['All', 'CT', 'MA', 'NY', 'FL', 'TX']
 
+  const safeData = data || EMPTY_DATA
   const ctContacts = data?.contacts.filter(c => c.state === 'CT') || []
 
   return (
@@ -394,6 +429,20 @@ export default function FabricatorsClient({ partnerStats }: { partnerStats: Part
           boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
         }}>
           {toast}
+        </div>
+      )}
+
+      {data?.ghlError && (
+        <div style={{
+          background: '#3b2f13',
+          border: '1px solid #a16207',
+          color: '#fde68a',
+          borderRadius: 10,
+          padding: '10px 14px',
+          fontSize: 13,
+          marginBottom: 16,
+        }}>
+          GHL contacts are temporarily unavailable. Directory city coverage is still shown below.
         </div>
       )}
 
@@ -439,12 +488,12 @@ export default function FabricatorsClient({ partnerStats }: { partnerStats: Part
                   <span style={{ color: '#fff', fontWeight: 600, width: 50 }}>{st}</span>
                   <div style={{ flex: 1, height: 6, background: '#0f1117', borderRadius: 3, margin: '0 12px' }}>
                     <div style={{
-                      width: `${Math.min(100, ((data.stateCounts[st] || 0) / data.sampleSize) * 100)}%`,
+                      width: `${safeData.sampleSize > 0 ? Math.min(100, ((safeData.stateCounts[st] || 0) / safeData.sampleSize) * 100) : 0}%`,
                       height: '100%', background: '#d4a847', borderRadius: 3,
                     }} />
                   </div>
                   <span style={{ color: '#888', fontSize: 13, width: 30, textAlign: 'right' }}>
-                    {data.stateCounts[st] || 0}
+                    {safeData.stateCounts[st] || 0}
                   </span>
                 </div>
               ))}
@@ -554,7 +603,7 @@ export default function FabricatorsClient({ partnerStats }: { partnerStats: Part
               }}
             >
               {t}
-              {data && t !== 'All' && ` (${data.stateCounts[t] || 0})`}
+              {data && t !== 'All' && ` (${safeData.stateCounts[t] || 0})`}
             </button>
           )
         })}
@@ -567,7 +616,7 @@ export default function FabricatorsClient({ partnerStats }: { partnerStats: Part
             CONTACTS
             {data && (
               <span style={{ color: '#666', fontWeight: 400 }}>
-                {' '}· showing {data.contacts.length} of {data.totalFiltered} {stateFilter !== 'all' ? stateFilter.toUpperCase() : ''} contacts (from 100-contact sample)
+                {' '}· showing {safeData.contacts.length} of {safeData.totalFiltered} {stateFilter !== 'all' ? stateFilter.toUpperCase() : ''} contacts (from 100-contact sample)
               </span>
             )}
           </div>
@@ -586,12 +635,12 @@ export default function FabricatorsClient({ partnerStats }: { partnerStats: Part
               <span style={{ color: '#666', fontSize: 12 }}>Page {page}</span>
               <button
                 onClick={() => setPage(p => p + 1)}
-                disabled={data.contacts.length < data.pageSize}
+                disabled={safeData.contacts.length < safeData.pageSize}
                 style={{
                   background: '#0f1117', border: '1px solid #2a2a4e', borderRadius: 6,
-                  color: data.contacts.length < data.pageSize ? '#444' : '#aaa',
+                  color: safeData.contacts.length < safeData.pageSize ? '#444' : '#aaa',
                   padding: '5px 12px', fontSize: 12,
-                  cursor: data.contacts.length < data.pageSize ? 'not-allowed' : 'pointer',
+                  cursor: safeData.contacts.length < safeData.pageSize ? 'not-allowed' : 'pointer',
                 }}
               >
                 Next →

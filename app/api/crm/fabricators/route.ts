@@ -30,6 +30,8 @@ function getStateFromPhone(phone: string): string {
   return 'Other'
 }
 
+const EMPTY_STATE_COUNTS: Record<string, number> = { MA: 0, CT: 0, NY: 0, FL: 0, TX: 0, Other: 0 }
+
 export async function GET(req: NextRequest) {
   const session = await auth()
   const adminSession = req.cookies.get('admin_session')
@@ -44,25 +46,9 @@ export async function GET(req: NextRequest) {
   const pageSize = 50
   const offset = (page - 1) * pageSize
 
-  // Fetch first batch to get total + sample for state breakdown
-  const res = await fetch(
-    `https://services.leadconnectorhq.com/contacts/?locationId=${GHL_LOC}&tag=partner-outreach&limit=100`,
-    {
-      headers: {
-        Authorization: `Bearer ${GHL_TOKEN}`,
-        Version: '2021-04-15',
-      },
-      next: { revalidate: 300 },
-    }
-  )
-
-  if (!res.ok) {
-    return NextResponse.json({ error: 'GHL fetch failed', status: res.status }, { status: 502 })
-  }
-
-  const data = await res.json()
-  const total: number = data.meta?.total || data.contacts?.length || 0
-  const sampleContacts = (data.contacts || []) as Array<{
+  let total = 0
+  let ghlError: string | null = null
+  let sampleContacts: Array<{
     id: string
     firstName?: string
     lastName?: string
@@ -70,10 +56,40 @@ export async function GET(req: NextRequest) {
     phone?: string
     tags?: string[]
     dateAdded?: string
-  }>
+  }> = []
+
+  if (!GHL_TOKEN) {
+    ghlError = 'GHL_TOKEN is not configured'
+  } else {
+    try {
+      // Fetch first batch to get total + sample for state breakdown.
+      // Directory city coverage should still render if GHL is unavailable.
+      const res = await fetch(
+        `https://services.leadconnectorhq.com/contacts/?locationId=${GHL_LOC}&tag=partner-outreach&limit=100`,
+        {
+          headers: {
+            Authorization: `Bearer ${GHL_TOKEN}`,
+            Version: '2021-04-15',
+          },
+          next: { revalidate: 300 },
+        }
+      )
+
+      if (!res.ok) {
+        ghlError = `GHL fetch failed (${res.status})`
+      } else {
+        const data = await res.json()
+        total = data.meta?.total || data.contacts?.length || 0
+        sampleContacts = (data.contacts || []) as typeof sampleContacts
+      }
+    } catch (err) {
+      console.warn('GHL fabricator contact fetch failed:', err)
+      ghlError = 'GHL fetch failed'
+    }
+  }
 
   // State breakdown from sample
-  const stateCounts: Record<string, number> = { MA: 0, CT: 0, NY: 0, FL: 0, TX: 0, Other: 0 }
+  const stateCounts: Record<string, number> = { ...EMPTY_STATE_COUNTS }
   for (const c of sampleContacts) {
     const st = getStateFromPhone(c.phone || '')
     stateCounts[st] = (stateCounts[st] || 0) + 1
@@ -151,6 +167,7 @@ export async function GET(req: NextRequest) {
     pageSize,
     cityCounts,
     directoryTotal,
+    ghlError,
   })
 }
 
