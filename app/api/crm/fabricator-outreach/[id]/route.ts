@@ -4,6 +4,7 @@ import { queryOne, run } from '@/lib/db'
 
 const GHL_BASE = 'https://services.leadconnectorhq.com'
 const GHL_VERSION = '2021-07-28'
+const FABRICATOR_EMAIL_FROM = process.env.QUARRIVA_OUTREACH_EMAIL_FROM || 'info@quarriva.com'
 
 function ghlHeaders() {
   return {
@@ -147,6 +148,7 @@ async function sendGhlEmail({
       conversationId: resolvedConversationId,
       contactId,
       emailTo,
+      emailFrom: FABRICATOR_EMAIL_FROM,
       subject,
       message,
       html: textToHtml(message, profileUrl),
