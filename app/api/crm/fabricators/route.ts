@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { run } from '@/lib/db'
+import { getPool, run } from '@/lib/db'
 import { randomUUID } from 'crypto'
 
 const GHL_TOKEN = process.env.GHL_TOKEN || ''
@@ -32,10 +32,14 @@ function getStateFromPhone(phone: string): string {
 
 export async function GET(req: NextRequest) {
   const session = await auth()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const adminSession = req.cookies.get('admin_session')
+  if (!session && adminSession?.value !== 'valid') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
   const { searchParams } = new URL(req.url)
   const stateFilter = searchParams.get('state') || 'all'
+  const normalizedStateFilter = stateFilter === 'all' ? 'all' : stateFilter.toUpperCase()
   const page = parseInt(searchParams.get('page') || '1', 10)
   const pageSize = 50
   const offset = (page - 1) * pageSize
@@ -85,8 +89,56 @@ export async function GET(req: NextRequest) {
     dateAdded: c.dateAdded || '',
   }))
 
+  let cityCounts: Array<{
+    city: string
+    state: string
+    stateCode: string
+    count: number
+    claimed: number
+    available: number
+  }> = []
+  let directoryTotal = 0
+
+  try {
+    const pool = getPool()
+    const cityRes = await pool.query(`
+      SELECT
+        city,
+        state,
+        state_code,
+        COUNT(*)::int AS count,
+        COUNT(*) FILTER (WHERE claimed = true)::int AS claimed,
+        COUNT(*) FILTER (WHERE COALESCE(claimed, false) = false)::int AS available
+      FROM directory_fabricators
+      WHERE status = 'active'
+        AND city IS NOT NULL
+        AND city <> ''
+        AND ($1 = 'all' OR state_code = $1)
+      GROUP BY city, state, state_code
+      ORDER BY count DESC, city ASC
+      LIMIT 20
+    `, [normalizedStateFilter])
+
+    cityCounts = cityRes.rows.map(row => ({
+      city: row.city,
+      state: row.state,
+      stateCode: row.state_code,
+      count: Number(row.count || 0),
+      claimed: Number(row.claimed || 0),
+      available: Number(row.available || 0),
+    }))
+
+    const totalRes = await pool.query(
+      `SELECT COUNT(*)::int AS count FROM directory_fabricators WHERE status = 'active' AND ($1 = 'all' OR state_code = $1)`,
+      [normalizedStateFilter]
+    )
+    directoryTotal = Number(totalRes.rows[0]?.count || 0)
+  } catch (err) {
+    console.warn('directory fabricator city counts failed:', err)
+  }
+
   // Apply state filter + paginate in memory (from sample of 100)
-  const filtered = stateFilter === 'all' ? contacts : contacts.filter(c => c.state === stateFilter)
+  const filtered = normalizedStateFilter === 'all' ? contacts : contacts.filter(c => c.state === normalizedStateFilter)
   const paginated = filtered.slice(offset, offset + pageSize)
 
   return NextResponse.json({
@@ -97,12 +149,17 @@ export async function GET(req: NextRequest) {
     totalFiltered: filtered.length,
     page,
     pageSize,
+    cityCounts,
+    directoryTotal,
   })
 }
 
 export async function POST(req: NextRequest) {
   const session = await auth()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const adminSession = req.cookies.get('admin_session')
+  if (!session && adminSession?.value !== 'valid') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
   const body = await req.json()
   const { action } = body

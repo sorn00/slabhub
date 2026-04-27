@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { auth } from '@/lib/auth'
 import { queryOne } from '@/lib/db'
 import FabricatorsClient from './FabricatorsClient'
@@ -28,10 +29,11 @@ async function getPartnerStats() {
 
 export default async function FabricatorsPage() {
   const session = await auth()
-  if (!session) redirect('/login')
+  const isAdminCookie = cookies().get('admin_session')?.value === 'valid'
+  if (!session && !isAdminCookie) redirect('/admin/login?redirect=/crm/fabricators')
 
-  const role = (session.user as { role?: string })?.role
-  if (!["admin","va"].includes(role || "")) redirect("/crm")
+  const role = (session?.user as { role?: string } | undefined)?.role
+  if (!isAdminCookie && !["admin","va"].includes(role || "")) redirect("/crm")
 
   const partnerStats = await getPartnerStats()
 

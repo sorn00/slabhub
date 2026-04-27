@@ -15,6 +15,15 @@ interface FabData {
   total: number
   sampleSize: number
   stateCounts: Record<string, number>
+  cityCounts: Array<{
+    city: string
+    state: string
+    stateCode: string
+    count: number
+    claimed: number
+    available: number
+  }>
+  directoryTotal: number
   contacts: Contact[]
   totalFiltered: number
   page: number
@@ -420,7 +429,7 @@ export default function FabricatorsClient({ partnerStats }: { partnerStats: Part
       </div>
 
       {/* State Breakdown */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 28 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 16, marginBottom: 16 }}>
         <div style={{ background: '#1a1a2e', borderRadius: 12, padding: 20, border: '1px solid #2a2a4e' }}>
           <div style={{ color: '#aaa', fontSize: 13, fontWeight: 700, marginBottom: 14 }}>STATE BREAKDOWN (sample)</div>
           {data ? (
@@ -480,6 +489,53 @@ export default function FabricatorsClient({ partnerStats }: { partnerStats: Part
             </button>
           </div>
         </div>
+      </div>
+
+      <div style={{ background: '#1a1a2e', borderRadius: 12, padding: 20, border: '1px solid #2a2a4e', marginBottom: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 14 }}>
+          <div>
+            <div style={{ color: '#aaa', fontSize: 13, fontWeight: 700 }}>CITY COVERAGE</div>
+            <div style={{ color: '#666', fontSize: 12, marginTop: 2 }}>
+              Active Quarriva directory listings, grouped by city
+            </div>
+          </div>
+          <div style={{ color: '#d4a847', fontWeight: 800, fontSize: 20 }}>
+            {data ? data.directoryTotal : '…'}
+            <span style={{ color: '#666', fontSize: 12, fontWeight: 500, marginLeft: 6 }}>listings</span>
+          </div>
+        </div>
+
+        {data?.cityCounts?.length ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 }}>
+            {data.cityCounts.map(city => (
+              <div
+                key={`${city.stateCode}-${city.city}`}
+                style={{
+                  background: '#0f1117',
+                  border: '1px solid #2a2a4e',
+                  borderRadius: 10,
+                  padding: '12px 14px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ color: '#fff', fontWeight: 700, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {city.city}
+                    </div>
+                    <div style={{ color: '#666', fontSize: 11 }}>{city.stateCode}</div>
+                  </div>
+                  <div style={{ color: '#d4a847', fontSize: 22, fontWeight: 800 }}>{city.count}</div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#777', fontSize: 11, marginTop: 8 }}>
+                  <span>{city.available} available</span>
+                  <span>{city.claimed} claimed</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ color: '#666', fontSize: 13 }}>No city coverage data available.</div>
+        )}
       </div>
 
       {/* State Filter Tabs */}
