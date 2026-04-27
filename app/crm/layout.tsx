@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { emoji: '🔴', label: 'Lead Queue', href: '/crm/leads' },
   { emoji: '💬', label: 'Messages', href: '/crm/messages' },
   { emoji: '📤', label: 'Outreach', href: '/crm/outreach' },
+  { emoji: '🏗️', label: 'Fabricator Outreach', href: '/crm/fabricator-outreach' },
   { emoji: '📐', label: 'Sketch', href: '/crm/sketch' },
   { emoji: '📋', label: 'Quotes', href: '/crm/quotes' },
   { emoji: '💰', label: 'Pricing', href: '/crm/pricing' },

@@ -119,6 +119,8 @@ export async function getDb() {
       ALTER TABLE quote_requests ADD COLUMN IF NOT EXISTS stones JSONB;
       ALTER TABLE quote_requests ADD COLUMN IF NOT EXISTS layout TEXT;
       ALTER TABLE quote_requests ADD COLUMN IF NOT EXISTS sink_type TEXT;
+      ALTER TABLE staged_messages ADD COLUMN IF NOT EXISTS channel TEXT DEFAULT 'SMS';
+      ALTER TABLE staged_messages ADD COLUMN IF NOT EXISTS scheduled_for TIMESTAMPTZ;
     `)
     _initialized = true
   }

@@ -29,6 +29,15 @@ function baseTemplate(content: string) {
   `
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 export async function sendQuoteEmail({
   to,
   customerName,
@@ -112,5 +121,58 @@ export async function sendLeadConfirmationEmail({
     to,
     subject: `We received your quote request — ${stoneNames}`,
     html: baseTemplate(content),
+  })
+}
+
+export async function sendFabricatorOutreachEmail({
+  to,
+  businessName,
+  city,
+  claimUrl,
+  message,
+}: {
+  to: string
+  businessName: string
+  city: string
+  claimUrl: string
+  message?: string
+}) {
+  const plainText = message || [
+    `Hi ${businessName} team,`,
+    '',
+    `We just launched ${city} on Quarriva and your profile is already live:`,
+    claimUrl,
+    '',
+    'We are inviting a small group of stronger-reviewed local shops to claim their profiles and receive exclusive countertop leads by text.',
+    '',
+    'There is no charge today. Quarriva only charges when you accept a specific exclusive lead offer.',
+    '',
+    'Best,',
+    'Sorn',
+    'Quarriva',
+  ].join('\n')
+
+  const paragraphs = plainText
+    .split(/\n{2,}/)
+    .map(paragraph => paragraph.trim())
+    .filter(Boolean)
+    .map(paragraph => `<p style="color: #444; line-height: 1.6;">${escapeHtml(paragraph).replace(/\n/g, '<br>')}</p>`)
+    .join('')
+
+  const content = `
+    ${paragraphs}
+    <div style="text-align: center; margin: 28px 0;">
+      <a href="${claimUrl}" style="background: #d4a847; color: #1a1a2e; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">
+        Claim Your Quarriva Profile
+      </a>
+    </div>
+  `
+
+  await transporter.sendMail({
+    from: `"Quarriva" <${process.env.GMAIL_FROM || 'quotes@quarriva.com'}>`,
+    to,
+    subject: `${businessName}, your Quarriva profile is live`,
+    html: baseTemplate(content),
+    text: plainText,
   })
 }

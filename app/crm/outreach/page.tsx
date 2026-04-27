@@ -47,6 +47,7 @@ export default async function OutreachPage() {
       context,
       'staged_messages'   AS source
     FROM staged_messages
+    WHERE stage_name IS NULL OR stage_name NOT LIKE 'quarriva_fabricator_%'
     ORDER BY
       CASE status WHEN 'pending' THEN 0 WHEN 'edited' THEN 1 ELSE 2 END,
       created_at DESC
