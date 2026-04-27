@@ -7,7 +7,6 @@ import { useSession, signIn } from 'next-auth/react'
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const { data: session } = useSession()
-  const userRole = (session?.user as { role?: string } | undefined)?.role
 
   return (
     <nav className="border-b border-slate-800 bg-[#0f172a]/95 backdrop-blur sticky top-0 z-50">
@@ -34,17 +33,6 @@ export default function Navbar() {
           <Link href="/fabricators" className="text-slate-300 hover:text-white transition-colors">
             For Fabricators
           </Link>
-          <Link href="/countertops" className="text-slate-300 hover:text-white transition-colors">
-            Locations
-          </Link>
-          <Link href="/blog" className="text-slate-300 hover:text-white transition-colors">
-            Blog
-          </Link>
-          {session && (userRole === 'admin' || userRole === 'reviewer') && (
-            <Link href="/crm" className="text-slate-300 hover:text-amber-400 transition-colors font-medium">
-              CRM
-            </Link>
-          )}
           {session ? (
             <Link href="/dashboard" className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors">
               <span className="w-7 h-7 rounded-full bg-amber-500 text-slate-900 flex items-center justify-center text-xs font-bold">
@@ -102,17 +90,6 @@ export default function Navbar() {
           <Link href="/fabricators" className="text-slate-300 hover:text-white transition-colors text-center" onClick={() => setMenuOpen(false)}>
             For Fabricators
           </Link>
-          <Link href="/countertops" className="text-slate-300 hover:text-white transition-colors text-center" onClick={() => setMenuOpen(false)}>
-            Locations
-          </Link>
-          <Link href="/blog" className="text-slate-300 hover:text-white transition-colors text-center" onClick={() => setMenuOpen(false)}>
-            Blog
-          </Link>
-          {session && (userRole === 'admin' || userRole === 'reviewer') && (
-            <Link href="/crm" className="text-amber-400 hover:text-amber-300 font-medium transition-colors text-center" onClick={() => setMenuOpen(false)}>
-              CRM Dashboard
-            </Link>
-          )}
           {session ? (
             <Link href="/dashboard" className="flex items-center justify-center gap-2 text-slate-300 hover:text-white transition-colors" onClick={() => setMenuOpen(false)}>
               <span className="w-7 h-7 rounded-full bg-amber-500 text-slate-900 flex items-center justify-center text-xs font-bold">

@@ -28,7 +28,21 @@ export default function RootLayout({
           <div className="max-w-6xl mx-auto px-4 text-center text-slate-500 text-sm">
             <p>© 2026 Quarriva. All rights reserved.</p>
             <p className="mt-1">quarriva.com — The stone marketplace for homeowners and fabricators.</p>
-            <p className="mt-3">
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+              <Link href="/countertops" className="text-slate-500 hover:text-slate-300 transition-colors">
+                Locations
+              </Link>
+              <Link href="/blog" className="text-slate-500 hover:text-slate-300 transition-colors">
+                Blog
+              </Link>
+              <Link href="/directory" className="text-slate-500 hover:text-slate-300 transition-colors">
+                Directory
+              </Link>
+              <Link href="/fabricators" className="text-slate-500 hover:text-slate-300 transition-colors">
+                For Fabricators
+              </Link>
+            </div>
+            <p className="mt-4">
               <Link href="/admin" className="text-slate-600 hover:text-slate-400 text-xs transition-colors">
                 Admin
               </Link>

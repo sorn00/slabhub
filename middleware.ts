@@ -12,8 +12,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 308)
   }
 
-  // Protect /admin/* routes with cookie-based auth
-  if (pathname.startsWith('/admin')) {
+  // Protect /admin and /crm routes with cookie-based admin auth.
+  if (pathname.startsWith('/admin') || pathname.startsWith('/crm')) {
     if (pathname.startsWith('/admin/login')) {
       return NextResponse.next()
     }
@@ -22,11 +22,10 @@ export function middleware(request: NextRequest) {
       return NextResponse.next()
     }
     const loginUrl = new URL('/admin/login', request.url)
+    loginUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  // /crm routes are protected by NextAuth (handled in server components via auth())
-  // The redirect to /login is done in the page components themselves
   return NextResponse.next()
 }
 
