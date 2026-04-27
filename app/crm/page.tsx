@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { auth } from '@/lib/auth'
 import { queryOne } from '@/lib/db'
 import Link from 'next/link'
@@ -43,9 +44,8 @@ async function getGhlStats() {
 
 export default async function CrmDashboardPage() {
   const session = await auth()
-  if (!session) {
-    redirect('/login')
-  }
+  const isAdminCookie = cookies().get('admin_session')?.value === 'valid'
+  if (!session && !isAdminCookie) redirect('/admin/login?redirect=/crm')
 
   // DB stats
   const pendingMsgsRow = await queryOne(
@@ -76,7 +76,9 @@ export default async function CrmDashboardPage() {
   // GHL stats
   const { openPipeline } = await getGhlStats()
 
-  const userRole = (session.user as { role?: string }).role || 'reviewer'
+  const userRole = isAdminCookie
+    ? 'admin'
+    : (session?.user as { role?: string } | undefined)?.role || 'reviewer'
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -84,7 +86,7 @@ export default async function CrmDashboardPage() {
       <div>
         <h1 className="text-2xl font-bold text-white">Dashboard</h1>
         <p className="text-slate-400 text-sm mt-1">
-          Welcome back, {session.user?.name || 'team'}. Here&apos;s what needs attention.
+          Welcome back, {session?.user?.name || 'team'}. Here&apos;s what needs attention.
         </p>
       </div>
 

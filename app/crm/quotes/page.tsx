@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { auth } from '@/lib/auth'
 import { query } from '@/lib/db'
 import CrmQuotesClient from './CrmQuotesClient'
@@ -61,9 +62,12 @@ async function fetchConversation(contactId: string) {
 
 export default async function CrmQuotesPage() {
   const session = await auth()
-  if (!session) redirect('/login')
+  const isAdminCookie = cookies().get('admin_session')?.value === 'valid'
+  if (!session && !isAdminCookie) redirect('/admin/login?redirect=/crm/quotes')
 
-  const userRole = (session.user as { role?: string }).role || 'reviewer'
+  const userRole = isAdminCookie
+    ? 'admin'
+    : (session?.user as { role?: string } | undefined)?.role || 'reviewer'
   if (!["admin","va"].includes(userRole)) redirect("/crm")
 
   // --- Quarriva DB requests ---
