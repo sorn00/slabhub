@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPool } from '@/lib/db'
+import { createGhlContact } from '@/lib/ghl-contacts'
 
 export async function POST(req: NextRequest) {
   try {
@@ -83,6 +84,15 @@ export async function POST(req: NextRequest) {
       status,
       JSON.stringify({ ...body, customerId, status }),
     ])
+
+    await createGhlContact({
+      name: body.ownerName || body.businessName,
+      email: body.email,
+      phone: body.phone,
+      companyName: body.businessName,
+      source: 'Quarriva Card Setup',
+      tags: ['quarriva:fabricator_card_setup', 'quarriva:launch_2026_04_27', 'partner-outreach'],
+    })
 
     return NextResponse.json({ success: true, id: result.rows[0].id, customerId })
   } catch (err) {

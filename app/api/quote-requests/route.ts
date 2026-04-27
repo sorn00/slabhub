@@ -8,6 +8,7 @@ const GHL_LOCATION = process.env.GHL_LOCATION_ID || 'qhOziWzmOO7mYbl3U7tm'
 const GHL_PIPELINE = process.env.GHL_PIPELINE_ID || '7CiRMsaloPKQHYt2EF4r'
 const GHL_STAGE_QUALIFIED = process.env.GHL_STAGE_QUALIFIED || '8bc331fb-0887-4d64-80e3-ced5eb95f19e'
 const TELEGRAM_CHAT = process.env.TELEGRAM_CHAT_ID || ''
+const QUARRIVA_LEAD_TAGS = ['quarriva_lead', 'quarriva:website_quote', 'quarriva:launch_2026_04_27']
 
 async function createGHLContact(name: string, phone: string, email?: string) {
   if (!GHL_TOKEN) return null
@@ -18,7 +19,15 @@ async function createGHLContact(name: string, phone: string, email?: string) {
     const res = await fetch('https://services.leadconnectorhq.com/contacts/', {
       method: 'POST',
       headers: { Authorization: `Bearer ${GHL_TOKEN}`, Version: '2021-07-28', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ locationId: GHL_LOCATION, firstName, lastName, phone, email: email || undefined, tags: ['quarriva_lead'] })
+      body: JSON.stringify({
+        locationId: GHL_LOCATION,
+        firstName,
+        lastName,
+        phone,
+        email: email || undefined,
+        source: 'Quarriva Website',
+        tags: QUARRIVA_LEAD_TAGS,
+      })
     })
     const data = await res.json()
     return data.contact?.id || null
@@ -154,16 +163,13 @@ export async function POST(req: NextRequest) {
     ;(async () => {
       // Check if contact already exists in GHL by email
       let ghlId = userEmail ? await findGHLContactByEmail(userEmail) : null
-      if (ghlId) {
-        // Existing contact — add note to their conversation
-        await sendGHLSMS(ghlId, `🔔 ${customer_name} submitted a new quote request via Quarriva for: ${stoneNames}${sqft_estimate ? ` (${sqft_estimate} sqft est.)` : ''}. Check Quarriva admin for details.`)
-      } else {
+      if (!ghlId) {
         // New contact — create and send confirmation
         ghlId = await createGHLContact(customer_name, phone, userEmail)
-        if (ghlId) {
-          await createGHLOpportunity(ghlId, customer_name, stoneNames, sqft_estimate)
-          await sendGHLSMS(ghlId, `Hi ${firstName}! We received your quote request for ${stoneNames}. We'll review and get back to you within 24 hours. — Quarriva`)
-        }
+      }
+      if (ghlId) {
+        await createGHLOpportunity(ghlId, customer_name, stoneNames, sqft_estimate)
+        await sendGHLSMS(ghlId, `Hi ${firstName}! We received your quote request for ${stoneNames}. We'll review and get back to you within 24 hours. — Quarriva`)
       }
       // Always notify Sorn
       await notifySorn(`🔥 New Quarriva quote request\n\n👤 ${customer_name}\n📞 ${phone}\n🪊 ${stoneNames}${sqft_estimate ? `\n📏 ${sqft_estimate} sqft` : ''}${notes ? `\n📝 ${notes}` : ''}\n\nquarriva.com/admin`)
@@ -198,14 +204,12 @@ export async function POST(req: NextRequest) {
   const userEmail2 = (session.user as { email?: string })?.email || ''
   ;(async () => {
     let ghlId2 = userEmail2 ? await findGHLContactByEmail(userEmail2) : null
-    if (ghlId2) {
-      await sendGHLSMS(ghlId2, `🔔 ${customer_name} submitted a new quote request via Quarriva for: ${stone_name || stone_id}. Check Quarriva admin for details.`)
-    } else {
+    if (!ghlId2) {
       ghlId2 = await createGHLContact(customer_name, phone, userEmail2)
-      if (ghlId2) {
-        await createGHLOpportunity(ghlId2, customer_name, stone_name || stone_id, sqft_estimate)
-        await sendGHLSMS(ghlId2, `Hi ${firstName2}! We received your quote request for ${stone_name || stone_id}. We'll review and get back to you within 24 hours. — Quarriva`)
-      }
+    }
+    if (ghlId2) {
+      await createGHLOpportunity(ghlId2, customer_name, stone_name || stone_id, sqft_estimate)
+      await sendGHLSMS(ghlId2, `Hi ${firstName2}! We received your quote request for ${stone_name || stone_id}. We'll review and get back to you within 24 hours. — Quarriva`)
     }
     await notifySorn(`🔥 New Quarriva quote request\n\n👤 ${customer_name}\n📞 ${phone}\n🪊 ${stone_name || stone_id}${sqft_estimate ? `\n📏 ${sqft_estimate} sqft` : ''}\n\nquarriva.com/admin`)
   })().catch(() => {})

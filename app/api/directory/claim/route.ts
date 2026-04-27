@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPool } from '@/lib/db'
+import { createGhlContact } from '@/lib/ghl-contacts'
 
 const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN || ''
 const TELEGRAM_CHAT = process.env.TELEGRAM_CHAT_ID || ''
@@ -47,6 +48,15 @@ export async function POST(req: NextRequest) {
     const profileUrl = `https://quarriva.com/directory/${fabricatorSlug}`
     const tgMsg = `📋 <b>Claim request: ${fabricatorName}</b>\n👤 ${name} (${role})\n📧 ${email}${phone ? `\n📞 ${phone}` : ''}\n🔗 ${profileUrl}`
     await sendTelegram(tgMsg)
+
+    await createGhlContact({
+      name,
+      email,
+      phone,
+      companyName: fabricatorName,
+      source: 'Quarriva Listing Claim',
+      tags: ['quarriva:fabricator_claim', 'quarriva:launch_2026_04_27', 'partner-outreach'],
+    })
 
     return NextResponse.json({ success: true })
   } catch (err) {
