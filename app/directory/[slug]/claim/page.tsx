@@ -92,14 +92,14 @@ export default async function ClaimPage({ params }: { params: { slug: string } }
             <ul className="text-slate-400 text-sm flex flex-col gap-1.5">
               <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> We verify you are authorized to manage this listing</li>
               <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> Verify your business info and service area</li>
-              <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> Set up a card for accepted lead claims, with no monthly retainer</li>
-              <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> Get text offers for $200 projects with measurements ready for quote and $125 standard appointment leads</li>
+              <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> Reserve your local listing spot while we confirm fit</li>
+              <li className="flex items-start gap-2"><span className="text-amber-400 shrink-0">✓</span> Get your first real countertop client opportunity free, on us</li>
             </ul>
           </div>
 
-          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6">
-            <p className="text-amber-100 text-sm leading-relaxed">
-              Claiming your listing is free. Card setup happens after this claim step and is only used when you accept a future lead offer.
+          <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 mb-6">
+            <p className="text-green-100 text-sm leading-relaxed">
+              Claiming your listing is free. No card is required to claim or receive the first client opportunity.
             </p>
           </div>
 

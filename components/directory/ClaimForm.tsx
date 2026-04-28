@@ -18,14 +18,6 @@ export default function ClaimForm({ fabricatorId, fabricatorSlug, fabricatorName
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
 
-  const cardSetupUrl = `/fabricators/card-setup?${new URLSearchParams({
-    businessName: fabricatorName,
-    ownerName: name,
-    email,
-    phone,
-    listingSlug: fabricatorSlug,
-  }).toString()}`
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
@@ -62,7 +54,7 @@ export default function ClaimForm({ fabricatorId, fabricatorSlug, fabricatorName
         </div>
 
         <div className="bg-slate-900/60 border border-slate-700 rounded-xl p-5 mb-5">
-          <h4 className="text-white font-semibold mb-4">Next: activate lead claiming</h4>
+          <h4 className="text-white font-semibold mb-4">Next: first client opportunity</h4>
           <div className="space-y-4">
             <div className="flex gap-3">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-300 text-sm font-bold">1</span>
@@ -74,23 +66,23 @@ export default function ClaimForm({ fabricatorId, fabricatorSlug, fabricatorName
             <div className="flex gap-3">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-300 text-sm font-bold">2</span>
               <div>
-                <p className="text-white text-sm font-medium">You save a card on file</p>
-                <p className="text-slate-400 text-xs leading-relaxed">No monthly retainer and no lead charge today. This only enables accepted lead billing.</p>
+                <p className="text-white text-sm font-medium">We reserve your local listing spot</p>
+                <p className="text-slate-400 text-xs leading-relaxed">We confirm your service area and keep the profile connected to your shop.</p>
               </div>
             </div>
             <div className="flex gap-3">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-300 text-sm font-bold">3</span>
               <div>
-                <p className="text-white text-sm font-medium">Lead offers arrive by text</p>
-                <p className="text-slate-400 text-xs leading-relaxed">Reply YES to accept the lead exclusively. Projects with measurements ready for quote are $200 and standard appointment leads are $125.</p>
+                <p className="text-white text-sm font-medium">You get the first opportunity free</p>
+                <p className="text-slate-400 text-xs leading-relaxed">We send your first real countertop client opportunity free, on us, so you can judge the quality.</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-5">
-          <p className="text-blue-200 text-sm leading-relaxed">
-            Card setup is for future accepted leads only. You are charged after you accept a specific lead offer.
+        <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 mb-5">
+          <p className="text-green-200 text-sm leading-relaxed">
+            No payment setup is needed right now. After we verify the claim, we will text you about the first free client opportunity.
           </p>
         </div>
 
@@ -101,24 +93,18 @@ export default function ClaimForm({ fabricatorId, fabricatorSlug, fabricatorName
           </div>
           <div className="rounded-2xl rounded-tl-md bg-slate-800 border border-slate-700 p-4">
             <p className="text-slate-200 text-sm leading-relaxed">
-              Exclusive Quarriva lead for {fabricatorName}: Bridgeport homeowner needs quartz countertops. Project with measurements ready for quote, $200 if accepted. Reply YES to claim exclusively or PASS to skip.
+              Quarriva opportunity for {fabricatorName}: Local homeowner needs quartz countertops. First client opportunity is free, on us. Reply YES and we will send the details exclusively to your shop.
             </p>
           </div>
           <p className="text-slate-500 text-xs mt-3 leading-relaxed">
-            Lead details are sent after you accept, and accepted leads are sent exclusively to your shop.
+            We start with one free opportunity so you can see the quality before deciding if you want more.
           </p>
         </div>
 
         <div className="flex flex-col gap-3">
           <Link
-            href={cardSetupUrl}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-3 rounded-xl transition-colors text-center text-sm"
-          >
-            Set Up Card for Lead Claims
-          </Link>
-          <Link
             href={`/directory/${fabricatorSlug}`}
-            className="w-full border border-slate-600 hover:border-slate-500 text-slate-300 hover:text-white font-medium py-3 rounded-xl transition-colors text-center text-sm"
+            className="w-full bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-3 rounded-xl transition-colors text-center text-sm"
           >
             Back to Listing
           </Link>
@@ -184,7 +170,7 @@ export default function ClaimForm({ fabricatorId, fabricatorSlug, fabricatorName
         {loading ? 'Submitting...' : 'Submit Claim Request'}
       </button>
       <p className="text-slate-500 text-xs text-center">
-        By submitting, you confirm you are authorized to manage this listing. Lead charges only happen after you accept a lead offer.
+        By submitting, you confirm you are authorized to manage this listing. We will contact you before sending the first free client opportunity.
       </p>
     </form>
   )

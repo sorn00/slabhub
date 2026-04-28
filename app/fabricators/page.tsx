@@ -13,10 +13,10 @@ export default function FabricatorsPage() {
             <span>◆</span> CT Beta Launch — Limited Spots
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-            Claim homeowner leads exclusively after you approve them.
+            Claim your listing and get your first client opportunity free.
           </h1>
           <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-10">
-            Claim your Quarriva listing, save a card on file, and receive qualified lead offers by text before any details are released.
+            Your Quarriva profile may already be live. Claim it, verify your shop, and we will send the first real countertop client opportunity free, on us.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/directory" className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-8 py-4 rounded-lg transition-colors text-lg inline-block">
@@ -36,8 +36,8 @@ export default function FabricatorsPage() {
             {[
               { stat: 'MSI Catalog', label: 'Pre-loaded — 391 stones' },
               { stat: 'Exclusive', label: 'Accepted leads' },
-              { stat: '$0', label: 'Monthly retainer' },
-              { stat: 'YES', label: 'Claim by text' },
+              { stat: '$0', label: 'To claim listing' },
+              { stat: 'Free', label: 'First client opportunity' },
             ].map(item => (
               <div key={item.stat}>
                 <div className="text-2xl font-bold text-amber-400">{item.stat}</div>
@@ -72,7 +72,7 @@ export default function FabricatorsPage() {
             {
               icon: '⚡',
               title: 'Text-first lead delivery',
-              desc: 'When a homeowner lead is a fit, we text you the lead type. Reply YES, we charge the saved card, then send the project details exclusively to your shop.',
+              desc: 'When a homeowner opportunity is a fit, we text you first. Your first client opportunity is free so you can see the quality before deciding if you want more.',
             },
           ].map(item => (
             <div key={item.title} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 hover:border-amber-500/30 transition-colors flex gap-4">
@@ -89,13 +89,13 @@ export default function FabricatorsPage() {
       {/* How it works */}
       <section id="how-it-works" className="bg-slate-800/30 border-y border-slate-700/50 py-20">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">From listing claim to paid leads</h2>
+          <h2 className="text-3xl font-bold text-white text-center mb-12">From listing claim to first opportunity</h2>
           <div className="grid md:grid-cols-4 gap-6">
             {[
               { step: '01', title: 'Find your listing', desc: 'Search Quarriva for your shop and submit the owner claim form.' },
               { step: '02', title: 'We verify and onboard', desc: 'We confirm the business, service area, materials, and lead preferences.' },
-              { step: '03', title: 'Save a card on file', desc: 'No monthly retainer. The card is used only when you accept a lead.' },
-              { step: '04', title: 'Reply YES to claim', desc: 'Projects with measurements ready for quote are $200. Standard appointment leads are $125. Once accepted, the lead is yours exclusively.' },
+              { step: '03', title: 'Get the first one free', desc: 'We send your first real countertop client opportunity free, on us.' },
+              { step: '04', title: 'Decide if you want more', desc: 'If the first opportunity is useful, we can keep sending exclusive countertop opportunities by text.' },
             ].map(item => (
               <div key={item.step} className="text-center">
                 <div className="w-12 h-12 bg-amber-500/20 border border-amber-500/40 rounded-full flex items-center justify-center text-amber-400 font-bold mx-auto mb-4">
@@ -125,47 +125,25 @@ export default function FabricatorsPage() {
       {/* ROI Calculator */}
       <ROICalculator />
 
-      {/* Pricing */}
+      {/* Trial offer */}
       <section id="pricing" className="bg-slate-800/30 border-y border-slate-700/50 py-20">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Simple pricing. No surprises.</h2>
-          <p className="text-slate-400 mb-12">Pay only when you accept a matching homeowner lead by text.</p>
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            {/* Project with measurements */}
-            <div className="bg-slate-800 border border-amber-500/40 rounded-2xl p-8 relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-900 text-xs font-bold px-3 py-1 rounded-full">MOST POPULAR</div>
-              <div className="text-amber-400 font-bold text-sm mb-2">PROJECT WITH MEASUREMENTS</div>
-              <div className="text-5xl font-bold text-white mb-1">$200<span className="text-2xl text-slate-400">/lead</span></div>
-              <div className="text-slate-400 text-sm mb-6">ready for quote with measurements or plan details</div>
-              <ul className="text-slate-300 text-sm space-y-3 text-left mb-8">
-                <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Lead is exclusive after you accept</li>
-                <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Project measurements included</li>
-                <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Material direction already chosen</li>
-                <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Real-time lead notifications</li>
-                <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> No setup fee or monthly retainer</li>
-              </ul>
-              <Link href="/fabricators/register" className="block bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-3 rounded-lg transition-colors text-center">
-                Save Card for Lead Claims →
-              </Link>
-            </div>
-            {/* Standard appointment lead */}
-            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8">
-              <div className="text-slate-400 font-bold text-sm mb-2">STANDARD APPOINTMENT LEAD</div>
-              <div className="text-5xl font-bold text-white mb-1">$125<span className="text-2xl text-slate-400">/lead</span></div>
-              <div className="text-slate-400 text-sm mb-6">qualified homeowner appointment without measurements yet</div>
-              <ul className="text-slate-300 text-sm space-y-3 text-left mb-8">
-                <li className="flex items-start gap-2"><span className="text-green-400 mt-0.5">✓</span> Homeowner has requested contact</li>
-                <li className="flex items-start gap-2"><span className="text-green-400 mt-0.5">✓</span> Contact info and project intent included</li>
-                <li className="flex items-start gap-2"><span className="text-green-400 mt-0.5">✓</span> Good fit for quick callback workflows</li>
-                <li className="flex items-start gap-2"><span className="text-green-400 mt-0.5">✓</span> Average job value $3,000–$8,000</li>
-                <li className="flex items-start gap-2"><span className="text-green-400 mt-0.5">✓</span> No setup fee or monthly retainer</li>
-              </ul>
-              <Link href="/fabricators/register" className="block border border-slate-600 hover:border-amber-500/50 text-slate-300 hover:text-white font-bold py-3 rounded-lg transition-colors text-center">
-                Save Card for Lead Claims
-              </Link>
-            </div>
+          <h2 className="text-3xl font-bold text-white mb-4">Start with one real opportunity.</h2>
+          <p className="text-slate-400 mb-12">Claim your listing and we will send your first real countertop client opportunity free, on us.</p>
+          <div className="bg-slate-800 border border-amber-500/40 rounded-2xl p-8 max-w-2xl mx-auto">
+            <div className="text-amber-400 font-bold text-sm mb-2">LAUNCH TRIAL</div>
+            <div className="text-5xl font-bold text-white mb-1">Free<span className="text-2xl text-slate-400"> first opportunity</span></div>
+            <div className="text-slate-400 text-sm mb-6">see the quality before deciding if you want more</div>
+            <ul className="text-slate-300 text-sm space-y-3 text-left mb-8">
+              <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Claim and verify your public listing</li>
+              <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> Confirm your service area and best text number</li>
+              <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> First real countertop client opportunity is free</li>
+              <li className="flex items-start gap-2"><span className="text-amber-400 mt-0.5">✓</span> No card required to start</li>
+            </ul>
+            <Link href="/directory" className="block bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-3 rounded-lg transition-colors text-center">
+              Claim Your Listing →
+            </Link>
           </div>
-          <p className="text-slate-500 text-sm mt-8">No setup fee. No contracts. No monthly retainer. Stripe-secured payments.</p>
         </div>
       </section>
 
@@ -207,8 +185,8 @@ export default function FabricatorsPage() {
                 a: 'No — but if you carry MSI, setup is faster since we\'ve already loaded their full catalog. Fabricators sourcing from Bedrosians, Arizona Tile, or other suppliers are welcome too.',
               },
               {
-                q: 'What happens if a lead doesn\'t close?',
-                a: 'You only pay after you accept the lead by text. Projects with measurements ready for quote are $200. Standard appointment leads are $125. If a homeowner no-shows or the lead is invalid, contact us and we\'ll review credits case by case.',
+                q: 'Do I need a card to claim my listing?',
+                a: 'No. During launch, claiming your listing is free and no card is required. We start by sending the first real countertop client opportunity free so you can judge the quality.',
               },
               {
                 q: 'How long is the contract?',

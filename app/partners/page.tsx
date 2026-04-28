@@ -148,7 +148,7 @@ export default async function PartnersPage() {
           Start Receiving Exclusive Lead Offers
         </h2>
         <p style={{ color: '#3a2d0a', fontSize: 16, marginBottom: 24 }}>
-          Save a card once, then pay only when you accept a specific homeowner lead by text.
+          Claim your listing and we will send your first real countertop client opportunity free, on us.
         </p>
         <Link
           href="#markets"

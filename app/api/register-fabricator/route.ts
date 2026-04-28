@@ -10,7 +10,8 @@ export async function POST(req: NextRequest) {
     }
 
     const stripeKey = process.env.STRIPE_SECRET_KEY || ''
-    const isStripeConfigured = stripeKey && stripeKey !== 'sk_test_placeholder'
+    const needsPaymentCustomer = body.step === 'pre-payment' || body.step === 'payment-complete'
+    const isStripeConfigured = needsPaymentCustomer && stripeKey && stripeKey !== 'sk_test_placeholder'
 
     let customerId = body.customerId || ''
 
@@ -39,11 +40,15 @@ export async function POST(req: NextRequest) {
         console.error('Stripe customer creation failed:', stripeErr)
         return NextResponse.json({ success: false, error: 'Payment customer creation failed' }, { status: 502 })
       }
-    } else if (!customerId) {
+    } else if (needsPaymentCustomer && !customerId) {
       customerId = 'cus_mock'
     }
 
-    const status = body.step === 'payment-complete' ? 'payment_method_saved' : 'pending_payment'
+    const status = body.step === 'payment-complete'
+      ? 'payment_method_saved'
+      : body.step === 'trial-claim'
+        ? 'trial_claim_requested'
+        : 'pending_payment'
     const pool = getPool()
 
     await pool.query(`
@@ -90,8 +95,10 @@ export async function POST(req: NextRequest) {
       email: body.email,
       phone: body.phone,
       companyName: body.businessName,
-      source: 'Quarriva Card Setup',
-      tags: ['quarriva:fabricator_card_setup', 'quarriva:launch_2026_04_27', 'partner-outreach'],
+      source: body.step === 'trial-claim' ? 'Quarriva Listing Claim' : 'Quarriva Card Setup',
+      tags: body.step === 'trial-claim'
+        ? ['quarriva:fabricator_claim', 'quarriva:first_opportunity_free', 'partner-outreach']
+        : ['quarriva:fabricator_card_setup', 'quarriva:launch_2026_04_27', 'partner-outreach'],
     })
 
     return NextResponse.json({ success: true, id: result.rows[0].id, customerId })

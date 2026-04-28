@@ -1,9 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import dynamic from 'next/dynamic'
-
-const StripePaymentStep = dynamic(() => import('@/components/StripePaymentStep'), { ssr: false })
 
 const US_STATES = [
   'Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut',
@@ -16,11 +13,10 @@ const US_STATES = [
   'Wisconsin','Wyoming'
 ]
 
-const STEPS = ['Business Info', 'Territory', 'Your Business', 'Specialties', 'Payment', 'Confirmation']
+const STEPS = ['Business Info', 'Territory', 'Your Business', 'Specialties', 'Confirmation']
 
 export default function FabricatorRegisterPage() {
   const [step, setStep] = useState(0)
-  const [stripeCustomerId, setStripeCustomerId] = useState('')
   const [registrationError, setRegistrationError] = useState('')
   const [data, setData] = useState({
     businessName: '',
@@ -60,35 +56,13 @@ export default function FabricatorRegisterPage() {
   const next = () => setStep(s => s + 1)
   const back = () => setStep(s => s - 1)
 
-  const saveAndContinue = async () => {
-    // Create Stripe customer when moving to payment step
+  const submitApplication = async () => {
     try {
       setRegistrationError('')
       const res = await fetch('/api/register-fabricator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, step: 'pre-payment' }),
-      })
-      const json = await res.json()
-      if (!res.ok) {
-        setRegistrationError(json.error || 'Registration failed')
-        return
-      }
-      if (json.customerId) setStripeCustomerId(json.customerId)
-      next()
-    } catch (e) {
-      console.error(e)
-      setRegistrationError('Registration failed')
-    }
-  }
-
-  const completeRegistration = async () => {
-    try {
-      setRegistrationError('')
-      const res = await fetch('/api/register-fabricator', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, customerId: stripeCustomerId, step: 'payment-complete' }),
+        body: JSON.stringify({ ...data, step: 'trial-claim' }),
       })
       const json = await res.json()
       if (!res.ok) {
@@ -297,50 +271,30 @@ export default function FabricatorRegisterPage() {
               ))}
             </div>
             <button
-              onClick={saveAndContinue}
+              onClick={submitApplication}
               disabled={data.specialties.length === 0}
               className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 font-bold py-3 rounded-lg w-full transition-colors"
             >
-              Continue to Payment →
+              Submit Claim Request →
             </button>
             {registrationError && <p className="text-red-400 text-sm mt-3">{registrationError}</p>}
           </div>
         )}
 
-        {/* Step 4: Payment */}
+        {/* Step 4: Confirmation */}
         {step === 4 && (
-          <div>
-            <h2 className="text-xl font-bold text-white mb-2">Payment Setup</h2>
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 mb-6">
-              <p className="text-amber-400 text-sm font-medium">💳 How billing works</p>
-              <p className="text-slate-400 text-sm mt-1">
-                <strong className="text-white">$200</strong> per project with measurements ready for quote + <strong className="text-white">$125</strong> per standard appointment lead.
-                <br /><strong className="text-amber-400">Accepted leads are exclusive</strong> — once you reply YES, the homeowner details go to your shop only.
-              </p>
-            </div>
-            <StripePaymentStep
-              email={data.email}
-              customerId={stripeCustomerId}
-              onSuccess={completeRegistration}
-            />
-            {registrationError && <p className="text-red-400 text-sm mt-3">{registrationError}</p>}
-          </div>
-        )}
-
-        {/* Step 5: Confirmation */}
-        {step === 5 && (
           <div className="text-center py-4">
             <div className="text-5xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-white mb-3">Application received!</h2>
+            <h2 className="text-2xl font-bold text-white mb-3">Claim request received!</h2>
             <p className="text-slate-400 mb-6">
-              We&apos;ll review your application and be in touch within 24 hours to confirm your service area and lead preferences.
+              We&apos;ll review your listing claim and be in touch to confirm your service area. No card is required to start.
             </p>
             <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 text-left text-sm text-slate-400 space-y-2">
               <p><span className="text-amber-400 font-medium">Business:</span> {data.businessName}</p>
               <p><span className="text-amber-400 font-medium">Address:</span> {data.address}, {data.city}, {data.state} {data.zip}</p>
               <p><span className="text-amber-400 font-medium">Territory:</span> {data.state} · {data.radius}</p>
               <p><span className="text-amber-400 font-medium">Specialties:</span> {data.specialties.join(', ')}</p>
-              <p><span className="text-amber-400 font-medium">Plan:</span> $200 projects with measurements + $125 standard appointment leads</p>
+              <p><span className="text-amber-400 font-medium">Launch offer:</span> First real countertop client opportunity free, on us</p>
             </div>
           </div>
         )}

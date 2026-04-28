@@ -170,7 +170,7 @@ export default async function DirectoryPage({
                 href="/fabricators/register"
                 className="block w-full bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-4 py-3 rounded-lg text-center transition-colors text-sm"
               >
-                Continue to Card Setup →
+                Claim Your Listing →
               </Link>
               <div className="mt-4 pt-4 border-t border-slate-700">
                 <p className="text-slate-500 text-xs text-center">
