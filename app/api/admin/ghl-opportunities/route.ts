@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60 // Vercel Pro: 60s timeout for conversation fetching
 
 const GHL_BASE = 'https://services.leadconnectorhq.com'
 const PIPELINE_ID = '7CiRMsaloPKQHYt2EF4r'
