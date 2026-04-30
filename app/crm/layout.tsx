@@ -7,6 +7,7 @@ import { signOut, useSession } from 'next-auth/react'
 
 const NAV_ITEMS = [
   { emoji: '🏠', label: 'Dashboard', href: '/crm' },
+  { emoji: '📊', label: 'Pipeline Board', href: '/crm/pipeline' },
   { emoji: '🔴', label: 'Lead Queue', href: '/crm/leads' },
   { emoji: '💬', label: 'Messages', href: '/crm/messages' },
   { emoji: '📤', label: 'Outreach', href: '/crm/outreach' },
